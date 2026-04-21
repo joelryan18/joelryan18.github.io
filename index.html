@@ -5,313 +5,387 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BacklogHQ – Your Game Universe</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   RESET + CUSTOM PROPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-/* ── THEMES ── */
 :root,[data-theme="dark"]{
-  --bg0:#07080f;--bg1:#0d0f1c;--bg2:#13162a;--bg3:#1a1e35;
-  --accent:#7c6af7;--accent2:#f97316;--teal:#0fd4b8;--pink:#f43f8e;
-  --text1:#f0f0ff;--text2:#8b8fad;--text3:#4a4f6a;
-  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
-  --shadow:rgba(0,0,0,0.5);--card-shadow:rgba(0,0,0,0.4);
-  --blob-op:0.07;--input-bg:var(--bg3);
-  --radius:16px;--card-radius:20px;
+  --bg0:#080910;--bg1:#0e1019;--bg2:#141725;--bg3:#1c2035;
+  --surface:#1c2035;
+  --accent:#7b61ff;--accent2:#ff6b35;--teal:#00d2b4;--pink:#ff3d7f;
+  --text1:#eef0ff;--text2:#7f84a8;--text3:#3e4460;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --shadow:rgba(0,0,0,0.55);--card-shadow:rgba(0,0,0,0.4);
+  --blob-op:0.07;--input-bg:#1c2035;
+  --card-r:18px;
 }
 [data-theme="light"]{
-  --bg0:#f0f2ff;--bg1:#ffffff;--bg2:#eef0fc;--bg3:#e4e7f8;
-  --text1:#0f1020;--text2:#4a4f7a;--text3:#8b90b8;
-  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
-  --shadow:rgba(100,110,200,0.15);--card-shadow:rgba(100,110,200,0.12);
-  --blob-op:0.04;--input-bg:#eef0fc;
+  --bg0:#f4f5ff;--bg1:#ffffff;--bg2:#eceeff;--bg3:#e0e3f8;
+  --surface:#e0e3f8;
+  --text1:#0b0d20;--text2:#454878;--text3:#9298c0;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);
+  --shadow:rgba(80,90,200,0.14);--card-shadow:rgba(80,90,200,0.1);
+  --blob-op:0.035;--input-bg:#eceeff;
 }
 
-body{background:var(--bg0);color:var(--text1);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;transition:background 0.3s,color 0.3s}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   BASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+body{
+  background:var(--bg0);color:var(--text1);
+  font-family:'Outfit',sans-serif;
+  font-size:15px;line-height:1.55;
+  min-height:100vh;overflow-x:hidden;
+  transition:background .3s,color .3s;
+}
+h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* pages */
+.page{display:none;min-height:100vh}
+.page.active{display:block}
+
+/* ambient blobs */
 .ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:var(--blob-op);transition:opacity 0.3s}
-.blob1{width:600px;height:600px;background:#7c6af7;top:-200px;left:-150px}
-.blob2{width:500px;height:500px;background:#f43f8e;bottom:-100px;right:-100px}
-.blob3{width:400px;height:400px;background:#0fd4b8;top:50%;left:50%;transform:translate(-50%,-50%)}
-.app{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 28px 80px}
+.blob{position:absolute;border-radius:50%;filter:blur(130px);opacity:var(--blob-op);transition:opacity .3s}
+.blob1{width:700px;height:700px;background:#7b61ff;top:-260px;left:-180px}
+.blob2{width:550px;height:550px;background:#ff3d7f;bottom:-120px;right:-120px}
+.blob3{width:450px;height:450px;background:#00d2b4;top:50%;left:50%;transform:translate(-50%,-50%)}
 
-/* ── HEADER ── */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:28px 0 20px;border-bottom:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap;gap:14px}
-.brand{display:flex;align-items:center;gap:14px;cursor:pointer;text-decoration:none}
-.brand-mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#7c6af7,#f43f8e);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 32px rgba(124,106,247,0.35);position:relative;overflow:hidden;flex-shrink:0}
-.brand-mark::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.18),transparent)}
-.brand-name{font-size:21px;font-weight:800;letter-spacing:-0.5px;color:var(--text1)}
-.brand-sub{font-family:'Space Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:3px;text-transform:uppercase;margin-top:2px}
-.hdr-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.hdr-stats{display:flex;gap:10px}
-.hstat{display:flex;flex-direction:column;align-items:center;padding:9px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;min-width:64px}
-.hstat-n{font-family:'Space Mono',monospace;font-size:17px;font-weight:700;line-height:1}
-.hstat-l{font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SHARED NAV / HEADER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.app-wrap{position:relative;z-index:1;max-width:1260px;margin:0 auto;padding:0 28px 80px}
 
-/* header buttons */
-.btn-hdr{display:flex;align-items:center;gap:7px;padding:9px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;color:var(--text2);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap}
-.btn-hdr:hover{border-color:rgba(124,106,247,0.5);color:var(--text1);background:var(--bg3)}
-.btn-rankings{border-color:rgba(249,115,22,0.3);color:#fb923c;background:rgba(249,115,22,0.06)}
-.btn-rankings:hover{border-color:rgba(249,115,22,0.6)!important;background:rgba(249,115,22,0.1)!important}
-.btn-quiz{border-color:rgba(15,212,184,0.3);color:#0fd4b8;background:rgba(15,212,184,0.06)}
-.btn-quiz:hover{border-color:rgba(15,212,184,0.6)!important;background:rgba(15,212,184,0.1)!important}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:26px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.brand{display:flex;align-items:center;gap:13px;cursor:pointer;text-decoration:none;user-select:none}
+.brand-mark{
+  width:44px;height:44px;border-radius:13px;
+  background:linear-gradient(135deg,#7b61ff,#ff3d7f);
+  display:flex;align-items:center;justify-content:center;font-size:21px;
+  box-shadow:0 0 28px rgba(123,97,255,.4);position:relative;overflow:hidden;flex-shrink:0;
+}
+.brand-mark::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.16),transparent)}
+.brand-text{display:flex;flex-direction:column}
+.brand-name{font-size:20px;font-weight:800;letter-spacing:-.6px;color:var(--text1);line-height:1}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:8.5px;color:var(--text3);letter-spacing:3px;text-transform:uppercase;margin-top:3px}
+
+.hdr-right{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.hdr-stats{display:flex;gap:9px}
+.hstat{display:flex;flex-direction:column;align-items:center;padding:8px 15px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;min-width:62px}
+.hstat-n{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;line-height:1}
+.hstat-l{font-size:8px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;font-family:'JetBrains Mono',monospace}
+
+/* nav buttons */
+.btn-nav{display:flex;align-items:center;gap:7px;padding:8px 15px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-nav:hover{border-color:rgba(123,97,255,.5);color:var(--text1);background:var(--bg3)}
+.btn-nav.nav-quiz{border-color:rgba(0,210,180,.28);color:var(--teal);background:rgba(0,210,180,.06)}
+.btn-nav.nav-quiz:hover{border-color:rgba(0,210,180,.55);background:rgba(0,210,180,.1)}
+.btn-nav.nav-rank{border-color:rgba(255,107,53,.28);color:#ff8c5a;background:rgba(255,107,53,.06)}
+.btn-nav.nav-rank:hover{border-color:rgba(255,107,53,.55);background:rgba(255,107,53,.1)}
+.btn-nav.nav-back{border-color:rgba(123,97,255,.28);color:#a89ffc}
 
 /* theme toggle */
-.theme-toggle{width:38px;height:38px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:all 0.2s;flex-shrink:0}
-.theme-toggle:hover{border-color:rgba(124,106,247,0.5);transform:rotate(20deg)}
+.theme-btn{width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .2s;flex-shrink:0}
+.theme-btn:hover{border-color:rgba(123,97,255,.5);transform:rotate(22deg)}
+
+/* user avatar + menu */
+.ua-wrap{position:relative}
+.user-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0}
+.user-avatar:hover{border-color:rgba(123,97,255,.5);transform:scale(1.05)}
+.user-menu{
+  position:absolute;top:calc(100% + 10px);right:0;
+  background:var(--bg1);border:1px solid rgba(123,97,255,.2);
+  border-radius:18px;padding:8px;min-width:210px;z-index:500;
+  box-shadow:0 20px 60px var(--shadow);display:none;
+}
+.user-menu.open{display:block;animation:popIn .16s ease}
+@keyframes popIn{from{opacity:0;transform:translateY(-7px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.um-info{padding:10px 12px 12px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.um-name{font-size:14px;font-weight:700;color:var(--text1)}
+.um-email{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;word-break:break-all}
+.um-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;color:var(--text2)}
+.um-item:hover{background:var(--bg2);color:var(--text1)}
+.um-item.danger{color:#ff7eb6}
+.um-item.danger:hover{background:rgba(255,61,127,.1)}
 
 /* help dropdown */
 .help-wrap{position:relative}
-.help-menu{position:absolute;top:calc(100% + 10px);right:0;background:var(--bg1);border:1px solid var(--border2);border-radius:18px;padding:10px;min-width:230px;z-index:200;box-shadow:0 24px 60px var(--shadow);display:none}
-.help-menu.open{display:block;animation:dropIn 0.18s ease}
-@keyframes dropIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-.help-section-label{font-size:10px;font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:6px 12px 4px;margin-top:4px}
-.help-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;color:var(--text2)}
-.help-item:hover{background:rgba(124,106,247,0.1);color:var(--text1)}
-.help-divider{height:1px;background:var(--border);margin:6px 0}
+.help-menu{
+  position:absolute;top:calc(100%+10px);right:0;
+  background:var(--bg1);border:1px solid var(--border2);
+  border-radius:18px;padding:10px;min-width:230px;z-index:500;
+  box-shadow:0 24px 60px var(--shadow);display:none;
+}
+.help-menu.open{display:block;animation:popIn .16s ease}
+.hm-section{font-size:9.5px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:6px 12px 4px;margin-top:4px}
+.hm-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:11px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;color:var(--text2)}
+.hm-item:hover{background:rgba(123,97,255,.1);color:var(--text1)}
+.hm-divider{height:1px;background:var(--border);margin:5px 0}
 
-/* user avatar */
-.user-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;cursor:pointer;border:2px solid transparent;transition:all 0.2s;position:relative;flex-shrink:0}
-.user-avatar:hover{border-color:rgba(124,106,247,0.5);transform:scale(1.05)}
-.user-menu{position:absolute;top:calc(100% + 10px);right:0;background:var(--bg1);border:1px solid rgba(124,106,247,0.25);border-radius:18px;padding:8px;min-width:210px;z-index:200;box-shadow:0 20px 60px var(--shadow);display:none}
-.user-menu.open{display:block;animation:dropIn 0.18s ease}
-.user-menu-info{padding:10px 12px 12px;border-bottom:1px solid var(--border);margin-bottom:6px}
-.user-menu-name{font-size:14px;font-weight:700;color:var(--text1)}
-.user-menu-email{font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:2px;word-break:break-all}
-.user-menu-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;color:var(--text2)}
-.user-menu-item:hover{background:var(--bg2);color:var(--text1)}
-.user-menu-item.danger{color:#f87fb6}
-.user-menu-item.danger:hover{background:rgba(244,63,142,0.1)}
-
-/* SEARCH */
-.search-wrap{position:relative;margin-bottom:22px}
-.search-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text3);pointer-events:none}
-.search-input{width:100%;padding:14px 18px 14px 48px;background:var(--bg1);border:1px solid var(--border2);border-radius:16px;color:var(--text1);font-family:'Syne',sans-serif;font-size:15px;font-weight:500;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SEARCH + GENRE + STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.search-wrap{position:relative;margin-bottom:20px}
+.search-icon{position:absolute;left:17px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text3);pointer-events:none}
+.search-input{
+  width:100%;padding:13px 17px 13px 46px;
+  background:var(--bg1);border:1px solid var(--border2);border-radius:15px;
+  color:var(--text1);font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:500;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
 .search-input::placeholder{color:var(--text3)}
-.search-input:focus{border-color:rgba(124,106,247,0.5);box-shadow:0 0 0 3px rgba(124,106,247,0.1)}
-.search-clear{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px;border-radius:6px;transition:color 0.2s;display:none}
+.search-input:focus{border-color:rgba(123,97,255,.5);box-shadow:0 0 0 3px rgba(123,97,255,.09)}
+.search-clear{position:absolute;right:15px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px;border-radius:6px;transition:color .2s;display:none}
 .search-clear:hover{color:var(--text1)}
 
-/* GENRE TABS */
-.genre-bar{display:flex;gap:9px;margin-bottom:24px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.genre-bar{display:flex;gap:8px;margin-bottom:22px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
 .genre-bar::-webkit-scrollbar{display:none}
-.gtab{display:flex;align-items:center;gap:7px;padding:8px 16px;white-space:nowrap;border-radius:100px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;flex-shrink:0}
-.gtab:hover{border-color:rgba(124,106,247,0.35);color:var(--text1)}
-.gtab.active{background:linear-gradient(135deg,rgba(124,106,247,0.18),rgba(244,63,142,0.1));border-color:rgba(124,106,247,0.45);color:#c4bfff}
+.gtab{display:flex;align-items:center;gap:7px;padding:8px 15px;white-space:nowrap;border-radius:100px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .2s;flex-shrink:0}
+.gtab:hover{border-color:rgba(123,97,255,.35);color:var(--text1)}
+.gtab.active{background:linear-gradient(135deg,rgba(123,97,255,.18),rgba(255,61,127,.1));border-color:rgba(123,97,255,.45);color:#c4bfff}
 
-/* TOP BAR */
-.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:12px;flex-wrap:wrap}
 .status-bar{display:flex;gap:7px;flex-wrap:wrap}
-.stab{padding:7px 14px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text3);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.stab{padding:6px 13px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
 .stab:hover{color:var(--text1);border-color:var(--border2)}
-.stab.active-all{background:rgba(124,106,247,0.12);border-color:rgba(124,106,247,0.35);color:#c4bfff}
-.stab.active-playing{background:rgba(15,212,184,0.1);border-color:rgba(15,212,184,0.35);color:#0fd4b8}
-.stab.active-backlog{background:rgba(124,106,247,0.1);border-color:rgba(124,106,247,0.35);color:#a89ffc}
-.stab.active-completed{background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.35);color:#fb923c}
-.stab.active-dropped{background:rgba(244,63,142,0.1);border-color:rgba(244,63,142,0.35);color:#f87fb6}
-.btn-new{display:flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(135deg,#7c6af7,#f43f8e);border:none;border-radius:100px;color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:opacity 0.2s,transform 0.1s;box-shadow:0 4px 24px rgba(124,106,247,0.3);flex-shrink:0}
-.btn-new:hover{opacity:0.87}
-.btn-new:active{transform:scale(0.97)}
+.stab.active-all{background:rgba(123,97,255,.12);border-color:rgba(123,97,255,.35);color:#c4bfff}
+.stab.active-playing{background:rgba(0,210,180,.1);border-color:rgba(0,210,180,.35);color:#00d2b4}
+.stab.active-backlog{background:rgba(123,97,255,.1);border-color:rgba(123,97,255,.35);color:#a89ffc}
+.stab.active-completed{background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.35);color:#ff8c5a}
+.stab.active-dropped{background:rgba(255,61,127,.1);border-color:rgba(255,61,127,.35);color:#ff7eb6}
+.btn-add{display:flex;align-items:center;gap:8px;padding:9px 20px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:100px;color:#fff;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;transition:opacity .2s,transform .1s;box-shadow:0 4px 22px rgba(123,97,255,.3);flex-shrink:0}
+.btn-add:hover{opacity:.87}
+.btn-add:active{transform:scale(.97)}
 
-/* GAME GRID */
-.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
-
-/* GAME CARD */
-.game-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--card-radius);overflow:hidden;transition:transform 0.25s,border-color 0.25s,box-shadow 0.25s;cursor:pointer;animation:cardIn 0.35s ease both}
-.game-card:hover{transform:translateY(-5px);border-color:rgba(124,106,247,0.35);box-shadow:0 18px 50px var(--card-shadow),0 0 0 1px rgba(124,106,247,0.1)}
-@keyframes cardIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-.card-cover{position:relative;height:155px;overflow:hidden;background:var(--bg3)}
-.card-cover img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s;display:block}
-.game-card:hover .card-cover img{transform:scale(1.06)}
-.cover-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--bg2),var(--bg3))}
-.cover-placeholder .ph-icon{font-size:40px;opacity:0.35}
-.cover-placeholder .ph-label{font-size:10px;color:var(--text3);letter-spacing:1px;font-family:'Space Mono',monospace}
-.status-ribbon{position:absolute;top:10px;left:10px;padding:3px 10px;border-radius:100px;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;backdrop-filter:blur(8px)}
-.r-playing{background:rgba(15,212,184,0.2);color:#0fd4b8;border:1px solid rgba(15,212,184,0.4)}
-.r-backlog{background:rgba(124,106,247,0.2);color:#a89ffc;border:1px solid rgba(124,106,247,0.4)}
-.r-completed{background:rgba(249,115,22,0.2);color:#fb923c;border:1px solid rgba(249,115,22,0.4)}
-.r-dropped{background:rgba(244,63,142,0.2);color:#f87fb6;border:1px solid rgba(244,63,142,0.4)}
-.card-body{padding:14px}
-.card-genre-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
-.genre-chip{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Mono',monospace;color:var(--text3);display:flex;align-items:center;gap:5px}
-.genre-dot{width:5px;height:5px;border-radius:50%}
-.card-title{font-size:15px;font-weight:800;line-height:1.3;margin-bottom:10px;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stars{display:flex;gap:3px;margin-bottom:12px}
-.star{font-size:14px;cursor:pointer;color:var(--text3);transition:color 0.15s,transform 0.15s}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GAME CARDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:18px}
+.game-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;cursor:pointer;animation:cardIn .35s ease both;transition:transform .25s,border-color .25s,box-shadow .25s}
+.game-card:hover{transform:translateY(-5px);border-color:rgba(123,97,255,.35);box-shadow:0 18px 50px var(--card-shadow),0 0 0 1px rgba(123,97,255,.08)}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.card-cover{position:relative;height:152px;overflow:hidden;background:var(--bg3)}
+.card-cover img{width:100%;height:100%;object-fit:cover;transition:transform .4s;display:block}
+.game-card:hover .card-cover img{transform:scale(1.07)}
+.cover-ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,var(--bg2),var(--bg3))}
+.cover-ph-icon{font-size:38px;opacity:.3}
+.cover-ph-label{font-size:9.5px;color:var(--text3);letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+.s-ribbon{position:absolute;top:9px;left:9px;padding:3px 9px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;backdrop-filter:blur(8px)}
+.r-playing{background:rgba(0,210,180,.2);color:#00d2b4;border:1px solid rgba(0,210,180,.4)}
+.r-backlog{background:rgba(123,97,255,.2);color:#a89ffc;border:1px solid rgba(123,97,255,.4)}
+.r-completed{background:rgba(255,107,53,.2);color:#ff8c5a;border:1px solid rgba(255,107,53,.4)}
+.r-dropped{background:rgba(255,61,127,.2);color:#ff7eb6;border:1px solid rgba(255,61,127,.4)}
+.card-body{padding:13px}
+.card-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.genre-chip{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:var(--text3);display:flex;align-items:center;gap:5px}
+.g-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.card-title{font-size:14.5px;font-weight:700;line-height:1.3;margin-bottom:9px;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stars{display:flex;gap:3px;margin-bottom:11px}
+.star{font-size:13.5px;cursor:pointer;color:var(--text3);transition:color .15s,transform .15s}
 .star.on{color:#f59e0b}
-.star:hover{transform:scale(1.25)}
-.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--border)}
+.star:hover{transform:scale(1.28)}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:9px;border-top:1px solid var(--border)}
 .card-actions{display:flex;gap:5px}
-.act-btn{width:28px;height:28px;border-radius:7px;background:var(--bg2);border:1px solid var(--border);color:var(--text3);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
-.act-btn.del:hover{background:rgba(244,63,142,0.15);color:#f43f8e;border-color:rgba(244,63,142,0.3)}
-.card-status-sel{font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border:none;outline:none;cursor:pointer;border-radius:100px;padding:4px 10px}
-.css-playing{background:rgba(15,212,184,0.12);color:#0fd4b8}
-.css-backlog{background:rgba(124,106,247,0.12);color:#a89ffc}
-.css-completed{background:rgba(249,115,22,0.12);color:#fb923c}
-.css-dropped{background:rgba(244,63,142,0.12);color:#f87fb6}
-.card-status-sel option{background:var(--bg2);color:var(--text1)}
+.act-btn{width:27px;height:27px;border-radius:7px;background:var(--bg2);border:1px solid var(--border);color:var(--text3);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.act-btn.del:hover{background:rgba(255,61,127,.15);color:#ff3d7f;border-color:rgba(255,61,127,.3)}
+.csel{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;border:none;outline:none;cursor:pointer;border-radius:100px;padding:4px 10px}
+.css-playing{background:rgba(0,210,180,.12);color:#00d2b4}
+.css-backlog{background:rgba(123,97,255,.12);color:#a89ffc}
+.css-completed{background:rgba(255,107,53,.12);color:#ff8c5a}
+.css-dropped{background:rgba(255,61,127,.12);color:#ff7eb6}
+.csel option{background:var(--bg2);color:var(--text1)}
 
-/* MODAL BASE */
-.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(7,8,15,0.82);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;padding:20px}
-[data-theme="light"] .modal-overlay{background:rgba(200,205,240,0.7)}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MODALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(8,9,16,.84);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding:20px}
+[data-theme="light"] .modal-overlay{background:rgba(200,205,240,.68)}
 .modal-overlay.open{opacity:1;pointer-events:all}
-.modal{background:var(--bg1);border:1px solid rgba(124,106,247,0.2);border-radius:28px;width:100%;max-width:520px;padding:30px;transform:translateY(22px) scale(0.97);transition:transform 0.25s;box-shadow:0 40px 120px var(--shadow),0 0 0 1px rgba(124,106,247,0.08);max-height:90vh;overflow-y:auto}
+.modal{background:var(--bg1);border:1px solid rgba(123,97,255,.2);border-radius:26px;width:100%;max-width:510px;padding:28px;transform:translateY(20px) scale(.97);transition:transform .25s;box-shadow:0 40px 120px var(--shadow);max-height:90vh;overflow-y:auto}
 .modal-overlay.open .modal{transform:translateY(0) scale(1)}
-.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
-.modal-title{font-size:19px;font-weight:800;color:var(--text1)}
-.modal-close{width:34px;height:34px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
-.modal-close:hover{background:rgba(244,63,142,0.15);color:#f43f8e;border-color:rgba(244,63,142,0.3)}
-.form-row{margin-bottom:18px}
-.form-label{font-size:10px;font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;display:block}
-.form-input,.form-select{width:100%;padding:12px 15px;background:var(--input-bg);border:1px solid var(--border);border-radius:12px;color:var(--text1);font-family:'Syne',sans-serif;font-size:14px;font-weight:500;outline:none;transition:border-color 0.2s}
-.form-input:focus,.form-select:focus{border-color:rgba(124,106,247,0.5)}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.modal-title{font-size:18px;font-weight:800;color:var(--text1)}
+.modal-close{width:32px;height:32px;border-radius:9px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{background:rgba(255,61,127,.15);color:#ff3d7f;border-color:rgba(255,61,127,.3)}
+.form-row{margin-bottom:16px}
+.form-label{font-size:9.5px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:7px;display:block}
+.form-input,.form-select{width:100%;padding:11px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:11px;color:var(--text1);font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;outline:none;transition:border-color .2s}
+.form-input:focus,.form-select:focus{border-color:rgba(123,97,255,.5)}
+.form-input::placeholder{color:var(--text3)}
 .form-select option{background:var(--bg2);color:var(--text1)}
-.form-textarea{width:100%;padding:12px 15px;background:var(--input-bg);border:1px solid var(--border);border-radius:12px;color:var(--text1);font-family:'Syne',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;resize:vertical;min-height:80px}
-.form-textarea:focus{border-color:rgba(124,106,247,0.5)}
-.form-textarea::placeholder,.form-input::placeholder{color:var(--text3)}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.btn-submit{width:100%;padding:14px;margin-top:6px;background:linear-gradient(135deg,#7c6af7,#f43f8e);border:none;border-radius:14px;color:#fff;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity 0.2s,transform 0.1s;letter-spacing:0.3px;box-shadow:0 8px 28px rgba(124,106,247,0.3)}
-.btn-submit:hover{opacity:0.87}
-.btn-submit:active{transform:scale(0.98)}
+.form-textarea{width:100%;padding:11px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:11px;color:var(--text1);font-family:'Outfit',sans-serif;font-size:13.5px;outline:none;transition:border-color .2s;resize:vertical;min-height:78px}
+.form-textarea:focus{border-color:rgba(123,97,255,.5)}
+.form-textarea::placeholder{color:var(--text3)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.btn-submit{width:100%;padding:13px;margin-top:6px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:13px;color:#fff;font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:800;cursor:pointer;transition:opacity .2s,transform .1s;box-shadow:0 7px 26px rgba(123,97,255,.3)}
+.btn-submit:hover{opacity:.87}
+.btn-submit:active{transform:scale(.98)}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
 
-/* add modal results */
-.modal-sr-results{display:none;background:var(--bg2);border-radius:12px;border:1px solid var(--border);overflow:hidden;max-height:200px;overflow-y:auto;margin-top:6px}
-.modal-sr-results.has-results{display:block}
-.modal-sr-item{display:flex;align-items:center;gap:10px;padding:10px 13px;cursor:pointer;transition:background 0.15s;border-bottom:1px solid var(--border)}
-.modal-sr-item:last-child{border-bottom:none}
-.modal-sr-item:hover{background:rgba(124,106,247,0.1)}
-.modal-sr-cover{width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;overflow:hidden;background:var(--bg3)}
-.modal-sr-cover img{width:100%;height:100%;object-fit:cover;border-radius:8px}
-.modal-sr-info{flex:1;min-width:0}
-.modal-sr-title{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text1)}
-.modal-sr-meta{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:2px}
-.game-icon-preview{width:60px;height:60px;border-radius:10px;object-fit:cover;display:none;margin:8px 0;border:2px solid rgba(124,106,247,0.3)}
-.icon-loading{font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;display:none;margin-top:4px}
+/* add modal suggestions */
+.sr-results{display:none;background:var(--bg2);border-radius:11px;border:1px solid var(--border);overflow:hidden;max-height:196px;overflow-y:auto;margin-top:6px}
+.sr-results.open{display:block}
+.sr-item{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border)}
+.sr-item:last-child{border-bottom:none}
+.sr-item:hover{background:rgba(123,97,255,.1)}
+.sr-thumb{width:36px;height:36px;border-radius:7px;object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;overflow:hidden;background:var(--bg3)}
+.sr-thumb img{width:100%;height:100%;object-fit:cover;border-radius:7px}
+.sr-info{flex:1;min-width:0}
+.sr-title{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text1)}
+.sr-meta{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.icon-prev{width:58px;height:58px;border-radius:10px;object-fit:cover;display:none;margin:7px 0;border:2px solid rgba(123,97,255,.3)}
+.icon-load{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;display:none;margin-top:4px}
 
-/* DETAIL MODAL */
-#detailOverlay .modal{max-width:600px}
-.detail-cover-area{position:relative;height:190px;border-radius:14px;overflow:hidden;background:var(--bg3);margin-bottom:22px}
-.detail-cover-area img{width:100%;height:100%;object-fit:cover}
-.detail-cover-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:60px;opacity:0.25}
-.detail-title{font-size:22px;font-weight:800;color:var(--text1);margin-bottom:16px}
-.detail-badges{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
-.detail-badge{padding:4px 12px;border-radius:100px;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;letter-spacing:1px}
-.detail-stars{display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.detail-stars-label{font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;letter-spacing:1px}
-.detail-section{margin-bottom:16px}
-.detail-section-label{font-size:10px;font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:7px}
-.detail-actions{display:flex;gap:9px;padding-top:18px;border-top:1px solid var(--border)}
-.detail-save-btn{flex:1;padding:12px;background:linear-gradient(135deg,#7c6af7,#f43f8e);border:none;border-radius:11px;color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:opacity 0.2s}
-.detail-save-btn:hover{opacity:0.87}
-.detail-del-btn{padding:12px 16px;background:rgba(244,63,142,0.1);border:1px solid rgba(244,63,142,0.2);border-radius:11px;color:#f43f8e;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s}
-.detail-del-btn:hover{background:rgba(244,63,142,0.2)}
+/* detail modal */
+#detailOverlay .modal{max-width:590px}
+.d-cover{position:relative;height:185px;border-radius:13px;overflow:hidden;background:var(--bg3);margin-bottom:20px}
+.d-cover img{width:100%;height:100%;object-fit:cover}
+.d-cover-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:58px;opacity:.22}
+.d-title{font-size:21px;font-weight:800;color:var(--text1);margin-bottom:14px;line-height:1.25}
+.d-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.d-badge{padding:4px 11px;border-radius:100px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:.8px}
+.d-stars{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.d-stars-lbl{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+.d-section{margin-bottom:14px}
+.d-section-lbl{font-size:9.5px;font-family:'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.d-actions{display:flex;gap:9px;padding-top:16px;border-top:1px solid var(--border)}
+.d-save{flex:1;padding:11px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:11px;color:#fff;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:800;cursor:pointer;transition:opacity .2s}
+.d-save:hover{opacity:.87}
+.d-del{padding:11px 15px;background:rgba(255,61,127,.1);border:1px solid rgba(255,61,127,.2);border-radius:11px;color:#ff3d7f;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .2s}
+.d-del:hover{background:rgba(255,61,127,.2)}
 
-/* AUTH MODAL */
-#authOverlay .modal{max-width:430px}
-.auth-tabs{display:flex;gap:0;margin-bottom:24px;background:var(--bg3);border-radius:14px;padding:4px}
-.auth-tab{flex:1;padding:9px;text-align:center;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text3);transition:all 0.2s}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   AUTH MODAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#authOverlay .modal{max-width:420px}
+.auth-tabs{display:flex;background:var(--bg3);border-radius:13px;padding:4px;margin-bottom:22px}
+.auth-tab{flex:1;padding:9px;text-align:center;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text3);transition:all .2s}
 .auth-tab.active{background:var(--bg1);color:var(--text1);box-shadow:0 2px 10px var(--shadow)}
-.login-logo{text-align:center;margin-bottom:22px}
-.login-logo .brand-mark{margin:0 auto 10px;width:56px;height:56px;font-size:26px}
-.login-logo h2{font-size:20px;font-weight:800;color:var(--text1)}
-.login-logo p{font-size:12px;color:var(--text3);margin-top:4px}
-.social-btn{width:100%;padding:12px 18px;border-radius:11px;border:1px solid var(--border2);background:var(--bg2);color:var(--text1);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all 0.2s;margin-bottom:9px}
-.social-btn:hover{border-color:rgba(124,106,247,0.45);background:rgba(124,106,247,0.06)}
-.social-icon{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.login-divider{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--text3);font-size:11px;font-family:'Space Mono',monospace}
-.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.auth-error{background:rgba(244,63,142,0.1);border:1px solid rgba(244,63,142,0.25);border-radius:10px;padding:9px 13px;font-size:12px;color:#f87fb6;margin-bottom:14px;display:none}
+.auth-logo{text-align:center;margin-bottom:20px}
+.auth-logo .brand-mark{margin:0 auto 10px;width:54px;height:54px;font-size:24px}
+.auth-logo h2{font-size:19px;font-weight:800;color:var(--text1)}
+.auth-logo p{font-size:12.5px;color:var(--text3);margin-top:3px}
+.social-btn{width:100%;padding:11px 16px;border-radius:11px;border:1px solid var(--border2);background:var(--bg2);color:var(--text1);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .2s;margin-bottom:8px}
+.social-btn:hover{border-color:rgba(123,97,255,.45);background:rgba(123,97,255,.06)}
+.social-btn:disabled{opacity:.5;cursor:not-allowed}
+.s-icon{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.divider{display:flex;align-items:center;gap:10px;margin:13px 0;color:var(--text3);font-size:11px;font-family:'JetBrains Mono',monospace}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.auth-error{background:rgba(255,61,127,.1);border:1px solid rgba(255,61,127,.25);border-radius:9px;padding:9px 13px;font-size:12.5px;color:#ff7eb6;margin-bottom:13px;display:none}
 .auth-error.show{display:block}
-.auth-success{background:rgba(15,212,184,0.1);border:1px solid rgba(15,212,184,0.25);border-radius:10px;padding:9px 13px;font-size:12px;color:#0fd4b8;margin-bottom:14px;display:none}
-.auth-success.show{display:block}
-.pw-toggle{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;padding:4px}
+.auth-ok{background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.25);border-radius:9px;padding:9px 13px;font-size:12.5px;color:#00d2b4;margin-bottom:13px;display:none}
+.auth-ok.show{display:block}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:15px;padding:4px}
+.auth-note{text-align:center;margin-top:12px;font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.auth-note a{color:#a89ffc;cursor:pointer;text-decoration:underline}
 
-/* RANKINGS MODAL */
-#rankOverlay .modal{max-width:580px}
-.rank-tabs{display:flex;gap:7px;margin-bottom:22px;flex-wrap:wrap}
-.rank-tab{padding:7px 14px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text3);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s}
-.rank-tab.active{background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.35);color:#fb923c}
-.rank-list{display:flex;flex-direction:column;gap:9px}
-.rank-item{display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;transition:border-color 0.2s}
-.rank-item:hover{border-color:rgba(124,106,247,0.25)}
-.rank-item.me{border-color:rgba(124,106,247,0.45);background:rgba(124,106,247,0.07)}
-.rank-pos{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;width:30px;text-align:center;flex-shrink:0}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   RANKINGS PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.page-hero{text-align:center;padding:52px 0 36px}
+.page-hero h1{font-size:40px;font-weight:900;background:linear-gradient(135deg,#7b61ff,#ff3d7f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
+.page-hero p{font-size:15px;color:var(--text2);max-width:440px;margin:0 auto}
+.rank-tabs{display:flex;gap:8px;margin-bottom:26px;justify-content:center;flex-wrap:wrap}
+.rank-tab{padding:8px 18px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.rank-tab.active{background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.35);color:#ff8c5a}
+.rank-container{max-width:700px;margin:0 auto}
+.rank-list{display:flex;flex-direction:column;gap:10px}
+.rank-item{display:flex;align-items:center;gap:13px;padding:14px 16px;background:var(--bg1);border:1px solid var(--border);border-radius:15px;transition:border-color .2s}
+.rank-item:hover{border-color:rgba(123,97,255,.25)}
+.rank-item.me{border-color:rgba(123,97,255,.45);background:rgba(123,97,255,.06)}
+.rank-pos{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;width:30px;text-align:center;flex-shrink:0}
 .rank-pos-1{color:#f59e0b}.rank-pos-2{color:#94a3b8}.rank-pos-3{color:#b45309}
-.rank-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
+.rank-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0}
 .rank-info{flex:1;min-width:0}
-.rank-name{font-size:13px;font-weight:700;color:var(--text1)}
-.rank-sub{font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;margin-top:2px}
-.rank-score{font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:#fb923c;flex-shrink:0}
-.rank-badge{font-size:9px;padding:2px 7px;border-radius:100px;background:rgba(124,106,247,0.15);color:#a89ffc;border:1px solid rgba(124,106,247,0.25);font-family:'Space Mono',monospace;font-weight:700;margin-left:7px}
-.rank-empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+.rank-name{font-size:14px;font-weight:700;color:var(--text1)}
+.rank-sub{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.rank-score{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#ff8c5a;flex-shrink:0}
+.rank-you{font-size:9px;padding:2px 7px;border-radius:100px;background:rgba(123,97,255,.15);color:#a89ffc;border:1px solid rgba(123,97,255,.25);font-family:'JetBrains Mono',monospace;font-weight:700;margin-left:7px}
+.rank-empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px;background:var(--bg1);border:1px solid var(--border);border-radius:15px}
 
-/* ── QUIZ MODAL ── */
-#quizOverlay .modal{max-width:580px}
-.quiz-start{text-align:center;padding:10px 0 20px}
-.quiz-start h3{font-size:22px;font-weight:800;color:var(--text1);margin-bottom:10px}
-.quiz-start p{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:24px}
-.quiz-cats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:28px}
-.quiz-cat{padding:9px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
-.quiz-cat.selected,.quiz-cat:hover{border-color:rgba(15,212,184,0.5);color:#0fd4b8;background:rgba(15,212,184,0.08)}
-.btn-start-quiz{display:inline-flex;align-items:center;gap:9px;padding:13px 28px;background:linear-gradient(135deg,#0fd4b8,#7c6af7);border:none;border-radius:100px;color:#fff;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity 0.2s;box-shadow:0 6px 24px rgba(15,212,184,0.3)}
-.btn-start-quiz:hover{opacity:0.87}
-.quiz-progress{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.quiz-progress-bar{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin:0 14px}
-.quiz-progress-fill{height:100%;background:linear-gradient(90deg,#0fd4b8,#7c6af7);border-radius:3px;transition:width 0.4s ease}
-.quiz-q-num{font-size:12px;font-family:'Space Mono',monospace;color:var(--text3)}
-.quiz-question{font-size:18px;font-weight:800;color:var(--text1);margin-bottom:22px;line-height:1.4}
-.quiz-options{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
-.quiz-opt{padding:14px 18px;border-radius:14px;border:2px solid var(--border2);background:var(--bg2);color:var(--text1);font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;text-align:left}
-.quiz-opt:hover:not(.disabled){border-color:rgba(124,106,247,0.5);background:rgba(124,106,247,0.08)}
-.quiz-opt.correct{border-color:#0fd4b8;background:rgba(15,212,184,0.12);color:#0fd4b8}
-.quiz-opt.wrong{border-color:#f43f8e;background:rgba(244,63,142,0.1);color:#f87fb6}
-.quiz-opt.disabled{cursor:default}
-.quiz-explanation{font-size:13px;color:var(--text2);background:var(--bg3);border-radius:12px;padding:12px 15px;margin-bottom:16px;line-height:1.5;display:none}
-.quiz-explanation.show{display:block}
-.btn-next-q{padding:11px 24px;background:linear-gradient(135deg,#7c6af7,#f43f8e);border:none;border-radius:100px;color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:none;transition:opacity 0.2s}
-.btn-next-q.show{display:inline-flex}
-.btn-next-q:hover{opacity:0.87}
-.quiz-result{text-align:center;padding:10px 0}
-.quiz-score-circle{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#0fd4b8,#7c6af7);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 10px 40px rgba(15,212,184,0.3)}
-.quiz-score-num{font-family:'Space Mono',monospace;font-size:32px;font-weight:700;color:#fff;line-height:1}
-.quiz-score-max{font-size:12px;color:rgba(255,255,255,0.7);margin-top:3px}
-.quiz-result h3{font-size:20px;font-weight:800;color:var(--text1);margin-bottom:8px}
-.quiz-result p{font-size:14px;color:var(--text2);margin-bottom:24px}
-.quiz-result-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.btn-quiz-restart{padding:11px 22px;background:var(--bg3);border:1px solid var(--border2);border-radius:100px;color:var(--text1);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s}
-.btn-quiz-restart:hover{border-color:rgba(124,106,247,0.4);background:rgba(124,106,247,0.08)}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   QUIZ PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.quiz-wrap{max-width:660px;margin:0 auto;padding-top:10px}
+.quiz-start-card{background:var(--bg1);border:1px solid var(--border);border-radius:22px;padding:40px;text-align:center}
+.quiz-start-card h2{font-size:28px;font-weight:900;color:var(--text1);margin-bottom:10px}
+.quiz-start-card p{font-size:14.5px;color:var(--text2);line-height:1.6;max-width:400px;margin:0 auto 26px}
+.quiz-cats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:30px}
+.quiz-cat{padding:9px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.quiz-cat.sel,.quiz-cat:hover{border-color:rgba(0,210,180,.5);color:var(--teal);background:rgba(0,210,180,.08)}
+.btn-start{display:inline-flex;align-items:center;gap:9px;padding:13px 32px;background:linear-gradient(135deg,#00d2b4,#7b61ff);border:none;border-radius:100px;color:#fff;font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s;box-shadow:0 6px 24px rgba(0,210,180,.28)}
+.btn-start:hover{opacity:.87}
 
-/* HELP MODAL */
-#helpContactOverlay .modal{max-width:500px}
-.contact-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
-.contact-card{padding:18px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;text-align:center;cursor:pointer;transition:all 0.2s}
-.contact-card:hover{border-color:rgba(124,106,247,0.4);background:rgba(124,106,247,0.06);transform:translateY(-2px)}
-.contact-card-icon{font-size:28px;margin-bottom:8px}
-.contact-card-title{font-size:13px;font-weight:700;color:var(--text1)}
-.contact-card-sub{font-size:11px;color:var(--text3);margin-top:3px;font-family:'Space Mono',monospace}
-.faq-item{border-bottom:1px solid var(--border);padding:14px 0}
+.quiz-card{background:var(--bg1);border:1px solid var(--border);border-radius:22px;padding:32px}
+.q-progress{display:flex;align-items:center;margin-bottom:22px;gap:13px}
+.q-prog-bar{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.q-prog-fill{height:100%;background:linear-gradient(90deg,#00d2b4,#7b61ff);border-radius:3px;transition:width .4s ease}
+.q-num{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);white-space:nowrap}
+.q-question{font-size:18px;font-weight:800;color:var(--text1);margin-bottom:20px;line-height:1.4}
+.q-opts{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.q-opt{padding:14px 18px;border-radius:13px;border:2px solid var(--border2);background:var(--bg2);color:var(--text1);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-align:left}
+.q-opt:hover:not(.disabled){border-color:rgba(123,97,255,.5);background:rgba(123,97,255,.08)}
+.q-opt.correct{border-color:#00d2b4;background:rgba(0,210,180,.12);color:#00d2b4}
+.q-opt.wrong{border-color:#ff3d7f;background:rgba(255,61,127,.1);color:#ff7eb6}
+.q-opt.disabled{cursor:default}
+.q-exp{font-size:13px;color:var(--text2);background:var(--bg3);border-radius:11px;padding:12px 15px;margin-bottom:14px;line-height:1.55;display:none}
+.q-exp.show{display:block}
+.btn-next{padding:10px 22px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:100px;color:#fff;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:none;transition:opacity .2s}
+.btn-next.show{display:inline-flex}
+.btn-next:hover{opacity:.87}
+
+.quiz-result-card{background:var(--bg1);border:1px solid var(--border);border-radius:22px;padding:40px;text-align:center}
+.score-ring{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#00d2b4,#7b61ff);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 10px 40px rgba(0,210,180,.28)}
+.score-n{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;color:#fff;line-height:1}
+.score-max{font-size:11px;color:rgba(255,255,255,.7);margin-top:3px;font-family:'JetBrains Mono',monospace}
+.quiz-result-card h3{font-size:20px;font-weight:800;color:var(--text1);margin-bottom:8px}
+.quiz-result-card p{font-size:14px;color:var(--text2);margin-bottom:24px}
+.result-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-retry{padding:10px 20px;background:var(--bg3);border:1px solid var(--border2);border-radius:100px;color:var(--text1);font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-retry:hover{border-color:rgba(123,97,255,.4);background:rgba(123,97,255,.08)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HELP MODAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:18px}
+.c-card{padding:17px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;text-align:center;cursor:pointer;transition:all .2s}
+.c-card:hover{border-color:rgba(123,97,255,.4);transform:translateY(-2px)}
+.c-icon{font-size:26px;margin-bottom:7px}
+.c-title{font-size:13px;font-weight:700;color:var(--text1)}
+.c-sub{font-size:10px;color:var(--text3);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.faq-item{border-bottom:1px solid var(--border);padding:13px 0}
 .faq-item:last-child{border-bottom:none}
-.faq-q{font-size:14px;font-weight:700;color:var(--text1);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.faq-a{font-size:13px;color:var(--text2);line-height:1.6;margin-top:10px;display:none}
+.faq-q{font-size:14px;font-weight:700;color:var(--text1);cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;user-select:none}
+.faq-a{font-size:13px;color:var(--text2);line-height:1.6;margin-top:9px;display:none}
 .faq-a.open{display:block}
-.faq-arrow{font-size:12px;color:var(--text3);transition:transform 0.2s;flex-shrink:0}
+.faq-arrow{font-size:11px;color:var(--text3);transition:transform .2s;flex-shrink:0}
 .faq-q.open .faq-arrow{transform:rotate(180deg)}
 
-/* Empty */
-.empty-wrap{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:12px}
-.empty-icon{font-size:52px;opacity:0.18}
-.empty-text{font-size:15px;color:var(--text3);font-weight:600}
-/* Toast */
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg2);border:1px solid rgba(124,106,247,0.3);border-radius:100px;padding:11px 22px;font-size:13px;font-weight:700;color:var(--text1);opacity:0;transition:all 0.3s;z-index:999;pointer-events:none;white-space:nowrap;box-shadow:0 8px 30px var(--shadow)}
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MISC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.empty-wrap{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:11px}
+.empty-icon{font-size:50px;opacity:.17}
+.empty-text{font-size:14.5px;color:var(--text3);font-weight:600}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--bg2);border:1px solid rgba(123,97,255,.3);border-radius:100px;padding:10px 22px;font-size:13px;font-weight:700;color:var(--text1);opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap;box-shadow:0 7px 28px var(--shadow)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(124,106,247,0.2);border-radius:3px}
-@media(max-width:700px){
+::-webkit-scrollbar-thumb{background:rgba(123,97,255,.2);border-radius:3px}
+@media(max-width:680px){
   .hdr-stats{display:none}
   .form-grid{grid-template-columns:1fr}
-  .detail-title{font-size:17px}
-  .contact-cards{grid-template-columns:1fr}
+  .contact-grid{grid-template-columns:1fr}
+  .page-hero h1{font-size:28px}
+  .quiz-start-card{padding:24px}
+  .quiz-card{padding:22px}
 }
 </style>
 </head>
@@ -321,83 +395,144 @@ body{background:var(--bg0);color:var(--text1);font-family:'Syne',sans-serif;min-
   <div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div>
 </div>
 
-<div class="app">
-  <header class="hdr">
-    <div class="brand" onclick="location.reload()">
-      <div class="brand-mark">🎮</div>
-      <div>
-        <div class="brand-name">BacklogHQ</div>
-        <div class="brand-sub">Your Game Universe</div>
-      </div>
-    </div>
-    <div class="hdr-right">
-      <div class="hdr-stats" id="hdrStats"></div>
-      <!-- Quiz -->
-      <button class="btn-hdr btn-quiz" onclick="openQuiz()">🧠 Quiz</button>
-      <!-- Rankings -->
-      <button class="btn-hdr btn-rankings" onclick="openRankings()">🏆 Rankings</button>
-      <!-- Help dropdown -->
-      <div class="help-wrap" id="helpWrap">
-        <button class="btn-hdr" onclick="toggleHelp(event)">❓ Help ▾</button>
-        <div class="help-menu" id="helpMenu">
-          <div class="help-section-label">Support</div>
-          <div class="help-item" onclick="openHelpContact('faq')">📖 FAQ</div>
-          <div class="help-item" onclick="openHelpContact('contact')">💬 Contact Us</div>
-          <div class="help-item" onclick="openHelpContact('bug')">🐛 Report a Bug</div>
-          <div class="help-divider"></div>
-          <div class="help-section-label">Community</div>
-          <div class="help-item" onclick="toast('Discord community coming soon!','🎮')">🎮 Join Discord</div>
-          <div class="help-item" onclick="toast('Subreddit coming soon!','🤝')">🤝 Subreddit</div>
-          <div class="help-divider"></div>
-          <div class="help-section-label">About</div>
-          <div class="help-item" onclick="toast('BacklogHQ v4.0 — Built with ❤️','ℹ️')">ℹ️ About BacklogHQ</div>
-          <div class="help-item" onclick="toast('Privacy policy: Your data stays on your device.','🔒')">🔒 Privacy Policy</div>
+<!-- ══════════════════════════════════════════
+  PAGE: HOME (library)
+══════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <div class="app-wrap">
+    <header class="hdr">
+      <div class="brand" onclick="goHome()">
+        <div class="brand-mark">🎮</div>
+        <div class="brand-text">
+          <div class="brand-name">BacklogHQ</div>
+          <div class="brand-sub">Your Game Universe</div>
         </div>
       </div>
-      <!-- Theme toggle -->
-      <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
-      <!-- Auth area -->
-      <div id="authArea"></div>
+      <div class="hdr-right">
+        <div class="hdr-stats" id="hdrStats"></div>
+        <button class="btn-nav nav-quiz" onclick="goPage('quiz')">🧠 Quiz</button>
+        <button class="btn-nav nav-rank" onclick="goPage('rankings')">🏆 Rankings</button>
+        <div class="help-wrap" id="helpWrap">
+          <button class="btn-nav" onclick="toggleHelp(event)">❓ Help ▾</button>
+          <div class="help-menu" id="helpMenu">
+            <div class="hm-section">Support</div>
+            <div class="hm-item" onclick="openHelp('faq')">📖 FAQ</div>
+            <div class="hm-item" onclick="openHelp('contact')">💬 Contact Us</div>
+            <div class="hm-item" onclick="openHelp('bug')">🐛 Report a Bug</div>
+            <div class="hm-divider"></div>
+            <div class="hm-section">Community</div>
+            <div class="hm-item" onclick="toast('Discord coming soon!','🎮')">🎮 Join Discord</div>
+            <div class="hm-item" onclick="toast('Reddit: r/BacklogHQ coming soon!','🤝')">🤝 Subreddit</div>
+            <div class="hm-divider"></div>
+            <div class="hm-section">About</div>
+            <div class="hm-item" onclick="toast('BacklogHQ v5.0 — Built with ❤️','ℹ️')">ℹ️ About</div>
+            <div class="hm-item" onclick="toast('Your data stays on your device.','🔒')">🔒 Privacy Policy</div>
+          </div>
+        </div>
+        <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+        <div id="authArea"></div>
+      </div>
+    </header>
+
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="mainSearch" placeholder="Search games, genres, developers…" oninput="onSearch(this)">
+      <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
     </div>
-  </header>
-
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input type="text" class="search-input" id="mainSearch" placeholder="Search games, genres, developers…" oninput="onMainSearch(this)">
-    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+    <div class="genre-bar" id="genreBar"></div>
+    <div class="top-bar">
+      <div class="status-bar" id="statusBar"></div>
+      <button class="btn-add" onclick="openAddModal()">＋ Add Game</button>
+    </div>
+    <div class="game-grid" id="gameGrid"></div>
   </div>
-
-  <div class="genre-bar" id="genreBar"></div>
-
-  <div class="top-bar">
-    <div class="status-bar" id="statusBar"></div>
-    <button class="btn-new" onclick="openAddModal()">＋ Add Game</button>
-  </div>
-
-  <div class="game-grid" id="gameGrid"></div>
 </div>
 
-<!-- ══ ADD MODAL ══ -->
+<!-- ══════════════════════════════════════════
+  PAGE: RANKINGS
+══════════════════════════════════════════ -->
+<div class="page" id="page-rankings">
+  <div class="app-wrap">
+    <header class="hdr">
+      <div class="brand" onclick="goHome()">
+        <div class="brand-mark">🎮</div>
+        <div class="brand-text">
+          <div class="brand-name">BacklogHQ</div>
+          <div class="brand-sub">Your Game Universe</div>
+        </div>
+      </div>
+      <div class="hdr-right">
+        <button class="btn-nav nav-back" onclick="goHome()">← Back to Library</button>
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+        <div id="authArea2"></div>
+      </div>
+    </header>
+
+    <div class="page-hero">
+      <h1>🏆 Player Rankings</h1>
+      <p>See how you stack up against other BacklogHQ players around the world.</p>
+    </div>
+
+    <div class="rank-container">
+      <div class="rank-tabs" id="rankTabs">
+        <button class="rank-tab active" onclick="setRankTab('completed',this)">✅ Most Completed</button>
+        <button class="rank-tab" onclick="setRankTab('playing',this)">🎮 Playing Now</button>
+        <button class="rank-tab" onclick="setRankTab('total',this)">📚 Total Library</button>
+        <button class="rank-tab" onclick="setRankTab('hours',this)">⏱ Hours Played</button>
+      </div>
+      <div class="rank-list" id="rankList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+  PAGE: QUIZ
+══════════════════════════════════════════ -->
+<div class="page" id="page-quiz">
+  <div class="app-wrap">
+    <header class="hdr">
+      <div class="brand" onclick="goHome()">
+        <div class="brand-mark">🎮</div>
+        <div class="brand-text">
+          <div class="brand-name">BacklogHQ</div>
+          <div class="brand-sub">Your Game Universe</div>
+        </div>
+      </div>
+      <div class="hdr-right">
+        <button class="btn-nav nav-back" onclick="goHome()">← Back to Library</button>
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+        <div id="authArea3"></div>
+      </div>
+    </header>
+
+    <div class="page-hero">
+      <h1>🧠 Gaming Quiz</h1>
+      <p>Test your gaming knowledge across 5 categories. Can you score perfect?</p>
+    </div>
+
+    <div class="quiz-wrap">
+      <div id="quizContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+  MODALS
+══════════════════════════════════════════ -->
+
+<!-- ADD GAME -->
 <div class="modal-overlay" id="addOverlay">
   <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">➕ Add to Library</div>
-      <button class="modal-close" onclick="closeAddModal()">✕</button>
-    </div>
+    <div class="modal-hdr"><div class="modal-title">➕ Add Game</div><button class="modal-close" onclick="closeAddModal()">✕</button></div>
     <div class="form-row">
-      <label class="form-label">Game Title — type to search & auto-fill</label>
+      <label class="form-label">Game Title — type to auto-fill</label>
       <input type="text" class="form-input" id="fTitle" placeholder="e.g. Elden Ring, Genshin Impact…" oninput="onTitleInput(this)">
-      <img id="autoIconPreview" class="game-icon-preview">
-      <div id="iconLoadingText" class="icon-loading">🔍 Fetching cover…</div>
-      <div id="addModalSR" class="modal-sr-results"></div>
+      <img id="iconPrev" class="icon-prev"><div id="iconLoad" class="icon-load">🔍 Fetching cover…</div>
+      <div id="addSR" class="sr-results"></div>
     </div>
-    <div class="form-row">
-      <label class="form-label">Notes</label>
-      <textarea class="form-textarea" id="fNotes" placeholder="Your thoughts…"></textarea>
-    </div>
+    <div class="form-row"><label class="form-label">Notes</label><textarea class="form-textarea" id="fNotes" placeholder="Your thoughts…"></textarea></div>
     <div class="form-row form-grid">
-      <div>
-        <label class="form-label">Genre</label>
+      <div><label class="form-label">Genre</label>
         <select class="form-select" id="fGenre">
           <option value="RPG">⚔️ RPG</option><option value="Action">💥 Action</option>
           <option value="FPS">🎯 FPS</option><option value="Strategy">♟️ Strategy</option>
@@ -409,8 +544,7 @@ body{background:var(--bg0);color:var(--text1);font-family:'Syne',sans-serif;min-
           <option value="Battle Royale">🪂 Battle Royale</option><option value="MMO">🌐 MMO</option>
         </select>
       </div>
-      <div>
-        <label class="form-label">Status</label>
+      <div><label class="form-label">Status</label>
         <select class="form-select" id="fStatus">
           <option value="backlog">📦 Backlog</option><option value="playing">🎮 Playing</option>
           <option value="completed">✅ Completed</option><option value="dropped">💔 Dropped</option>
@@ -418,8 +552,7 @@ body{background:var(--bg0);color:var(--text1);font-family:'Syne',sans-serif;min-
       </div>
     </div>
     <div class="form-row form-grid">
-      <div>
-        <label class="form-label">Platform</label>
+      <div><label class="form-label">Platform</label>
         <select class="form-select" id="fPlatform">
           <option value="PC">💻 PC</option><option value="PS5">🎮 PS5</option>
           <option value="PS4">🎮 PS4</option><option value="Xbox">🟢 Xbox</option>
@@ -427,203 +560,172 @@ body{background:var(--bg0);color:var(--text1);font-family:'Syne',sans-serif;min-
           <option value="iOS">🍎 iOS</option><option value="Android">🤖 Android</option>
         </select>
       </div>
-      <div>
-        <label class="form-label">Year</label>
-        <input type="number" class="form-input" id="fYear" placeholder="2024" min="1970" max="2030">
-      </div>
+      <div><label class="form-label">Year</label><input type="number" class="form-input" id="fYear" placeholder="2024" min="1970" max="2030"></div>
     </div>
     <div class="form-row form-grid">
-      <div>
-        <label class="form-label">Hours Played</label>
-        <input type="number" class="form-input" id="fHours" placeholder="0" min="0">
-      </div>
-      <div>
-        <label class="form-label">Developer</label>
-        <input type="text" class="form-input" id="fDev" placeholder="e.g. FromSoftware">
-      </div>
+      <div><label class="form-label">Hours Played</label><input type="number" class="form-input" id="fHours" placeholder="0" min="0"></div>
+      <div><label class="form-label">Developer</label><input type="text" class="form-input" id="fDev" placeholder="e.g. FromSoftware"></div>
     </div>
     <button class="btn-submit" onclick="submitGame()">🚀 Add to Library</button>
   </div>
 </div>
 
-<!-- ══ DETAIL MODAL ══ -->
+<!-- DETAIL -->
 <div class="modal-overlay" id="detailOverlay">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">Game Details</div>
-      <button class="modal-close" onclick="closeDetail()">✕</button>
-    </div>
-    <div class="detail-cover-area">
-      <div class="detail-cover-placeholder" id="detailCoverPh">🎮</div>
-      <img id="detailCoverImg" style="display:none" alt="">
-    </div>
-    <div class="detail-title" id="detailTitleView"></div>
-    <div class="detail-badges" id="detailBadges"></div>
-    <div class="detail-stars">
-      <span class="detail-stars-label">Rating</span>
-      <div id="detailStars"></div>
-    </div>
-    <div class="detail-section">
-      <div class="detail-section-label">Status</div>
-      <select class="form-select" id="detailStatus" style="max-width:210px">
+  <div class="modal" style="max-width:590px">
+    <div class="modal-hdr"><div class="modal-title">Game Details</div><button class="modal-close" onclick="closeDetail()">✕</button></div>
+    <div class="d-cover"><div class="d-cover-ph" id="dCoverPh">🎮</div><img id="dCoverImg" style="display:none" alt=""></div>
+    <div class="d-title" id="dTitle"></div>
+    <div class="d-badges" id="dBadges"></div>
+    <div class="d-stars"><span class="d-stars-lbl">Rating</span><div id="dStars"></div></div>
+    <div class="d-section"><div class="d-section-lbl">Status</div>
+      <select class="form-select" id="dStatus" style="max-width:200px">
         <option value="playing">🎮 Playing</option><option value="backlog">📦 Backlog</option>
         <option value="completed">✅ Completed</option><option value="dropped">💔 Dropped</option>
       </select>
     </div>
-    <div class="detail-section">
-      <div class="detail-section-label">Notes</div>
-      <textarea class="form-textarea" id="detailNotes" placeholder="No notes yet…"></textarea>
+    <div class="d-section"><div class="d-section-lbl">Notes</div><textarea class="form-textarea" id="dNotes" placeholder="No notes yet…"></textarea></div>
+    <div class="form-grid" style="margin-bottom:16px">
+      <div><div class="d-section-lbl">Hours Played</div><input type="number" class="form-input" id="dHours" placeholder="0" min="0"></div>
+      <div><div class="d-section-lbl">Developer</div><input type="text" class="form-input" id="dDev" placeholder="Unknown"></div>
     </div>
-    <div class="form-grid" style="margin-bottom:18px">
-      <div><div class="detail-section-label">Hours Played</div><input type="number" class="form-input" id="detailHours" placeholder="0" min="0"></div>
-      <div><div class="detail-section-label">Developer</div><input type="text" class="form-input" id="detailDev" placeholder="Unknown"></div>
-    </div>
-    <div class="detail-actions">
-      <button class="detail-save-btn" onclick="saveDetail()">💾 Save</button>
-      <button class="detail-del-btn" id="detailDelBtn" onclick="deleteFromDetail()">🗑 Delete</button>
+    <div class="d-actions">
+      <button class="d-save" onclick="saveDetail()">💾 Save</button>
+      <button class="d-del" id="dDelBtn" onclick="deleteDetail()">🗑 Delete</button>
     </div>
   </div>
 </div>
 
-<!-- ══ AUTH MODAL ══ -->
+<!-- AUTH -->
 <div class="modal-overlay" id="authOverlay">
   <div class="modal">
-    <div class="login-logo">
+    <div class="auth-logo">
       <div class="brand-mark">🎮</div>
       <h2>Welcome to BacklogHQ</h2>
       <p>Track games · Compete · Quiz yourself</p>
     </div>
     <div class="auth-tabs">
-      <div class="auth-tab active" id="tabSignIn" onclick="switchAuthTab('signin')">Sign In</div>
-      <div class="auth-tab" id="tabSignUp" onclick="switchAuthTab('signup')">Sign Up</div>
+      <div class="auth-tab active" id="tabIn" onclick="switchTab('in')">Sign In</div>
+      <div class="auth-tab" id="tabUp" onclick="switchTab('up')">Sign Up</div>
     </div>
-    <div class="auth-error" id="authError"></div>
-    <div class="auth-success" id="authSuccess"></div>
-    <button class="social-btn" onclick="socialLogin('Google')">
-      <span class="social-icon"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></span>
+    <div class="auth-error" id="authErr"></div>
+    <div class="auth-ok" id="authOk"></div>
+
+    <!-- Social OAuth -->
+    <button class="social-btn" id="btnGoogle" onclick="oauthLogin('google')">
+      <span class="s-icon"><svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></span>
       Continue with Google
     </button>
-    <button class="social-btn" onclick="socialLogin('Discord')">
-      <span class="social-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.035.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg></span>
+    <button class="social-btn" id="btnDiscord" onclick="oauthLogin('discord')">
+      <span class="s-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.035.056a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg></span>
       Continue with Discord
     </button>
-    <div class="login-divider">or</div>
-    <div id="signinForm">
-      <div class="form-row"><label class="form-label">Email</label><input type="email" class="form-input" id="authEmail" placeholder="you@example.com"></div>
+
+    <div class="divider">or</div>
+
+    <div id="formIn">
+      <div class="form-row"><label class="form-label">Email</label><input type="email" class="form-input" id="aEmail" placeholder="you@example.com"></div>
       <div class="form-row"><label class="form-label">Password</label>
-        <div style="position:relative"><input type="password" class="form-input" id="authPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignIn()" style="padding-right:42px"><button class="pw-toggle" onclick="togglePw('authPassword',this)">👁</button></div>
+        <div style="position:relative"><input type="password" class="form-input" id="aPw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignIn()" style="padding-right:42px"><button class="pw-toggle" onclick="togglePw('aPw',this)">👁</button></div>
       </div>
-      <button class="btn-submit" onclick="doSignIn()" style="margin-top:0">Sign In →</button>
+      <button class="btn-submit" id="btnSignIn" onclick="doSignIn()">Sign In →</button>
+      <div class="auth-note">No account? <a onclick="switchTab('up')">Sign up free</a></div>
     </div>
-    <div id="signupForm" style="display:none">
-      <div class="form-row"><label class="form-label">Display Name</label><input type="text" class="form-input" id="authName" placeholder="GamerTag123"></div>
-      <div class="form-row"><label class="form-label">Email</label><input type="email" class="form-input" id="authEmailUp" placeholder="you@example.com"></div>
+
+    <div id="formUp" style="display:none">
+      <div class="form-row"><label class="form-label">Display Name</label><input type="text" class="form-input" id="aName" placeholder="GamerTag123"></div>
+      <div class="form-row"><label class="form-label">Email</label><input type="email" class="form-input" id="aEmailUp" placeholder="you@example.com"></div>
       <div class="form-row"><label class="form-label">Password</label>
-        <div style="position:relative"><input type="password" class="form-input" id="authPasswordUp" placeholder="Min. 6 characters" onkeydown="if(event.key==='Enter')doSignUp()" style="padding-right:42px"><button class="pw-toggle" onclick="togglePw('authPasswordUp',this)">👁</button></div>
+        <div style="position:relative"><input type="password" class="form-input" id="aPwUp" placeholder="Min. 6 characters" onkeydown="if(event.key==='Enter')doSignUp()" style="padding-right:42px"><button class="pw-toggle" onclick="togglePw('aPwUp',this)">👁</button></div>
       </div>
-      <button class="btn-submit" onclick="doSignUp()" style="margin-top:0">Create Account →</button>
+      <button class="btn-submit" id="btnSignUp" onclick="doSignUp()">Create Account →</button>
+      <div class="auth-note">Have an account? <a onclick="switchTab('in')">Sign in</a></div>
     </div>
   </div>
 </div>
 
-<!-- ══ RANKINGS MODAL ══ -->
-<div class="modal-overlay" id="rankOverlay">
-  <div class="modal">
-    <div class="modal-hdr"><div class="modal-title">🏆 Player Rankings</div><button class="modal-close" onclick="closeRankings()">✕</button></div>
-    <div class="rank-tabs">
-      <button class="rank-tab active" onclick="setRankTab('completed',this)">✅ Completed</button>
-      <button class="rank-tab" onclick="setRankTab('playing',this)">🎮 Playing</button>
-      <button class="rank-tab" onclick="setRankTab('total',this)">📚 Library</button>
-      <button class="rank-tab" onclick="setRankTab('hours',this)">⏱ Hours</button>
-    </div>
-    <div class="rank-list" id="rankList"></div>
-  </div>
-</div>
-
-<!-- ══ QUIZ MODAL ══ -->
-<div class="modal-overlay" id="quizOverlay">
-  <div class="modal">
-    <div class="modal-hdr"><div class="modal-title" id="quizTitle">🧠 Game Quiz</div><button class="modal-close" onclick="closeQuiz()">✕</button></div>
-    <div id="quizContent"></div>
-  </div>
-</div>
-
-<!-- ══ HELP / CONTACT MODAL ══ -->
-<div class="modal-overlay" id="helpContactOverlay">
-  <div class="modal">
-    <div class="modal-hdr"><div class="modal-title" id="helpModalTitle">Help Center</div><button class="modal-close" onclick="closeHelpContact()">✕</button></div>
-    <div id="helpContactContent"></div>
+<!-- HELP -->
+<div class="modal-overlay" id="helpOverlay">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-hdr"><div class="modal-title" id="helpTitle">Help Center</div><button class="modal-close" onclick="closeHelp()">✕</button></div>
+    <div id="helpContent"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     SCRIPT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 <script>
-// ═══════════════════════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════════════════════
-const GENRE_ICONS={RPG:'⚔️',Action:'💥',FPS:'🎯',Strategy:'♟️',Horror:'👻',Indie:'🌟',Sports:'⚽',Puzzle:'🧩',Adventure:'🗺️',Racing:'🏎️',Fighting:'🥊',Simulation:'🏗️',Mobile:'📱',MOBA:'⚡','Battle Royale':'🪂',MMO:'🌐',All:'✦'};
-const STATUS_META={all:{label:'All',cls:'active-all'},playing:{label:'Playing',cls:'active-playing'},backlog:{label:'Backlog',cls:'active-backlog'},completed:{label:'Completed',cls:'active-completed'},dropped:{label:'Dropped',cls:'active-dropped'}};
-const GENRE_COLORS={RPG:'#7c6af7',Action:'#f43f8e',FPS:'#f97316',Strategy:'#0fd4b8',Horror:'#e11d48',Indie:'#a3e635',Sports:'#38bdf8',Puzzle:'#fbbf24',Adventure:'#34d399',Racing:'#f59e0b',Fighting:'#fb7185',Simulation:'#818cf8',Mobile:'#c084fc',MOBA:'#facc15','Battle Royale':'#4ade80',MMO:'#67e8f9'};
-const SC={playing:'#0fd4b8',backlog:'#a89ffc',completed:'#fb923c',dropped:'#f87fb6'};
-const AV=['#7c6af7','#f43f8e','#0fd4b8','#f97316','#38bdf8','#a3e635','#f59e0b'];
+// ╔══════════════════════════════════════════════════╗
+// ║  ⚠️  SUPABASE CONFIG — FILL IN YOUR CREDENTIALS  ║
+// ╚══════════════════════════════════════════════════╝
+const SUPABASE_URL  = 'https://peoxnvimchfmygabaoou.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_XXVstD1A3yFGEF6cQV4T2g_jLG2b_ir';
 
-// ═══════════════════════════════════════════════════════════
-// GAME DATABASE  — reliable covers using RAWG CDN / SteamGridDB-style URLs
-// ═══════════════════════════════════════════════════════════
-// Covers use: https://images.igdb.com/igdb/image/upload/t_cover_big/{hash}.jpg  or
-//             https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/library_600x900.jpg
-// Fallback: emoji placeholder
-const GAME_DB=[
-// ── RPG ──
+// Initialise Supabase client (only if credentials are set)
+let sb = null;
+const SB_READY = SUPABASE_URL !== 'YOUR_SUPABASE_PROJECT_URL';
+if(SB_READY){
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CONSTANTS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const GI={RPG:'⚔️',Action:'💥',FPS:'🎯',Strategy:'♟️',Horror:'👻',Indie:'🌟',Sports:'⚽',Puzzle:'🧩',Adventure:'🗺️',Racing:'🏎️',Fighting:'🥊',Simulation:'🏗️',Mobile:'📱',MOBA:'⚡','Battle Royale':'🪂',MMO:'🌐',All:'✦'};
+const SM={all:{l:'All',c:'active-all'},playing:{l:'Playing',c:'active-playing'},backlog:{l:'Backlog',c:'active-backlog'},completed:{l:'Completed',c:'active-completed'},dropped:{l:'Dropped',c:'active-dropped'}};
+const GC={RPG:'#7b61ff',Action:'#ff3d7f',FPS:'#ff6b35',Strategy:'#00d2b4',Horror:'#e11d48',Indie:'#a3e635',Sports:'#38bdf8',Puzzle:'#fbbf24',Adventure:'#34d399',Racing:'#f59e0b',Fighting:'#fb7185',Simulation:'#818cf8',Mobile:'#c084fc',MOBA:'#facc15','Battle Royale':'#4ade80',MMO:'#67e8f9'};
+const SC={playing:'#00d2b4',backlog:'#a89ffc',completed:'#ff8c5a',dropped:'#ff7eb6'};
+const AV=['#7b61ff','#ff3d7f','#00d2b4','#ff6b35','#38bdf8','#a3e635','#f59e0b'];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// GAME DATABASE (Steam CDN covers)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const DB=[
 {title:'Elden Ring',genre:'RPG',platform:'PC',year:'2022',dev:'FromSoftware',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1245620/library_600x900.jpg'},
 {title:"Baldur's Gate 3",genre:'RPG',platform:'PC',year:'2023',dev:'Larian Studios',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1086940/library_600x900.jpg'},
 {title:'The Witcher 3',genre:'RPG',platform:'PC',year:'2015',dev:'CD Projekt Red',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/292030/library_600x900.jpg'},
 {title:'Dark Souls III',genre:'RPG',platform:'PC',year:'2016',dev:'FromSoftware',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/374320/library_600x900.jpg'},
 {title:'Cyberpunk 2077',genre:'RPG',platform:'PC',year:'2020',dev:'CD Projekt Red',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1091500/library_600x900.jpg'},
 {title:'Persona 5 Royal',genre:'RPG',platform:'PC',year:'2022',dev:'Atlus',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1687950/library_600x900.jpg'},
-{title:'Sekiro: Shadows Die Twice',genre:'RPG',platform:'PC',year:'2019',dev:'FromSoftware',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/814380/library_600x900.jpg'},
-{title:'Final Fantasy XIV',genre:'MMO',platform:'PC',year:'2013',dev:'Square Enix',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/39210/library_600x900.jpg'},
+{title:'Sekiro',genre:'RPG',platform:'PC',year:'2019',dev:'FromSoftware',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/814380/library_600x900.jpg'},
 {title:'Starfield',genre:'RPG',platform:'PC',year:'2023',dev:'Bethesda',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1716740/library_600x900.jpg'},
 {title:'Sea of Stars',genre:'RPG',platform:'PC',year:'2023',dev:'Sabotage Studio',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1244090/library_600x900.jpg'},
 {title:'Lies of P',genre:'RPG',platform:'PC',year:'2023',dev:'Round8 Studio',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1627720/library_600x900.jpg'},
 {title:'Divinity: Original Sin 2',genre:'RPG',platform:'PC',year:'2017',dev:'Larian Studios',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/435150/library_600x900.jpg'},
-{title:'Dragon Age: Inquisition',genre:'RPG',platform:'PC',year:'2014',dev:'BioWare',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1222690/library_600x900.jpg'},
-{title:'Xenoblade Chronicles 3',genre:'RPG',platform:'Switch',year:'2022',dev:'Monolith Soft',cover:'https://upload.wikimedia.org/wikipedia/en/0/0b/Xenoblade_Chronicles_3.jpg'},
+{title:'Mass Effect Legendary',genre:'RPG',platform:'PC',year:'2021',dev:'BioWare',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1328670/library_600x900.jpg'},
 {title:'Pathfinder: WotR',genre:'RPG',platform:'PC',year:'2021',dev:'Owlcat Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1184370/library_600x900.jpg'},
-// ── Action ──
-{title:'God of War (2018)',genre:'Action',platform:'PC',year:'2022',dev:'Santa Monica Studio',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1593500/library_600x900.jpg'},
-{title:'God of War Ragnarök',genre:'Action',platform:'PS5',year:'2022',dev:'Santa Monica Studio',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2322010/library_600x900.jpg'},
-{title:'Hades II',genre:'Action',platform:'PC',year:'2024',dev:'Supergiant Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1145350/library_600x900.jpg'},
-{title:'Hades',genre:'Action',platform:'PC',year:'2020',dev:'Supergiant Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/library_600x900.jpg'},
+{title:'God of War (2018)',genre:'Action',platform:'PC',year:'2022',dev:'Santa Monica',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1593500/library_600x900.jpg'},
+{title:'God of War Ragnarök',genre:'Action',platform:'PC',year:'2024',dev:'Santa Monica',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2322010/library_600x900.jpg'},
+{title:'Hades',genre:'Action',platform:'PC',year:'2020',dev:'Supergiant',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1145360/library_600x900.jpg'},
+{title:'Hades II',genre:'Action',platform:'PC',year:'2024',dev:'Supergiant',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1145350/library_600x900.jpg'},
 {title:'Devil May Cry 5',genre:'Action',platform:'PC',year:'2019',dev:'Capcom',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/601150/library_600x900.jpg'},
 {title:'Ghost of Tsushima',genre:'Action',platform:'PC',year:'2024',dev:'Sucker Punch',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2215430/library_600x900.jpg'},
-{title:'Spider-Man Remastered',genre:'Action',platform:'PC',year:'2022',dev:'Insomniac Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1817070/library_600x900.jpg'},
+{title:'Spider-Man Remastered',genre:'Action',platform:'PC',year:'2022',dev:'Insomniac',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1817070/library_600x900.jpg'},
 {title:'Monster Hunter World',genre:'Action',platform:'PC',year:'2018',dev:'Capcom',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/582010/library_600x900.jpg'},
 {title:'Armored Core VI',genre:'Action',platform:'PC',year:'2023',dev:'FromSoftware',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1888160/library_600x900.jpg'},
 {title:'Nioh 2',genre:'Action',platform:'PC',year:'2021',dev:'Team Ninja',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1325200/library_600x900.jpg'},
 {title:'Hi-Fi Rush',genre:'Action',platform:'PC',year:'2023',dev:'Tango Gameworks',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1817230/library_600x900.jpg'},
 {title:"Death's Door",genre:'Action',platform:'PC',year:'2021',dev:'Acid Nerve',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1133620/library_600x900.jpg'},
-{title:'Batman: Arkham Knight',genre:'Action',platform:'PC',year:'2015',dev:'Rocksteady',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/208650/library_600x900.jpg'},
-// ── FPS ──
+{title:'Nier: Automata',genre:'Action',platform:'PC',year:'2017',dev:'PlatinumGames',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/524220/library_600x900.jpg'},
+{title:'Wo Long: Fallen Dynasty',genre:'Action',platform:'PC',year:'2023',dev:'Team Ninja',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2285550/library_600x900.jpg'},
 {title:'Doom Eternal',genre:'FPS',platform:'PC',year:'2020',dev:'id Software',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/782330/library_600x900.jpg'},
 {title:'Titanfall 2',genre:'FPS',platform:'PC',year:'2016',dev:'Respawn',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1237970/library_600x900.jpg'},
 {title:'BioShock Infinite',genre:'FPS',platform:'PC',year:'2013',dev:'Irrational Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/8870/library_600x900.jpg'},
 {title:'Metro Exodus',genre:'FPS',platform:'PC',year:'2019',dev:'4A Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/412020/library_600x900.jpg'},
-{title:'Dishonored 2',genre:'FPS',platform:'PC',year:'2016',dev:'Arkane Studios',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/403640/library_600x900.jpg'},
-{title:'Deathloop',genre:'FPS',platform:'PC',year:'2021',dev:'Arkane Studios',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1252330/library_600x900.jpg'},
-{title:'Neon White',genre:'FPS',platform:'PC',year:'2022',dev:'Angel Matrix',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1533420/library_600x900.jpg'},
-{title:'Splatoon 3',genre:'FPS',platform:'Switch',year:'2022',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/5/54/Splatoon_3.jpg'},
+{title:'Dishonored 2',genre:'FPS',platform:'PC',year:'2016',dev:'Arkane',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/403640/library_600x900.jpg'},
+{title:'Deathloop',genre:'FPS',platform:'PC',year:'2021',dev:'Arkane',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1252330/library_600x900.jpg'},
 {title:'Counter-Strike 2',genre:'FPS',platform:'PC',year:'2023',dev:'Valve',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/730/library_600x900.jpg'},
-{title:'Apex Legends',genre:'Battle Royale',platform:'PC',year:'2019',dev:'Respawn',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/library_600x900.jpg'},
-// ── Horror ──
+{title:'Deep Rock Galactic',genre:'FPS',platform:'PC',year:'2020',dev:'Ghost Ship Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/548430/library_600x900.jpg'},
+{title:'Half-Life: Alyx',genre:'FPS',platform:'PC',year:'2020',dev:'Valve',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/546560/library_600x900.jpg'},
 {title:'Resident Evil 4 Remake',genre:'Horror',platform:'PC',year:'2023',dev:'Capcom',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2050650/library_600x900.jpg'},
 {title:'Resident Evil Village',genre:'Horror',platform:'PC',year:'2021',dev:'Capcom',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1196590/library_600x900.jpg'},
+{title:'Resident Evil 2 Remake',genre:'Horror',platform:'PC',year:'2019',dev:'Capcom',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/883710/library_600x900.jpg'},
 {title:'Alan Wake 2',genre:'Horror',platform:'PC',year:'2023',dev:'Remedy',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2370650/library_600x900.jpg'},
 {title:'Dead Space Remake',genre:'Horror',platform:'PC',year:'2023',dev:'Motive Studio',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1693980/library_600x900.jpg'},
 {title:'Outlast',genre:'Horror',platform:'PC',year:'2013',dev:'Red Barrels',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/238320/library_600x900.jpg'},
-{title:'The Quarry',genre:'Horror',platform:'PC',year:'2022',dev:'Supermassive Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1352580/library_600x900.jpg'},
-// ── Indie ──
 {title:'Hollow Knight',genre:'Indie',platform:'PC',year:'2017',dev:'Team Cherry',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/367520/library_600x900.jpg'},
 {title:'Celeste',genre:'Indie',platform:'PC',year:'2018',dev:'Maddy Makes Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/504230/library_600x900.jpg'},
 {title:'Stardew Valley',genre:'Indie',platform:'PC',year:'2016',dev:'ConcernedApe',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/413150/library_600x900.jpg'},
@@ -634,72 +736,57 @@ const GAME_DB=[
 {title:'Dredge',genre:'Indie',platform:'PC',year:'2023',dev:'Black Salt Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1562430/library_600x900.jpg'},
 {title:'Tunic',genre:'Indie',platform:'PC',year:'2022',dev:'Andrew Shouldice',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/553420/library_600x900.jpg'},
 {title:'Undertale',genre:'Indie',platform:'PC',year:'2015',dev:'Toby Fox',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/391540/library_600x900.jpg'},
-{title:'Ori and the Blind Forest',genre:'Indie',platform:'PC',year:'2015',dev:'Moon Studios',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/261570/library_600x900.jpg'},
 {title:'Shovel Knight',genre:'Indie',platform:'PC',year:'2014',dev:'Yacht Club Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/250760/library_600x900.jpg'},
-{title:'Spiritfarer',genre:'Indie',platform:'PC',year:'2020',dev:'Thunder Lotus',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/972660/library_600x900.jpg'},
+{title:'Terraria',genre:'Indie',platform:'PC',year:'2011',dev:'Re-Logic',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/105600/library_600x900.jpg'},
 {title:'Return of the Obra Dinn',genre:'Puzzle',platform:'PC',year:'2018',dev:'Lucas Pope',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/653530/library_600x900.jpg'},
-// ── Strategy ──
-{title:'Civilization VI',genre:'Strategy',platform:'PC',year:'2016',dev:'Firaxis',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/289070/library_600x900.jpg'},
-{title:'XCOM 2',genre:'Strategy',platform:'PC',year:'2016',dev:'Firaxis',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/268500/library_600x900.jpg'},
-{title:'Into the Breach',genre:'Strategy',platform:'PC',year:'2018',dev:'Subset Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/590380/library_600x900.jpg'},
-{title:'Crusader Kings III',genre:'Strategy',platform:'PC',year:'2020',dev:'Paradox',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1158310/library_600x900.jpg'},
-{title:'Age of Empires IV',genre:'Strategy',platform:'PC',year:'2021',dev:'Relic',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1466860/library_600x900.jpg'},
-{title:'Total War: Warhammer III',genre:'Strategy',platform:'PC',year:'2022',dev:'Creative Assembly',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1142710/library_600x900.jpg'},
-{title:'Pikmin 4',genre:'Strategy',platform:'Switch',year:'2023',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/8/83/Pikmin_4.jpg'},
-// ── Puzzle ──
 {title:'Portal 2',genre:'Puzzle',platform:'PC',year:'2011',dev:'Valve',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/620/library_600x900.jpg'},
 {title:'Baba Is You',genre:'Puzzle',platform:'PC',year:'2019',dev:'Arvi Teikari',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/736260/library_600x900.jpg'},
 {title:'The Witness',genre:'Puzzle',platform:'PC',year:'2016',dev:'Jonathan Blow',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/210970/library_600x900.jpg'},
 {title:'Talos Principle 2',genre:'Puzzle',platform:'PC',year:'2023',dev:'Croteam',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2159240/library_600x900.jpg'},
 {title:'Unpacking',genre:'Puzzle',platform:'PC',year:'2021',dev:'Witch Beam',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1135690/library_600x900.jpg'},
-{title:'Chants of Sennaar',genre:'Puzzle',platform:'PC',year:'2023',dev:'Rundisc',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1931660/library_600x900.jpg'},
-{title:'Planet of Lana',genre:'Puzzle',platform:'PC',year:'2023',dev:'Wishfully',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1608230/library_600x900.jpg'},
-// ── Adventure ──
+{title:'Civilization VI',genre:'Strategy',platform:'PC',year:'2016',dev:'Firaxis',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/289070/library_600x900.jpg'},
+{title:'XCOM 2',genre:'Strategy',platform:'PC',year:'2016',dev:'Firaxis',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/268500/library_600x900.jpg'},
+{title:'Into the Breach',genre:'Strategy',platform:'PC',year:'2018',dev:'Subset Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/590380/library_600x900.jpg'},
+{title:'Crusader Kings III',genre:'Strategy',platform:'PC',year:'2020',dev:'Paradox',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1158310/library_600x900.jpg'},
+{title:'Age of Empires IV',genre:'Strategy',platform:'PC',year:'2021',dev:'Relic',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1466860/library_600x900.jpg'},
 {title:'Red Dead Redemption 2',genre:'Adventure',platform:'PC',year:'2019',dev:'Rockstar',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1174180/library_600x900.jpg'},
 {title:'The Last of Us Part I',genre:'Adventure',platform:'PC',year:'2023',dev:'Naughty Dog',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1888930/library_600x900.jpg'},
-{title:'Breath of the Wild',genre:'Adventure',platform:'Switch',year:'2017',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg'},
-{title:'Tears of the Kingdom',genre:'Adventure',platform:'Switch',year:'2023',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/2/22/The_Legend_of_Zelda_Tears_of_the_Kingdom_cover.jpg'},
-{title:'Horizon Forbidden West',genre:'Adventure',platform:'PC',year:'2024',dev:'Guerrilla',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2420110/library_600x900.jpg'},
 {title:'Control',genre:'Adventure',platform:'PC',year:'2019',dev:'Remedy',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/870780/library_600x900.jpg'},
 {title:'Outer Wilds',genre:'Adventure',platform:'PC',year:'2020',dev:'Mobius Digital',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/753640/library_600x900.jpg'},
-{title:'A Plague Tale: Requiem',genre:'Adventure',platform:'PC',year:'2022',dev:'Asobo Studio',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1468810/library_600x900.jpg'},
+{title:'A Plague Tale: Requiem',genre:'Adventure',platform:'PC',year:'2022',dev:'Asobo',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1468810/library_600x900.jpg'},
 {title:'It Takes Two',genre:'Adventure',platform:'PC',year:'2021',dev:'Hazelight',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1426210/library_600x900.jpg'},
-{title:'Metroid Dread',genre:'Adventure',platform:'Switch',year:'2021',dev:'MercurySteam',cover:'https://upload.wikimedia.org/wikipedia/en/d/d2/Metroid_Dread_cover.jpg'},
-{title:'Kirby and the Forgotten Land',genre:'Adventure',platform:'Switch',year:'2022',dev:'HAL Laboratory',cover:'https://upload.wikimedia.org/wikipedia/en/b/b5/Kirby_and_the_Forgotten_Land.jpg'},
 {title:'Kena: Bridge of Spirits',genre:'Adventure',platform:'PC',year:'2021',dev:'Ember Lab',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1437320/library_600x900.jpg'},
-// ── Sports ──
-{title:'EA Sports FC 25',genre:'Sports',platform:'PC',year:'2024',dev:'EA Sports',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2195250/library_600x900.jpg'},
-{title:'NBA 2K25',genre:'Sports',platform:'PC',year:'2024',dev:'2K Sports',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2767700/library_600x900.jpg'},
-{title:'Tony Hawk Pro Skater 1+2',genre:'Sports',platform:'PC',year:'2021',dev:'Vicarious Visions',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1396130/library_600x900.jpg'},
-{title:'Rocket League',genre:'Sports',platform:'PC',year:'2015',dev:'Psyonix',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/252950/library_600x900.jpg'},
-// ── Racing ──
 {title:'Forza Horizon 5',genre:'Racing',platform:'PC',year:'2021',dev:'Playground Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1551360/library_600x900.jpg'},
-{title:'Gran Turismo 7',genre:'Racing',platform:'PS5',year:'2022',dev:'Polyphony Digital',cover:'https://upload.wikimedia.org/wikipedia/en/5/55/Gran_Turismo_7.jpg'},
 {title:'F1 23',genre:'Racing',platform:'PC',year:'2023',dev:'Codemasters',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2108330/library_600x900.jpg'},
 {title:'Assetto Corsa Competizione',genre:'Racing',platform:'PC',year:'2019',dev:'Kunos',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/805550/library_600x900.jpg'},
-{title:'Mario Kart 8 Deluxe',genre:'Racing',platform:'Switch',year:'2017',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/e/ea/Mario_Kart_8_Deluxe.jpg'},
-// ── Fighting ──
+{title:'Rocket League',genre:'Sports',platform:'PC',year:'2015',dev:'Psyonix',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/252950/library_600x900.jpg'},
+{title:'Tony Hawk Pro Skater 1+2',genre:'Sports',platform:'PC',year:'2021',dev:'Vicarious Visions',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1396130/library_600x900.jpg'},
 {title:'Street Fighter 6',genre:'Fighting',platform:'PC',year:'2023',dev:'Capcom',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1877960/library_600x900.jpg'},
 {title:'Tekken 8',genre:'Fighting',platform:'PC',year:'2024',dev:'Bandai Namco',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1778820/library_600x900.jpg'},
 {title:'Mortal Kombat 1',genre:'Fighting',platform:'PC',year:'2023',dev:'NetherRealm',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1971870/library_600x900.jpg'},
-{title:'Super Smash Bros. Ultimate',genre:'Fighting',platform:'Switch',year:'2018',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/0/0e/Super_Smash_Bros._Ultimate.jpg'},
 {title:'Sifu',genre:'Fighting',platform:'PC',year:'2022',dev:'Sloclap',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2138710/library_600x900.jpg'},
-// ── Simulation ──
-{title:'Stardew Valley',genre:'Simulation',platform:'PC',year:'2016',dev:'ConcernedApe',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/413150/library_600x900.jpg'},
+{title:'Dragon Ball: Sparking Zero',genre:'Fighting',platform:'PC',year:'2024',dev:'Spike Chunsoft',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1790600/library_600x900.jpg'},
 {title:'Cities: Skylines II',genre:'Simulation',platform:'PC',year:'2023',dev:'Colossal Order',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/949230/library_600x900.jpg'},
 {title:'Planet Zoo',genre:'Simulation',platform:'PC',year:'2019',dev:'Frontier',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/703080/library_600x900.jpg'},
-{title:'Animal Crossing: NH',genre:'Simulation',platform:'Switch',year:'2020',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/6/6b/Animal_Crossing_New_Horizons.jpg'},
+{title:'Minecraft',genre:'Simulation',platform:'PC',year:'2011',dev:'Mojang',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1672970/library_600x900.jpg'},
 {title:'PowerWash Simulator',genre:'Simulation',platform:'PC',year:'2022',dev:'FuturLab',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1290000/library_600x900.jpg'},
-// ── Battle Royale ──
-{title:'Fortnite',genre:'Battle Royale',platform:'PC',year:'2017',dev:'Epic Games',cover:'https://cdn2.unrealengine.com/en-14br-egs-launcher-fortnite-2560x1440-2560x1440-a1bc2da0f1c5.jpg'},
+{title:'Apex Legends',genre:'Battle Royale',platform:'PC',year:'2019',dev:'Respawn',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1172470/library_600x900.jpg'},
 {title:'PUBG',genre:'Battle Royale',platform:'PC',year:'2017',dev:'PUBG Corp',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/578080/library_600x900.jpg'},
-{title:'Warzone 2.0',genre:'Battle Royale',platform:'PC',year:'2022',dev:'Infinity Ward',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2519060/library_600x900.jpg'},
-// ── MOBA ──
-{title:'League of Legends',genre:'MOBA',platform:'PC',year:'2009',dev:'Riot Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2801430/library_600x900.jpg'},
+{title:'Warzone',genre:'Battle Royale',platform:'PC',year:'2022',dev:'Infinity Ward',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2519060/library_600x900.jpg'},
 {title:'Dota 2',genre:'MOBA',platform:'PC',year:'2013',dev:'Valve',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/570/library_600x900.jpg'},
-{title:'Smite 2',genre:'MOBA',platform:'PC',year:'2024',dev:'Hi-Rez',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2305730/library_600x900.jpg'},
-// ── Mobile ──
-{title:'Genshin Impact',genre:'Mobile',platform:'Mobile',year:'2020',dev:'HoYoverse',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1971870/library_600x900.jpg'},
+{title:'League of Legends',genre:'MOBA',platform:'PC',year:'2009',dev:'Riot Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2801430/library_600x900.jpg'},
+{title:'Path of Exile',genre:'RPG',platform:'PC',year:'2013',dev:'Grinding Gear Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/238960/library_600x900.jpg'},
+{title:'Warframe',genre:'Action',platform:'PC',year:'2013',dev:'Digital Extremes',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/230410/library_600x900.jpg'},
+{title:'Ghostwire Tokyo',genre:'Action',platform:'PC',year:'2022',dev:'Tango Gameworks',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1475810/library_600x900.jpg'},
+// Switch exclusives
+{title:'Breath of the Wild',genre:'Adventure',platform:'Switch',year:'2017',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/c/c6/The_Legend_of_Zelda_Breath_of_the_Wild.jpg'},
+{title:'Tears of the Kingdom',genre:'Adventure',platform:'Switch',year:'2023',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/2/22/The_Legend_of_Zelda_Tears_of_the_Kingdom_cover.jpg'},
+{title:'Super Smash Bros. Ultimate',genre:'Fighting',platform:'Switch',year:'2018',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/0/0e/Super_Smash_Bros._Ultimate.jpg'},
+{title:'Mario Kart 8 Deluxe',genre:'Racing',platform:'Switch',year:'2017',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/e/ea/Mario_Kart_8_Deluxe.jpg'},
+{title:'Animal Crossing: NH',genre:'Simulation',platform:'Switch',year:'2020',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/6/6b/Animal_Crossing_New_Horizons.jpg'},
+{title:'Splatoon 3',genre:'FPS',platform:'Switch',year:'2022',dev:'Nintendo',cover:'https://upload.wikimedia.org/wikipedia/en/5/54/Splatoon_3.jpg'},
+// Mobile
+{title:'Genshin Impact',genre:'Mobile',platform:'Mobile',year:'2020',dev:'HoYoverse',cover:'https://play-lh.googleusercontent.com/1sqNHnFiSPAmrMNkX0pvlR3WBjmJkHB0fh3TcGxADxTNOEo_LFJDVRZiGlBzZwNPUA=w240-h480-rw'},
 {title:'PUBG Mobile',genre:'Mobile',platform:'Mobile',year:'2018',dev:'PUBG Corp',cover:'https://play-lh.googleusercontent.com/JRd05pyBH41qjgsJuWduRJpDeZG0Hnb0yjf2nWqO7VaGKL10-G5UIygxED-WNKbDfQ=w240-h480-rw'},
 {title:'Free Fire',genre:'Mobile',platform:'Mobile',year:'2017',dev:'Garena',cover:'https://play-lh.googleusercontent.com/WWcssdzTaVv7GVHkJFHbSqhBfOb3rIMDXXuAH9bq7PBjUqXm07oDrAXLEhRAnxLDeKw=w240-h480-rw'},
 {title:'Mobile Legends',genre:'Mobile',platform:'Mobile',year:'2016',dev:'Moonton',cover:'https://play-lh.googleusercontent.com/9kPM4oFKS0CsQiLynA-O9aK80Ywpw_sNmhFXZw5jlCYvFMN3_b94FyxbxLJd5bGdZA=w240-h480-rw'},
@@ -708,377 +795,424 @@ const GAME_DB=[
 {title:'Among Us',genre:'Mobile',platform:'Mobile',year:'2018',dev:'InnerSloth',cover:'https://play-lh.googleusercontent.com/qQGMlyXMnbpSJWJQwLFVgTUx5xBPLpIIFqpTvYGKl8mEt-F6jmMhXkFuFbWH0GDWMA=w240-h480-rw'},
 {title:'Pokémon GO',genre:'Mobile',platform:'Mobile',year:'2016',dev:'Niantic',cover:'https://play-lh.googleusercontent.com/A4X5YbQBPLasRJWCQfn-KbTHGgdTFvW09l4xnk_YOdnU1FRcDYKLlYxq2sQBdGAF6fo=w240-h480-rw'},
 {title:'Brawl Stars',genre:'Mobile',platform:'Mobile',year:'2018',dev:'Supercell',cover:'https://play-lh.googleusercontent.com/LrQnSIvNmE_TsLUCUxW5YBfMJF-bwrm53pSuUFmcVSBuMX3TFDvMtbCXX1mH5GEIlw=w240-h480-rw'},
-{title:'Honor of Kings',genre:'Mobile',platform:'Mobile',year:'2015',dev:'TiMi Studio',cover:'https://play-lh.googleusercontent.com/5ZJyBx5wnJ6a3a0-OV7bYPL9e_Y0cYJzqXb1p7XrHbCv7EcYGGT6mkVKgN2L_vkO=w240-h480-rw'},
 {title:'COD Mobile',genre:'Mobile',platform:'Mobile',year:'2019',dev:'TiMi Studio',cover:'https://play-lh.googleusercontent.com/rlPxlLHBXtlGKFMzPwH--_GNYH3_YQUe-V1Kn8tVLd0QN2D5JuVWEMq0uMmfM_FEQ=w240-h480-rw'},
-{title:'Diablo Immortal',genre:'Mobile',platform:'Mobile',year:'2022',dev:'Blizzard',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1492580/library_600x900.jpg'},
 {title:'Wild Rift',genre:'Mobile',platform:'Mobile',year:'2021',dev:'Riot Games',cover:'https://play-lh.googleusercontent.com/1SLPA9tL9zMgk8Wm1kc6j5B2YdExJ0bWfIBaI4hFoOKPq7lnHIKXuG_CZXK5yKfmQ=w240-h480-rw'},
-{title:'Hearthstone',genre:'Mobile',platform:'Mobile',year:'2014',dev:'Blizzard',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1064220/library_600x900.jpg'},
 {title:'Arknights',genre:'Mobile',platform:'Mobile',year:'2020',dev:'Hypergryph',cover:'https://play-lh.googleusercontent.com/I_FjHlOv5bJ8VHBwEKyHnLGpbr0jLv4g6zNSGCXQpMT5IITuSMPBhGLrJEuqzWV_g=w240-h480-rw'},
+{title:'Diablo Immortal',genre:'Mobile',platform:'Mobile',year:'2022',dev:'Blizzard',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1492580/library_600x900.jpg'},
+{title:'Hearthstone',genre:'Mobile',platform:'Mobile',year:'2014',dev:'Blizzard',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1064220/library_600x900.jpg'},
 {title:'Roblox',genre:'Mobile',platform:'Mobile',year:'2006',dev:'Roblox Corp',cover:'https://play-lh.googleusercontent.com/WNWZaK9GSKMQ8G-Jn7MuAZmYBSHGlZOGFnUjRyGx4UknPjyFJYnE9IKpR-4-GIJBOU=w240-h480-rw'},
 {title:'Subway Surfers',genre:'Mobile',platform:'Mobile',year:'2012',dev:'SYBO Games',cover:'https://play-lh.googleusercontent.com/PCSC6Ao-ynyXOv6tQNz1rMTN_S1nBqVoqiPNXbCmGm6mCyKBdqLO7wGPpL_nLQ8VJo=w240-h480-rw'},
-{title:'Minecraft (Bedrock)',genre:'Mobile',platform:'Mobile',year:'2011',dev:'Mojang',cover:'https://play-lh.googleusercontent.com/VSwHxHNJHQT7L1eUdXCi7D2mHfMGJVkgEBn0PiODqGBaFLMBPxSIPb4-B6FPOPDmRiY=w240-h480-rw'},
-{title:'Alto\'s Odyssey',genre:'Mobile',platform:'Mobile',year:'2018',dev:'Team Alto',cover:'https://play-lh.googleusercontent.com/1sqNHnFiSPAmrMNkX0pvlR3WBjmJkHB0fh3TcGxADxTNOEo_LFJDVRZiGlBzZwNPUA=w240-h480-rw'},
 {title:'Monument Valley 2',genre:'Mobile',platform:'Mobile',year:'2017',dev:'ustwo',cover:'https://play-lh.googleusercontent.com/5vNKHXKyJgR7E4cR4lDTOl3BDFU1PFlW7P9kHF0ZiFsXzA3M4q-sQ6B0l26pAeovB-w=w240-h480-rw'},
+{title:'Alto\'s Odyssey',genre:'Mobile',platform:'Mobile',year:'2018',dev:'Team Alto',cover:'https://play-lh.googleusercontent.com/1sqNHnFiSPAmrMNkX0pvlR3WBjmJkHB0fh3TcGxADxTNOEo_LFJDVRZiGlBzZwNPUA=w240-h480-rw'},
+{title:'Honor of Kings',genre:'Mobile',platform:'Mobile',year:'2015',dev:'TiMi Studio',cover:'https://play-lh.googleusercontent.com/5ZJyBx5wnJ6a3a0-OV7bYPL9e_Y0cYJzqXb1p7XrHbCv7EcYGGT6mkVKgN2L_vkO=w240-h480-rw'},
 {title:'Candy Crush Saga',genre:'Mobile',platform:'Mobile',year:'2012',dev:'King',cover:'https://play-lh.googleusercontent.com/lJGbWXMCWg1K2bGjBxM48mEEwwGLqIEtW_H0sQy4KCL0UEkROgXXHVKbPsODaHifGQ=w240-h480-rw'},
-{title:'Pokémon Masters EX',genre:'Mobile',platform:'Mobile',year:'2019',dev:'DeNA',cover:'https://play-lh.googleusercontent.com/SbTjfwR6WT0m4FvWmDBBTtaD9wPlw0GMFhegCPa7JmHhDuJzN06dPqPVBbbEDJJx2g=w240-h480-rw'},
-// More PC/console
-{title:'Minecraft',genre:'Simulation',platform:'PC',year:'2011',dev:'Mojang',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1672970/library_600x900.jpg'},
-{title:'Terraria',genre:'Indie',platform:'PC',year:'2011',dev:'Re-Logic',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/105600/library_600x900.jpg'},
-{title:'Deep Rock Galactic',genre:'FPS',platform:'PC',year:'2020',dev:'Ghost Ship Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/548430/library_600x900.jpg'},
-{title:"Baldur's Gate 3",genre:'RPG',platform:'PC',year:'2023',dev:'Larian Studios',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1086940/library_600x900.jpg'},
-{title:'Warframe',genre:'Action',platform:'PC',year:'2013',dev:'Digital Extremes',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/230410/library_600x900.jpg'},
-{title:'Path of Exile',genre:'RPG',platform:'PC',year:'2013',dev:'Grinding Gear Games',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/238960/library_600x900.jpg'},
-{title:'Baldur\'s Gate 3',genre:'RPG',platform:'PC',year:'2023',dev:'Larian Studios',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1086940/library_600x900.jpg'},
-{title:'Half-Life: Alyx',genre:'FPS',platform:'PC',year:'2020',dev:'Valve',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/546560/library_600x900.jpg'},
-{title:'Nier: Automata',genre:'Action',platform:'PC',year:'2017',dev:'PlatinumGames',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/524220/library_600x900.jpg'},
-{title:'Mass Effect Legendary',genre:'RPG',platform:'PC',year:'2021',dev:'BioWare',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1328670/library_600x900.jpg'},
-{title:'Dragon Ball: Sparking Zero',genre:'Fighting',platform:'PC',year:'2024',dev:'Spike Chunsoft',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1790600/library_600x900.jpg'},
-{title:'Resident Evil 2 Remake',genre:'Horror',platform:'PC',year:'2019',dev:'Capcom',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/883710/library_600x900.jpg'},
-{title:'Ghostwire Tokyo',genre:'Action',platform:'PC',year:'2022',dev:'Tango Gameworks',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1475810/library_600x900.jpg'},
-{title:'Wo Long: Fallen Dynasty',genre:'Action',platform:'PC',year:'2023',dev:'Team Ninja',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/2285550/library_600x900.jpg'},
-{title:'Atlas Fallen',genre:'Action',platform:'PC',year:'2023',dev:'Deck13',cover:'https://cdn.cloudflare.steamstatic.com/steam/apps/1869970/library_600x900.jpg'},
 ];
-
-// Deduplicate by title
 const seen=new Set();
-const GAMES=GAME_DB.filter(g=>{if(seen.has(g.title))return false;seen.add(g.title);return true;});
+const GAMES=DB.filter(g=>{if(seen.has(g.title))return false;seen.add(g.title);return true;});
 
-// ═══════════════════════════════════════════════════════════
-// QUIZ DATA — 60 questions across categories
-// ═══════════════════════════════════════════════════════════
-const QUIZ_DATA={
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// QUIZ QUESTIONS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const QD={
   general:[
-    {q:'Which studio developed Elden Ring?',opts:['FromSoftware','CD Projekt Red','Bethesda','Capcom'],ans:0,exp:'FromSoftware, known for Dark Souls, created Elden Ring in collaboration with George R.R. Martin.'},
-    {q:'What year was Minecraft first released publicly?',opts:['2009','2010','2011','2013'],ans:1,exp:'Minecraft was released as an alpha in 2009 but had its full "Java Edition" release in November 2011.'},
-    {q:'Which game has the most concurrent players on Steam ever?',opts:['PUBG','Counter-Strike 2','Cyberpunk 2077','Lost Ark'],ans:0,exp:'PUBG held the Steam concurrent players record for years with 3.2 million in January 2018.'},
-    {q:'What is the best-selling video game of all time?',opts:['Minecraft','Tetris','GTA V','Wii Sports'],ans:0,exp:'Minecraft has sold over 300 million copies across all platforms, making it the best-selling game ever.'},
-    {q:'Who is the protagonist of The Witcher series?',opts:['Arthur Morgan','Geralt of Rivia','Aloy','Kratos'],ans:1,exp:'Geralt of Rivia is the main protagonist, a monster-hunter known as a "Witcher."'},
-    {q:'Which company makes the PlayStation console?',opts:['Microsoft','Nintendo','Sony','Sega'],ans:2,exp:'Sony Interactive Entertainment has manufactured PlayStation consoles since the original PS1 in 1994.'},
-    {q:'What does "RPG" stand for?',opts:['Really Powerful Game','Role-Playing Game','Rapid Progression Game','Random Play Generator'],ans:1,exp:'RPG stands for Role-Playing Game, a genre where players take on the roles of characters in a fictional setting.'},
-    {q:'In which game do you play as a courier in a post-apocalyptic Mojave Wasteland?',opts:['Fallout 3','Fallout 4','Fallout: New Vegas','Fallout 76'],ans:2,exp:'Fallout: New Vegas (2010) by Obsidian Entertainment places you as a Courier in the Mojave.'},
-    {q:'What is the currency in The Legend of Zelda games?',opts:['Gold','Rupees','Zeni','Gil'],ans:1,exp:'Rupees are the currency throughout the Zelda franchise, named after the Indian currency.'},
-    {q:'Which game features the "Nemesis System" for dynamic enemy interactions?',opts:['Shadow of Mordor','Witcher 3','Batman Arkham Knight','God of War'],ans:0,exp:'Middle-earth: Shadow of Mordor introduced the Nemesis System, where enemies remember and adapt to you.'},
+    {q:'Which studio developed Elden Ring?',o:['FromSoftware','CD Projekt Red','Bethesda','Capcom'],a:0,e:'FromSoftware created Elden Ring in collaboration with George R.R. Martin.'},
+    {q:'What is the best-selling video game of all time?',o:['Minecraft','Tetris','GTA V','Wii Sports'],a:0,e:'Minecraft has sold over 300 million copies across all platforms.'},
+    {q:'Who is the protagonist of The Witcher series?',o:['Arthur Morgan','Geralt of Rivia','Aloy','Kratos'],a:1,e:'Geralt of Rivia is a monster-hunter known as a Witcher.'},
+    {q:'Which company makes PlayStation?',o:['Microsoft','Nintendo','Sony','Sega'],a:2,e:'Sony Interactive Entertainment has made PlayStation since 1994.'},
+    {q:'What does "RPG" stand for?',o:['Really Powerful Game','Role-Playing Game','Rapid Progression Game','Random Play Generator'],a:1,e:'RPG stands for Role-Playing Game.'},
+    {q:'Which game features the "Nemesis System"?',o:['Shadow of Mordor','Witcher 3','Batman Arkham Knight','God of War'],a:0,e:'Middle-earth: Shadow of Mordor introduced the Nemesis System.'},
+    {q:'What currency do Zelda games use?',o:['Gold','Rupees','Zeni','Gil'],a:1,e:'Rupees are the currency throughout the Zelda franchise.'},
+    {q:'Which studio made Hollow Knight?',o:['Team Ninja','Team Cherry','Playdead','Devolver'],a:1,e:'Team Cherry is the small Australian indie studio behind Hollow Knight.'},
+    {q:'What is the main antagonist of Half-Life?',o:['GLaDOS','G-Man','The Combine','Nihilanth'],a:1,e:'The G-Man is the mysterious antagonist who appears throughout the Half-Life series.'},
+    {q:'Which game pioneered the "soulslike" genre?',o:['Dark Souls','Demon\'s Souls','Elden Ring','Bloodborne'],a:1,e:'Demon\'s Souls (2009) by FromSoftware pioneered the genre before Dark Souls made it mainstream.'},
   ],
   pc:[
-    {q:'What is the name of the AI antagonist in Portal and Portal 2?',opts:['HAL 9000','GLaDOS','SHODAN','Cortana'],ans:1,exp:'GLaDOS (Genetic Lifeform and Disk Operating System) is the AI antagonist in Valve\'s Portal series.'},
-    {q:'Which game engine powers most of Valve\'s titles like Half-Life 2?',opts:['Unreal Engine','Unity','Source Engine','CryEngine'],ans:2,exp:'Valve developed the Source Engine, which powers Half-Life 2, Counter-Strike: Source, and many other titles.'},
-    {q:'In Stardew Valley, who created and sold Joja Co.\'s rival — Pelican Town?',opts:['Pierre','Demetrius','Willy','Nobody — you revive it'],ans:3,exp:'You — the player — inherited the farm and work to restore the community center, which is the rival to Joja Co.'},
-    {q:'What year did Counter-Strike 2 fully replace CS:GO?',opts:['2022','2023','2024','2021'],ans:1,exp:'Counter-Strike 2 was released in September 2023 as a free upgrade, officially replacing CS:GO.'},
-    {q:'In Cyberpunk 2077, what is the name of the AI imprinted in V\'s head?',opts:['Alt Cunningham','Johnny Silverhand','Delamain','Panam'],ans:1,exp:'Johnny Silverhand, the legendary rockerboy played by Keanu Reeves, is imprinted on a biochip in V\'s head.'},
-    {q:'Which Valve game uses the phrase "The cake is a lie"?',opts:['Half-Life','Team Fortress 2','Portal','Left 4 Dead'],ans:2,exp:'"The cake is a lie" became a famous internet meme from Portal (2007), referencing GLaDOS\'s promise.'},
-    {q:'What is the name of the open-world in The Witcher 3?',opts:['Novigrad','The Continent','White Orchard','Velen'],ans:1,exp:'The Witcher 3 takes place on "The Continent" — a fictional world that includes regions like Velen, Novigrad, and Skellige.'},
-    {q:'In Doom Eternal, what is the player character called?',opts:['B.J. Blazkowicz','Doomguy/Doom Slayer','Master Chief','The Soldier'],ans:1,exp:'The protagonist is officially named the Doom Slayer (or colloquially "Doomguy"), a marine who battles demons.'},
+    {q:'AI antagonist of Portal & Portal 2?',o:['HAL 9000','GLaDOS','SHODAN','Cortana'],a:1,e:'GLaDOS (Genetic Lifeform and Disk Operating System) is the AI villain in Valve\'s Portal series.'},
+    {q:'Which engine powers Half-Life 2?',o:['Unreal Engine','Unity','Source Engine','CryEngine'],a:2,e:'Valve\'s Source Engine powers Half-Life 2 and Counter-Strike: Source.'},
+    {q:'Year Counter-Strike 2 replaced CS:GO?',o:['2022','2023','2024','2021'],a:1,e:'Counter-Strike 2 launched in September 2023 as a free upgrade replacing CS:GO.'},
+    {q:'AI in V\'s head in Cyberpunk 2077?',o:['Alt Cunningham','Johnny Silverhand','Delamain','Panam'],a:1,e:'Johnny Silverhand, played by Keanu Reeves, is imprinted on a biochip in V\'s head.'},
+    {q:'"The cake is a lie" is from which game?',o:['Half-Life','Team Fortress 2','Portal','Left 4 Dead'],a:2,e:'"The cake is a lie" became a famous meme from Portal (2007).'},
+    {q:'What is Stardew Valley\'s main rival corporation?',o:['Krusty Co.','Joja Corporation','MegaCorp','AgroCorp'],a:1,e:'Joja Corporation is the megacorporation you must compete against in Stardew Valley.'},
+    {q:'What year did Minecraft\'s full Java release launch?',o:['2009','2010','2011','2012'],a:2,e:'Minecraft Java Edition had its full release on November 18, 2011.'},
+    {q:'Which game engine does Unreal Engine 5 power?',o:['Fortnite','Cyberpunk','GTA V','Minecraft'],a:0,e:'Fortnite by Epic Games runs on Unreal Engine 5, developed by Epic Games themselves.'},
   ],
   mobile:[
-    {q:'Which company developed Clash of Clans?',opts:['Electronic Arts','Zynga','Supercell','King'],ans:2,exp:'Supercell, a Finnish mobile game developer, created Clash of Clans in 2012.'},
-    {q:'What is the main goal in Pokémon GO?',opts:['Build a city','Battle online','Catch Pokémon in the real world','Solve puzzles'],ans:2,exp:'Pokémon GO uses augmented reality to let players catch Pokémon in real-world locations using their phone\'s GPS.'},
-    {q:'In Genshin Impact, what is the name of the world players explore?',opts:['Mondstadt','Teyvat','Liyue','Fontaine'],ans:1,exp:'Teyvat is the main world of Genshin Impact, divided into multiple nations inspired by different cultures.'},
-    {q:'What year was Garena Free Fire released?',opts:['2016','2017','2018','2019'],ans:1,exp:'Free Fire was released in 2017 by Garena and became hugely popular in Southeast Asia and India.'},
-    {q:'How many players start a match in PUBG Mobile?',opts:['50','75','100','150'],ans:2,exp:'PUBG Mobile matches start with 100 players who parachute onto an island and fight to be the last person standing.'},
-    {q:'What is the name of the main currency in Clash Royale?',opts:['Gems','Gold','Coins','Elixir'],ans:1,exp:'Gold is the primary currency in Clash Royale used to buy and upgrade cards.'},
-    {q:'Which mobile game features the character "Among Crewmates"?',opts:['Brawl Stars','Fall Guys','Among Us','Roblox'],ans:2,exp:'Among Us features Crewmates (and Impostors) playing aboard a spaceship, trying to identify the saboteur.'},
-    {q:'What type of game is Honor of Kings?',opts:['Battle Royale','Turn-Based RPG','MOBA','Simulation'],ans:2,exp:'Honor of Kings is a MOBA (Multiplayer Online Battle Arena) by TiMi Studio, hugely popular in China.'},
+    {q:'Developer of Clash of Clans?',o:['EA','Zynga','Supercell','King'],a:2,e:'Supercell, a Finnish studio, created Clash of Clans in 2012.'},
+    {q:'Main goal in Pokémon GO?',o:['Build a city','Battle online','Catch Pokémon in the real world','Solve puzzles'],a:2,e:'Pokémon GO uses AR and GPS to let players catch Pokémon in real-world locations.'},
+    {q:'World explored in Genshin Impact?',o:['Mondstadt','Teyvat','Liyue','Fontaine'],a:1,e:'Teyvat is the main world of Genshin Impact, with multiple nations.'},
+    {q:'How many players start a PUBG Mobile match?',o:['50','75','100','150'],a:2,e:'PUBG Mobile matches start with 100 players on an island.'},
+    {q:'Primary currency in Clash Royale?',o:['Gems','Gold','Coins','Elixir'],a:1,e:'Gold is the primary currency used to buy and upgrade cards in Clash Royale.'},
+    {q:'Which game features Crewmates vs Impostors?',o:['Brawl Stars','Fall Guys','Among Us','Roblox'],a:2,e:'Among Us features Crewmates trying to identify the Impostors on a spaceship.'},
+    {q:'What type of game is Honor of Kings?',o:['Battle Royale','Turn-Based RPG','MOBA','Simulation'],a:2,e:'Honor of Kings is a hugely popular MOBA by TiMi Studio, dominant in China.'},
+    {q:'Garena Free Fire was released in which year?',o:['2016','2017','2018','2019'],a:1,e:'Free Fire was released in 2017 and became hugely popular in Southeast Asia and India.'},
   ],
   history:[
-    {q:'What was the first commercially successful video game arcade cabinet?',opts:['Space Invaders','Pac-Man','Pong','Asteroids'],ans:2,exp:'Pong (1972) by Atari was the first commercially successful arcade game, simulating table tennis.'},
-    {q:'Who is often called the "Father of Video Games"?',opts:['Shigeru Miyamoto','Ralph Baer','Nolan Bushnell','Atari'],ans:1,exp:'Ralph Baer invented the first home video game console (the Magnavox Odyssey) and is considered the father of video games.'},
-    {q:'In what year was the original PlayStation released in Japan?',opts:['1992','1993','1994','1995'],ans:2,exp:'The original PlayStation (PS1) was released in Japan on December 3, 1994.'},
-    {q:'Which was the first Mario game ever released?',opts:['Super Mario Bros.','Donkey Kong','Mario Bros.','Super Mario World'],ans:1,exp:'Mario (as "Jumpman") first appeared in Donkey Kong (1981), before getting his own name in Mario Bros. (1983).'},
-    {q:'What was Sega\'s main console competitor to the Super Nintendo (SNES)?',opts:['Sega Genesis','Sega Saturn','Sega Dreamcast','Game Gear'],ans:0,exp:'The Sega Genesis (Mega Drive) was Sega\'s 16-bit console, a direct competitor to Nintendo\'s SNES in the early 90s.'},
-    {q:'Which game popularized the first-person shooter genre on consoles?',opts:['Wolfenstein 3D','GoldenEye 007','Halo: Combat Evolved','Quake'],ans:2,exp:'Halo: Combat Evolved (2001) on Xbox revolutionized console FPS games with its dual-analog controls and design.'},
-    {q:'Who created the Legend of Zelda and Mario franchises?',opts:['Shigeru Miyamoto','Satoru Iwata','Gunpei Yokoi','Masahiro Sakurai'],ans:0,exp:'Shigeru Miyamoto, a legendary Nintendo game designer, is the creator of both Zelda and Mario.'},
-    {q:'What was the first 3D platformer game ever released?',opts:['Super Mario 64','Crash Bandicoot','Jumping Flash','Bug!'],ans:2,exp:'Jumping Flash! (1995) on PS1 is considered the first true 3D platformer, predating Super Mario 64 by a year.'},
+    {q:'First commercially successful arcade game?',o:['Space Invaders','Pac-Man','Pong','Asteroids'],a:2,e:'Pong (1972) by Atari was the first commercially successful arcade game.'},
+    {q:'"Father of Video Games"?',o:['Shigeru Miyamoto','Ralph Baer','Nolan Bushnell','Atari'],a:1,e:'Ralph Baer invented the Magnavox Odyssey, the first home video game console.'},
+    {q:'First game Mario appeared in?',o:['Super Mario Bros.','Donkey Kong','Mario Bros.','Super Mario World'],a:1,e:'Mario (as "Jumpman") first appeared in Donkey Kong (1981).'},
+    {q:'Sega\'s rival to Super Nintendo?',o:['Sega Genesis','Sega Saturn','Dreamcast','Game Gear'],a:0,e:'The Sega Genesis (Mega Drive) was Sega\'s 16-bit direct competitor to the SNES.'},
+    {q:'Game that revolutionised console FPS?',o:['Wolfenstein 3D','GoldenEye 007','Halo: CE','Quake'],a:2,e:'Halo: Combat Evolved (2001) revolutionised console FPS with its dual-analog controls.'},
+    {q:'Creator of both Zelda and Mario franchises?',o:['Shigeru Miyamoto','Satoru Iwata','Gunpei Yokoi','Masahiro Sakurai'],a:0,e:'Shigeru Miyamoto is the legendary Nintendo designer behind both franchises.'},
+    {q:'First 3D platformer ever released?',o:['Super Mario 64','Crash Bandicoot','Jumping Flash!','Bug!'],a:2,e:'Jumping Flash! (1995) on PS1 is considered the first true 3D platformer.'},
+    {q:'Year the original PlayStation launched in Japan?',o:['1992','1993','1994','1995'],a:2,e:'The original PlayStation launched in Japan on December 3, 1994.'},
   ]
 };
 
-// ═══════════════════════════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // STATE
-// ═══════════════════════════════════════════════════════════
-let currentUser=null,filterGenre='All',filterStatus='all',searchQuery='',detailGameId=null,currentRankTab='completed';
-let games=[],nid=1,pendingCover='';
-let quizQuestions=[],quizIdx=0,quizScore=0,quizCat='general';
-let isDark=true;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let CU=null,games=[],nid=1,filterGenre='All',filterStatus='all',searchQuery='',detailId=null;
+let rankTab='completed',quizCat='general',qQs=[],qIdx=0,qScore=0;
+let isDark=true,pendingCover='',titleTimer=null;
+let helpOpen=false,menuOpen=false;
 
-// ═══════════════════════════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ROUTING (SPA pages)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function goPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  window.scrollTo(0,0);
+  if(name==='rankings'){buildRankList(rankTab);}
+  if(name==='quiz'){showQuizStart();}
+  syncThemeBtns();
+  renderAllAuthAreas();
+}
+function goHome(){goPage('home');}
+function syncThemeBtns(){
+  document.querySelectorAll('.theme-btn').forEach(b=>b.textContent=isDark?'🌙':'☀️');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // THEME
-// ═══════════════════════════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function toggleTheme(){
   isDark=!isDark;
   document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
-  document.getElementById('themeBtn').textContent=isDark?'🌙':'☀️';
+  syncThemeBtns();
   localStorage.setItem('bhq_theme',isDark?'dark':'light');
 }
 
-// ═══════════════════════════════════════════════════════════
-// STORAGE
-// ═══════════════════════════════════════════════════════════
-function getUsers(){try{return JSON.parse(localStorage.getItem('bhq_users')||'{}')}catch(e){return {}}}
-function saveUsers(u){try{localStorage.setItem('bhq_users',JSON.stringify(u))}catch(e){}}
-function getUserGames(){
-  if(!currentUser)return[];
-  const k='bhq_games_'+currentUser.id;
-  try{const s=JSON.parse(localStorage.getItem(k)||'null');if(s)return s;}catch(e){}
-  const starter=GAMES.slice(0,6).map((g,i)=>({id:i+1,title:g.title,genre:g.genre,platform:g.platform,year:g.year,rating:i<2?5:0,cover:g.cover||'',status:i===0?'completed':i===1?'playing':'backlog',added:new Date().toISOString().slice(0,10),notes:'',hours:0,dev:g.dev}));
-  saveUserGames(starter);return starter;
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TOAST
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toast(msg,emoji='✅'){
+  const t=document.getElementById('toast');
+  t.textContent=`${emoji} ${msg}`;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
 }
-function saveUserGames(g){
-  if(!currentUser)return;
-  try{localStorage.setItem('bhq_games_'+currentUser.id,JSON.stringify(g));}catch(e){}
-  const lb=JSON.parse(localStorage.getItem('bhq_lb')||'{}');
-  lb[currentUser.id]={id:currentUser.id,name:currentUser.name,avatar:currentUser.avatar,color:currentUser.color,completed:g.filter(x=>x.status==='completed').length,playing:g.filter(x=>x.status==='playing').length,total:g.length,hours:g.reduce((s,x)=>s+(x.hours||0),0)};
-  localStorage.setItem('bhq_lb',JSON.stringify(lb));
-}
-function loadGames(){games=getUserGames();nid=games.length?Math.max(...games.map(g=>g.id))+1:1;}
 
-// ═══════════════════════════════════════════════════════════
-// AUTH
-// ═══════════════════════════════════════════════════════════
-function openAuth(tab='signin'){switchAuthTab(tab);document.getElementById('authError').classList.remove('show');document.getElementById('authSuccess').classList.remove('show');document.getElementById('authOverlay').classList.add('open')}
-function closeAuth(){document.getElementById('authOverlay').classList.remove('open')}
-function switchAuthTab(tab){
-  document.getElementById('signinForm').style.display=tab==='signin'?'block':'none';
-  document.getElementById('signupForm').style.display=tab==='signup'?'block':'none';
-  document.getElementById('tabSignIn').classList.toggle('active',tab==='signin');
-  document.getElementById('tabSignUp').classList.toggle('active',tab==='signup');
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SUPABASE AUTH
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function oauthLogin(provider){
+  if(!SB_READY){toast('Add your Supabase credentials to enable OAuth','⚠️');return;}
+  const{error}=await sb.auth.signInWithOAuth({
+    provider,
+    options:{redirectTo:window.location.href}
+  });
+  if(error)showAuthErr(error.message);
 }
-function socialLogin(provider){
-  const email=`demo_${provider.toLowerCase()}@backloghq.com`;
-  let users=getUsers();
-  if(!users[email]){users[email]={id:email,name:`${provider} Player`,email,password:'',avatar:provider[0],color:AV[Math.floor(Math.random()*AV.length)]};saveUsers(users);}
-  loginSuccess(users[email],provider);
-}
-function doSignIn(){
-  const email=document.getElementById('authEmail').value.trim();
-  const pass=document.getElementById('authPassword').value;
-  if(!email||!pass){showAuthError('Please fill in all fields.');return;}
-  const user=getUsers()[email];
-  if(!user||user.password!==btoa(pass)){showAuthError('Invalid email or password.');return;}
-  loginSuccess(user,'Email');
-}
-function doSignUp(){
-  const name=document.getElementById('authName').value.trim();
-  const email=document.getElementById('authEmailUp').value.trim();
-  const pass=document.getElementById('authPasswordUp').value;
-  if(!name||!email||!pass){showAuthError('Please fill all fields.');return;}
-  if(pass.length<6){showAuthError('Password must be at least 6 characters.');return;}
-  const users=getUsers();
-  if(users[email]){showAuthError('Email already registered.');return;}
-  const user={id:email,name,email,password:btoa(pass),avatar:name[0].toUpperCase(),color:AV[Object.keys(users).length%AV.length]};
-  users[email]=user;saveUsers(users);
-  showAuthSuccess('Account created! Signing in…');
-  setTimeout(()=>loginSuccess(user,'Email'),800);
-}
-function loginSuccess(user,via){currentUser=user;closeAuth();loadGames();renderAuthArea();render();toast(`Welcome, ${user.name}!`,'🎉');}
-function logout(){currentUser=null;closeUserMenu();games=[];renderAuthArea();render();toast('Signed out','👋')}
-function showAuthError(msg){const e=document.getElementById('authError');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3500)}
-function showAuthSuccess(msg){const e=document.getElementById('authSuccess');e.textContent=msg;e.classList.add('show')}
-function togglePw(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁':'🙈'}
-let menuOpen=false;
-function toggleUserMenu(e){e.stopPropagation();menuOpen=!menuOpen;document.getElementById('uMenuDD').classList.toggle('open',menuOpen)}
-function closeUserMenu(){menuOpen=false;const m=document.getElementById('uMenuDD');if(m)m.classList.remove('open')}
-document.addEventListener('click',()=>{if(menuOpen)closeUserMenu()});
-function renderAuthArea(){
-  const a=document.getElementById('authArea');
-  if(currentUser){
-    a.innerHTML=`<div style="position:relative"><div class="user-avatar" onclick="toggleUserMenu(event)" style="background:${currentUser.color||'#7c6af7'}">${currentUser.avatar}</div><div class="user-menu" id="uMenuDD"><div class="user-menu-info"><div class="user-menu-name">${currentUser.name}</div><div class="user-menu-email">${currentUser.email}</div></div><div class="user-menu-item" onclick="openRankings();closeUserMenu()">🏆 Rankings</div><div class="user-menu-item" onclick="openQuiz();closeUserMenu()">🧠 Quiz</div><div class="user-menu-item danger" onclick="logout()">🚪 Sign Out</div></div></div>`;
+
+async function doSignIn(){
+  const email=document.getElementById('aEmail').value.trim();
+  const pw=document.getElementById('aPw').value;
+  if(!email||!pw){showAuthErr('Please fill in all fields.');return;}
+  setBtnLoading('btnSignIn',true);
+  if(SB_READY){
+    const{data,error}=await sb.auth.signInWithPassword({email,password:pw});
+    setBtnLoading('btnSignIn',false);
+    if(error){showAuthErr(error.message);return;}
+    await handleSession(data.session);
   }else{
-    a.innerHTML=`<button class="btn-hdr" onclick="openAuth('signin')">🔐 Sign In</button>`;
+    // Fallback local auth
+    const users=lsGet('bhq_users',{});
+    const user=users[email];
+    if(!user||user.pw!==btoa(pw)){setBtnLoading('btnSignIn',false);showAuthErr('Invalid email or password.');return;}
+    setBtnLoading('btnSignIn',false);
+    loginSuccess({id:email,name:user.name,email,avatar:user.name[0].toUpperCase(),color:user.color});
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-// HELP DROPDOWN
-// ═══════════════════════════════════════════════════════════
-let helpOpen=false;
-function toggleHelp(e){e.stopPropagation();helpOpen=!helpOpen;document.getElementById('helpMenu').classList.toggle('open',helpOpen)}
-document.addEventListener('click',()=>{if(helpOpen){helpOpen=false;document.getElementById('helpMenu').classList.remove('open')}});
+async function doSignUp(){
+  const name=document.getElementById('aName').value.trim();
+  const email=document.getElementById('aEmailUp').value.trim();
+  const pw=document.getElementById('aPwUp').value;
+  if(!name||!email||!pw){showAuthErr('Please fill all fields.');return;}
+  if(pw.length<6){showAuthErr('Password must be at least 6 characters.');return;}
+  setBtnLoading('btnSignUp',true);
+  if(SB_READY){
+    const{data,error}=await sb.auth.signUp({
+      email,password:pw,
+      options:{data:{display_name:name}}
+    });
+    setBtnLoading('btnSignUp',false);
+    if(error){showAuthErr(error.message);return;}
+    if(data.session){
+      await handleSession(data.session);
+    }else{
+      showAuthOk('Check your email to confirm your account, then sign in.');
+    }
+  }else{
+    const users=lsGet('bhq_users',{});
+    if(users[email]){setBtnLoading('btnSignUp',false);showAuthErr('Email already registered.');return;}
+    const color=AV[Object.keys(users).length%AV.length];
+    users[email]={name,pw:btoa(pw),color};
+    lsSet('bhq_users',users);
+    setBtnLoading('btnSignUp',false);
+    loginSuccess({id:email,name,email,avatar:name[0].toUpperCase(),color});
+  }
+}
 
-// ═══════════════════════════════════════════════════════════
-// HELP / CONTACT MODAL
-// ═══════════════════════════════════════════════════════════
-function openHelpContact(section){
+async function handleSession(session){
+  if(!session)return;
+  const u=session.user;
+  const name=u.user_metadata?.display_name||u.user_metadata?.full_name||u.email.split('@')[0];
+  const color=AV[Math.abs(u.id.charCodeAt(0)-64)%AV.length];
+  loginSuccess({id:u.id,name,email:u.email,avatar:name[0].toUpperCase(),color});
+}
+
+function loginSuccess(user){
+  CU=user;closeAuth();loadGames();renderAllAuthAreas();render();
+  toast(`Welcome, ${user.name}!`,'🎉');
+}
+
+function logout(){
+  if(SB_READY&&sb)sb.auth.signOut();
+  CU=null;menuOpen=false;games=[];
+  renderAllAuthAreas();render();toast('Signed out','👋');
+}
+
+function showAuthErr(msg){const e=document.getElementById('authErr');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),4000)}
+function showAuthOk(msg){const e=document.getElementById('authOk');e.textContent=msg;e.classList.add('show')}
+function setBtnLoading(id,on){const b=document.getElementById(id);if(b){b.disabled=on;b.textContent=on?'Loading…':id==='btnSignIn'?'Sign In →':'Create Account →';}}
+function switchTab(t){
+  document.getElementById('formIn').style.display=t==='in'?'block':'none';
+  document.getElementById('formUp').style.display=t==='up'?'block':'none';
+  document.getElementById('tabIn').classList.toggle('active',t==='in');
+  document.getElementById('tabUp').classList.toggle('active',t==='up');
+}
+function togglePw(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁':'🙈';}
+function openAuth(tab='in'){switchTab(tab);document.getElementById('authErr').classList.remove('show');document.getElementById('authOk').classList.remove('show');document.getElementById('authOverlay').classList.add('open');}
+function closeAuth(){document.getElementById('authOverlay').classList.remove('open')}
+
+// Render auth in all page headers
+function renderAllAuthAreas(){
+  ['authArea','authArea2','authArea3'].forEach(id=>{
+    const a=document.getElementById(id);if(!a)return;
+    if(CU){
+      a.innerHTML=`<div class="ua-wrap"><div class="user-avatar" onclick="toggleUA(event)" style="background:${CU.color||'#7b61ff'}">${CU.avatar}</div><div class="user-menu" id="uM_${id}"><div class="um-info"><div class="um-name">${CU.name}</div><div class="um-email">${CU.email}</div></div><div class="um-item" onclick="goPage('rankings')">🏆 Rankings</div><div class="um-item" onclick="goPage('quiz')">🧠 Quiz</div><div class="um-item danger" onclick="logout()">🚪 Sign Out</div></div></div>`;
+    }else{
+      a.innerHTML=`<button class="btn-nav" onclick="openAuth('in')">🔐 Sign In</button>`;
+    }
+  });
+}
+let uaOpen=null;
+function toggleUA(e){
+  e.stopPropagation();
+  const wrap=e.currentTarget.parentElement;
+  const menu=wrap.querySelector('.user-menu');
+  if(uaOpen&&uaOpen!==menu)uaOpen.classList.remove('open');
+  menu.classList.toggle('open');
+  uaOpen=menu.classList.contains('open')?menu:null;
+}
+document.addEventListener('click',()=>{if(uaOpen){uaOpen.classList.remove('open');uaOpen=null;}});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LOCAL STORAGE HELPERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function lsGet(k,def){try{const v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+function loadGames(){
+  if(!CU){games=[];return;}
+  const k='bhq_g_'+CU.id;
+  const saved=lsGet(k,null);
+  if(saved){games=saved;nid=games.length?Math.max(...games.map(g=>g.id))+1:1;return;}
+  games=GAMES.slice(0,6).map((g,i)=>({id:i+1,...g,rating:i<2?5:0,status:i===0?'completed':i===1?'playing':'backlog',added:new Date().toISOString().slice(0,10),notes:'',hours:0}));
+  nid=7;saveGames();
+}
+function saveGames(){
+  if(!CU)return;
+  lsSet('bhq_g_'+CU.id,games);
+  const lb=lsGet('bhq_lb',{});
+  lb[CU.id]={id:CU.id,name:CU.name,avatar:CU.avatar,color:CU.color,
+    completed:games.filter(g=>g.status==='completed').length,
+    playing:games.filter(g=>g.status==='playing').length,
+    total:games.length,
+    hours:games.reduce((s,g)=>s+(g.hours||0),0)
+  };
+  lsSet('bhq_lb',lb);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// HELP
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toggleHelp(e){e.stopPropagation();helpOpen=!helpOpen;document.getElementById('helpMenu').classList.toggle('open',helpOpen);}
+document.addEventListener('click',()=>{if(helpOpen){helpOpen=false;document.getElementById('helpMenu').classList.remove('open');}});
+function openHelp(sec){
   helpOpen=false;document.getElementById('helpMenu').classList.remove('open');
-  const title=document.getElementById('helpModalTitle');
-  const content=document.getElementById('helpContactContent');
-  if(section==='faq'){
-    title.textContent='📖 Frequently Asked Questions';
-    const faqs=[
-      {q:'How do I add a game to my library?',a:'Click the "+ Add Game" button. Type a game title — suggestions from our database will appear automatically with cover art. Select one or fill in the details manually.'},
-      {q:'Are my games saved if I close the browser?',a:'Yes! All your game data is saved locally in your browser\'s storage. As long as you use the same browser and device, your library persists.'},
-      {q:'Can I use BacklogHQ on mobile?',a:'Yes, BacklogHQ is fully responsive and works on mobile browsers. We recommend adding it to your home screen for the best experience.'},
-      {q:'How does the Rankings system work?',a:'Rankings compare all registered users based on completed games, games currently playing, total library size, and hours played. Your stats update automatically.'},
-      {q:'How do I delete a game from my library?',a:'Click on any game card to open its detail view, then click the "Delete" button at the bottom. You can also use the ✕ button on the card directly.'},
-      {q:'Can I change my display name?',a:'Currently, display names are set at account creation. Support for editing profiles is coming in a future update.'},
+  const tmap={faq:'📖 FAQ',contact:'💬 Contact Us',bug:'🐛 Report a Bug'};
+  document.getElementById('helpTitle').textContent=tmap[sec]||'Help';
+  const c=document.getElementById('helpContent');
+  if(sec==='faq'){
+    const qs=[
+      {q:'How do I add a game?',a:'Click "+ Add Game", type a title — suggestions will appear with covers. Select one or fill manually.'},
+      {q:'Is my data saved between sessions?',a:'Yes — all game data is saved in your browser. With Supabase connected, it syncs across devices.'},
+      {q:'How do Rankings work?',a:'Rankings compare all registered users by completed games, playing count, library size, and hours played.'},
+      {q:'How do I delete a game?',a:'Click any card to open details, then press the Delete button. Or use the ✕ on the card directly.'},
+      {q:'Can I use this on mobile?',a:'Yes, BacklogHQ is fully responsive. Add it to your home screen for the best experience.'},
     ];
-    content.innerHTML=`<div>${faqs.map((f,i)=>`<div class="faq-item"><div class="faq-q" onclick="toggleFaq(${i},this)">${f.q}<span class="faq-arrow">▼</span></div><div class="faq-a" id="faq-a-${i}">${f.a}</div></div>`).join('')}</div>`;
-  }else if(section==='contact'){
-    title.textContent='💬 Contact Us';
-    content.innerHTML=`<div class="contact-cards"><div class="contact-card" onclick="toast('Email: support@backloghq.com','📧')"><div class="contact-card-icon">📧</div><div class="contact-card-title">Email Support</div><div class="contact-card-sub">support@backloghq.com</div></div><div class="contact-card" onclick="toast('Discord invite coming soon!','🎮')"><div class="contact-card-icon">🎮</div><div class="contact-card-title">Discord</div><div class="contact-card-sub">Join our community</div></div><div class="contact-card" onclick="toast('Twitter/X: @BacklogHQ','🐦')"><div class="contact-card-icon">🐦</div><div class="contact-card-title">Twitter / X</div><div class="contact-card-sub">@BacklogHQ</div></div><div class="contact-card" onclick="toast('Reddit: r/BacklogHQ','🤝')"><div class="contact-card-icon">🤝</div><div class="contact-card-title">Reddit</div><div class="contact-card-sub">r/BacklogHQ</div></div></div><div class="form-row"><label class="form-label">Send a Message</label><textarea class="form-textarea" id="contactMsg" placeholder="Tell us what's on your mind…"></textarea></div><button class="btn-submit" onclick="sendContactMsg()">📨 Send Message</button>`;
-  }else if(section==='bug'){
-    title.textContent='🐛 Report a Bug';
-    content.innerHTML=`<div style="margin-bottom:18px"><div style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:16px">Found something broken? Let us know! Please describe what happened and what you expected to happen.</div><div class="form-row"><label class="form-label">Bug Description</label><textarea class="form-textarea" id="bugDesc" placeholder="Describe the bug…" style="min-height:120px"></textarea></div><div class="form-row"><label class="form-label">Steps to Reproduce</label><input type="text" class="form-input" id="bugSteps" placeholder="1. Go to… 2. Click… 3. See error…"></div></div><button class="btn-submit" onclick="submitBug()">🐛 Submit Bug Report</button>`;
+    c.innerHTML=qs.map((f,i)=>`<div class="faq-item"><div class="faq-q" onclick="toggleFaq(${i},this)">${f.q}<span class="faq-arrow">▼</span></div><div class="faq-a" id="fa${i}">${f.a}</div></div>`).join('');
+  }else if(sec==='contact'){
+    c.innerHTML=`<div class="contact-grid"><div class="c-card" onclick="toast('Email: support@backloghq.com','📧')"><div class="c-icon">📧</div><div class="c-title">Email</div><div class="c-sub">support@backloghq.com</div></div><div class="c-card" onclick="toast('Discord community coming soon!','🎮')"><div class="c-icon">🎮</div><div class="c-title">Discord</div><div class="c-sub">Join community</div></div><div class="c-card" onclick="toast('Twitter: @BacklogHQ','🐦')"><div class="c-icon">🐦</div><div class="c-title">Twitter/X</div><div class="c-sub">@BacklogHQ</div></div><div class="c-card" onclick="toast('Reddit: r/BacklogHQ','🤝')"><div class="c-icon">🤝</div><div class="c-title">Reddit</div><div class="c-sub">r/BacklogHQ</div></div></div><div class="form-row"><label class="form-label">Send a message</label><textarea class="form-textarea" id="contactMsg" placeholder="Tell us what's on your mind…"></textarea></div><button class="btn-submit" onclick="sendMsg()">📨 Send</button>`;
+  }else{
+    c.innerHTML=`<div style="font-size:14px;color:var(--text2);margin-bottom:14px;line-height:1.6">Describe the bug and steps to reproduce it.</div><div class="form-row"><textarea class="form-textarea" id="bugTxt" placeholder="Describe the bug…" style="min-height:110px"></textarea></div><button class="btn-submit" onclick="sendBug()">🐛 Submit</button>`;
   }
-  document.getElementById('helpContactOverlay').classList.add('open');
+  document.getElementById('helpOverlay').classList.add('open');
 }
-function closeHelpContact(){document.getElementById('helpContactOverlay').classList.remove('open')}
-function toggleFaq(i,el){
-  const a=document.getElementById('faq-a-'+i);
-  const open=a.classList.toggle('open');
-  el.classList.toggle('open',open);
-}
-function sendContactMsg(){const m=document.getElementById('contactMsg').value.trim();if(!m){return;}toast('Message sent! We\'ll get back to you soon.','📨');document.getElementById('contactMsg').value='';}
-function submitBug(){const d=document.getElementById('bugDesc').value.trim();if(!d)return;toast('Bug report submitted! Thank you!','🐛');closeHelpContact();}
+function closeHelp(){document.getElementById('helpOverlay').classList.remove('open')}
+function toggleFaq(i,el){const a=document.getElementById('fa'+i);const o=a.classList.toggle('open');el.classList.toggle('open',o);}
+function sendMsg(){const m=document.getElementById('contactMsg').value.trim();if(!m)return;toast('Message sent!','📨');document.getElementById('contactMsg').value='';}
+function sendBug(){const d=document.getElementById('bugTxt').value.trim();if(!d)return;toast('Bug reported — thank you!','🐛');closeHelp();}
 
-// ═══════════════════════════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // RANKINGS
-// ═══════════════════════════════════════════════════════════
-function openRankings(){buildRankList(currentRankTab);document.getElementById('rankOverlay').classList.add('open')}
-function closeRankings(){document.getElementById('rankOverlay').classList.remove('open')}
-function setRankTab(tab,el){currentRankTab=tab;document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');buildRankList(tab)}
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setRankTab(tab,el){
+  rankTab=tab;
+  document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');buildRankList(tab);
+}
 function buildRankList(tab){
-  const lb=JSON.parse(localStorage.getItem('bhq_lb')||'{}');
+  const lb=lsGet('bhq_lb',{});
   const players=Object.values(lb);
-  if(!players.length){document.getElementById('rankList').innerHTML='<div class="rank-empty">🎮 No players yet — sign up and start tracking!</div>';return;}
+  const el=document.getElementById('rankList');
+  if(!el)return;
+  if(!players.length){el.innerHTML='<div class="rank-empty">🎮 No players yet — sign up and start tracking games!</div>';return;}
   const key={completed:'completed',playing:'playing',total:'total',hours:'hours'}[tab];
   players.sort((a,b)=>(b[key]||0)-(a[key]||0));
-  const unit={completed:'completed',playing:'playing',total:'total',hours:'hrs'}[tab];
-  document.getElementById('rankList').innerHTML=players.map((p,i)=>{
-    const pos=i+1,pc=pos===1?'rank-pos-1':pos===2?'rank-pos-2':pos===3?'rank-pos-3':'',em=pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':'#'+pos;
-    const isMe=currentUser&&p.id===currentUser.id;
-    return`<div class="rank-item${isMe?' me':''}"><div class="rank-pos ${pc}">${em}</div><div class="rank-avatar" style="background:${p.color||AV[i%AV.length]}">${p.avatar||'?'}</div><div class="rank-info"><div class="rank-name">${p.name}${isMe?'<span class="rank-badge">YOU</span>':''}</div><div class="rank-sub">${p[key]||0} ${unit}</div></div><div class="rank-score">${p[key]||0}</div></div>`;
+  const unit={completed:'games completed',playing:'currently playing',total:'games tracked',hours:'hours played'}[tab];
+  el.innerHTML=players.map((p,i)=>{
+    const pos=i+1,pc=pos===1?'rank-pos-1':pos===2?'rank-pos-2':pos===3?'rank-pos-3':'';
+    const em=pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':'#'+pos;
+    const isMe=CU&&p.id===CU.id;
+    return`<div class="rank-item${isMe?' me':''}">
+      <div class="rank-pos ${pc}">${em}</div>
+      <div class="rank-avatar" style="background:${p.color||AV[i%AV.length]}">${p.avatar||'?'}</div>
+      <div class="rank-info">
+        <div class="rank-name">${p.name}${isMe?'<span class="rank-you">YOU</span>':''}</div>
+        <div class="rank-sub">${p[key]||0} ${unit}</div>
+      </div>
+      <div class="rank-score">${p[key]||0}</div>
+    </div>`;
   }).join('');
 }
 
-// ═══════════════════════════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // QUIZ
-// ═══════════════════════════════════════════════════════════
-function openQuiz(){
-  quizIdx=0;quizScore=0;
-  document.getElementById('quizTitle').textContent='🧠 Game Quiz';
-  showQuizStart();
-  document.getElementById('quizOverlay').classList.add('open');
-}
-function closeQuiz(){document.getElementById('quizOverlay').classList.remove('open')}
-
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function showQuizStart(){
+  qIdx=0;qScore=0;
   document.getElementById('quizContent').innerHTML=`
-    <div class="quiz-start">
-      <h3>Test Your Gaming Knowledge!</h3>
-      <p>Choose a category and answer 10 questions. Each correct answer scores a point. Can you get a perfect score?</p>
+    <div class="quiz-start-card">
+      <h2>Test Your Knowledge!</h2>
+      <p>Pick a category and answer 10 questions. Each correct answer scores a point.</p>
       <div class="quiz-cats">
-        <div class="quiz-cat selected" onclick="selectCat('general',this)">🌍 General</div>
-        <div class="quiz-cat" onclick="selectCat('pc',this)">💻 PC Gaming</div>
-        <div class="quiz-cat" onclick="selectCat('mobile',this)">📱 Mobile</div>
-        <div class="quiz-cat" onclick="selectCat('history',this)">📜 History</div>
-        <div class="quiz-cat" onclick="selectCat('mixed',this)">🎲 Mixed</div>
+        <div class="quiz-cat sel" onclick="pickCat('general',this)">🌍 General</div>
+        <div class="quiz-cat" onclick="pickCat('pc',this)">💻 PC Gaming</div>
+        <div class="quiz-cat" onclick="pickCat('mobile',this)">📱 Mobile</div>
+        <div class="quiz-cat" onclick="pickCat('history',this)">📜 History</div>
+        <div class="quiz-cat" onclick="pickCat('mixed',this)">🎲 Mixed</div>
       </div>
-      <button class="btn-start-quiz" onclick="startQuiz()">▶ Start Quiz</button>
+      <button class="btn-start" onclick="startQuiz()">▶ Start Quiz</button>
     </div>`;
 }
-
-function selectCat(cat,el){
-  quizCat=cat;
-  document.querySelectorAll('.quiz-cat').forEach(c=>c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
+function pickCat(cat,el){quizCat=cat;document.querySelectorAll('.quiz-cat').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
 function startQuiz(){
-  let pool;
-  if(quizCat==='mixed'){
-    pool=Object.values(QUIZ_DATA).flat();
-  }else{
-    pool=QUIZ_DATA[quizCat]||QUIZ_DATA.general;
-  }
-  quizQuestions=[...pool].sort(()=>Math.random()-0.5).slice(0,10);
-  quizIdx=0;quizScore=0;
-  showQuestion();
+  const pool=quizCat==='mixed'?Object.values(QD).flat():QD[quizCat]||QD.general;
+  qQs=[...pool].sort(()=>Math.random()-.5).slice(0,10);
+  qIdx=0;qScore=0;showQuestion();
 }
-
 function showQuestion(){
-  if(quizIdx>=quizQuestions.length){showResult();return;}
-  const q=quizQuestions[quizIdx];
-  const pct=Math.round((quizIdx/quizQuestions.length)*100);
-  document.getElementById('quizTitle').textContent=`🧠 Question ${quizIdx+1} / ${quizQuestions.length}`;
+  if(qIdx>=qQs.length){showResult();return;}
+  const q=qQs[qIdx];
+  const pct=Math.round((qIdx/qQs.length)*100);
   document.getElementById('quizContent').innerHTML=`
-    <div class="quiz-progress">
-      <div class="quiz-q-num">Q${quizIdx+1}</div>
-      <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
-      <div class="quiz-q-num">${quizScore} pts</div>
-    </div>
-    <div class="quiz-question">${q.q}</div>
-    <div class="quiz-options">
-      ${q.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(${i})">${['A','B','C','D'][i]}. ${o}</button>`).join('')}
-    </div>
-    <div class="quiz-explanation" id="quizExp">${q.exp}</div>
-    <button class="btn-next-q" id="quizNextBtn" onclick="nextQuestion()">${quizIdx+1<quizQuestions.length?'Next Question →':'See Results 🏆'}</button>`;
-}
-
-function answerQuiz(chosen){
-  const q=quizQuestions[quizIdx];
-  const opts=document.querySelectorAll('.quiz-opt');
-  opts.forEach((o,i)=>{
-    o.classList.add('disabled');
-    if(i===q.ans)o.classList.add('correct');
-    else if(i===chosen&&chosen!==q.ans)o.classList.add('wrong');
-  });
-  if(chosen===q.ans)quizScore++;
-  document.getElementById('quizExp').classList.add('show');
-  document.getElementById('quizNextBtn').classList.add('show');
-}
-
-function nextQuestion(){quizIdx++;showQuestion()}
-
-function showResult(){
-  document.getElementById('quizTitle').textContent='🏆 Quiz Complete!';
-  const pct=Math.round((quizScore/quizQuestions.length)*100);
-  const msg=pct===100?'Perfect score! You\'re a gaming legend! 🏆':pct>=80?'Excellent! You really know your games! 🌟':pct>=60?'Good job! Solid gaming knowledge! 🎮':pct>=40?'Not bad! Keep playing and learning! 🕹':' Keep practicing — you\'ll get there! 💪';
-  document.getElementById('quizContent').innerHTML=`
-    <div class="quiz-result">
-      <div class="quiz-score-circle">
-        <div class="quiz-score-num">${quizScore}</div>
-        <div class="quiz-score-max">out of ${quizQuestions.length}</div>
+    <div class="quiz-card">
+      <div class="q-progress">
+        <div class="q-num">Q${qIdx+1}</div>
+        <div class="q-prog-bar"><div class="q-prog-fill" style="width:${pct}%"></div></div>
+        <div class="q-num">${qScore} pts</div>
       </div>
-      <h3>${msg.split('!')[0]}!</h3>
-      <p>${msg.includes('!')?msg.slice(msg.indexOf('!')+1).trim():''} You scored ${pct}%</p>
-      <div class="quiz-result-actions">
-        <button class="btn-quiz-restart" onclick="showQuizStart()">🔄 New Quiz</button>
-        <button class="btn-submit" onclick="startQuiz()" style="width:auto;padding:11px 22px;margin-top:0">▶ Play Again</button>
+      <div class="q-question">${q.q}</div>
+      <div class="q-opts">
+        ${q.o.map((o,i)=>`<button class="q-opt" onclick="answerQ(${i})">${['A','B','C','D'][i]}. ${o}</button>`).join('')}
+      </div>
+      <div class="q-exp" id="qExp">${q.e}</div>
+      <button class="btn-next" id="qNext" onclick="nextQ()">${qIdx+1<qQs.length?'Next →':'See Results 🏆'}</button>
+    </div>`;
+}
+function answerQ(chosen){
+  const q=qQs[qIdx];
+  document.querySelectorAll('.q-opt').forEach((o,i)=>{
+    o.classList.add('disabled');
+    if(i===q.a)o.classList.add('correct');
+    else if(i===chosen&&chosen!==q.a)o.classList.add('wrong');
+  });
+  if(chosen===q.a)qScore++;
+  document.getElementById('qExp').classList.add('show');
+  document.getElementById('qNext').classList.add('show');
+}
+function nextQ(){qIdx++;showQuestion();}
+function showResult(){
+  const pct=Math.round((qScore/qQs.length)*100);
+  const msg=pct===100?'Perfect! You\'re a gaming legend! 🏆':pct>=80?'Excellent! Great gaming knowledge!':pct>=60?'Good job! Solid gamer.':pct>=40?'Not bad — keep playing!':'Keep practising!';
+  document.getElementById('quizContent').innerHTML=`
+    <div class="quiz-result-card">
+      <div class="score-ring"><div class="score-n">${qScore}</div><div class="score-max">/ ${qQs.length}</div></div>
+      <h3>${msg}</h3>
+      <p>You scored ${pct}% — ${qScore} out of ${qQs.length} correct.</p>
+      <div class="result-actions">
+        <button class="btn-retry" onclick="showQuizStart()">🔄 New Quiz</button>
+        <button class="btn-start" onclick="startQuiz()" style="padding:10px 22px;font-size:13px">▶ Play Again</button>
       </div>
     </div>`;
 }
 
-// ═══════════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════════
-function toast(msg,emoji='✅'){const t=document.getElementById('toast');t.textContent=`${emoji} ${msg}`;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ADD MODAL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openAddModal(){
+  if(!CU){openAuth('in');toast('Sign in to add games','🔐');return;}
+  pendingCover='';
+  ['iconPrev','iconLoad'].forEach(id=>{document.getElementById(id).style.display='none'});
+  ['fTitle','fYear','fNotes','fHours','fDev'].forEach(id=>{document.getElementById(id).value=''});
+  const sr=document.getElementById('addSR');sr.innerHTML='';sr.classList.remove('open');
+  document.getElementById('addOverlay').classList.add('open');
+}
+function closeAddModal(){document.getElementById('addOverlay').classList.remove('open')}
 
-// ═══════════════════════════════════════════════════════════
-// COVER / TITLE AUTO-FILL
-// ═══════════════════════════════════════════════════════════
-let titleTimer=null,pendingCoverUrl='';
 function onTitleInput(inp){
-  const val=inp.value.trim();pendingCover='';
-  clearTimeout(titleTimer);
-  const sr=document.getElementById('addModalSR');
-  const prev=document.getElementById('autoIconPreview');
-  const load=document.getElementById('iconLoadingText');
-  if(!val){sr.innerHTML='';sr.classList.remove('has-results');prev.style.display='none';load.style.display='none';return;}
-  const matches=GAMES.filter(g=>g.title.toLowerCase().includes(val.toLowerCase())).slice(0,7);
-  if(matches.length){
-    sr.classList.add('has-results');
-    sr.innerHTML=matches.map(g=>`<div class="modal-sr-item" onclick='fillGame(${JSON.stringify(g).replace(/'/g,"&#39;")})'>
-      <div class="modal-sr-cover">${g.cover?`<img src="${g.cover}" onerror="this.parentNode.innerHTML='${GENRE_ICONS[g.genre]||'🎮'}'">`:(GENRE_ICONS[g.genre]||'🎮')}</div>
-      <div class="modal-sr-info"><div class="modal-sr-title">${g.title}</div><div class="modal-sr-meta">${g.genre} · ${g.platform} · ${g.year}</div></div>
+  clearTimeout(titleTimer);pendingCover='';
+  const val=inp.value.trim();
+  const sr=document.getElementById('addSR'),prev=document.getElementById('iconPrev'),load=document.getElementById('iconLoad');
+  if(!val){sr.innerHTML='';sr.classList.remove('open');prev.style.display='none';load.style.display='none';return;}
+  const hits=GAMES.filter(g=>g.title.toLowerCase().includes(val.toLowerCase())).slice(0,8);
+  if(hits.length){
+    sr.classList.add('open');
+    sr.innerHTML=hits.map(g=>`<div class="sr-item" onclick='fillGame(${JSON.stringify(g).replace(/'/g,"&#39;")})'>
+      <div class="sr-thumb">${g.cover?`<img src="${g.cover}" onerror="this.parentNode.innerHTML='${GI[g.genre]||'🎮'}'">`:GI[g.genre]||'🎮'}</div>
+      <div class="sr-info"><div class="sr-title">${g.title}</div><div class="sr-meta">${g.genre} · ${g.platform} · ${g.year}</div></div>
     </div>`).join('');
-  }else{sr.classList.remove('has-results');sr.innerHTML='';}
-  // auto-fetch after delay
+  }else{sr.classList.remove('open');sr.innerHTML='';}
   titleTimer=setTimeout(async()=>{
     load.style.display='block';
     const cover=await fetchCover(val);
     load.style.display='none';
     if(cover){prev.src=cover;prev.style.display='block';pendingCover=cover;}
-    else{prev.style.display='none';}
-  },800);
+    else prev.style.display='none';
+  },700);
 }
 
 async function fetchCover(title){
@@ -1086,11 +1220,9 @@ async function fetchCover(title){
   if(db&&db.cover)return db.cover;
   try{
     const r=await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title+' video game')}&prop=pageimages&format=json&pithumbsize=400&origin=*`);
-    const d=await r.json();
-    const p=Object.values(d.query.pages)[0];
+    const d=await r.json();const p=Object.values(d.query.pages)[0];
     if(p&&p.thumbnail)return p.thumbnail.source;
-  }catch(e){}
-  return null;
+  }catch(e){}return null;
 }
 
 function fillGame(g){
@@ -1100,83 +1232,64 @@ function fillGame(g){
   document.getElementById('fYear').value=g.year||'';
   for(let o of document.getElementById('fGenre').options)if(o.value===g.genre){document.getElementById('fGenre').value=g.genre;break;}
   for(let o of document.getElementById('fPlatform').options)if(o.value===g.platform){document.getElementById('fPlatform').value=g.platform;break;}
-  if(g.cover){pendingCover=g.cover;const p=document.getElementById('autoIconPreview');p.src=g.cover;p.style.display='block';}
-  document.getElementById('addModalSR').classList.remove('has-results');document.getElementById('addModalSR').innerHTML='';
-  document.getElementById('iconLoadingText').style.display='none';
+  if(g.cover){pendingCover=g.cover;const p=document.getElementById('iconPrev');p.src=g.cover;p.style.display='block';}
+  const sr=document.getElementById('addSR');sr.classList.remove('open');sr.innerHTML='';
 }
-
-// ═══════════════════════════════════════════════════════════
-// ADD MODAL
-// ═══════════════════════════════════════════════════════════
-function openAddModal(){
-  if(!currentUser){openAuth('signin');toast('Sign in to add games','🔐');return;}
-  pendingCover='';
-  ['autoIconPreview','iconLoadingText'].forEach(id=>{document.getElementById(id).style.display='none'});
-  ['fTitle','fYear','fNotes','fHours','fDev'].forEach(id=>{document.getElementById(id).value=''});
-  document.getElementById('addModalSR').innerHTML='';document.getElementById('addModalSR').classList.remove('has-results');
-  document.getElementById('addOverlay').classList.add('open');
-}
-function closeAddModal(){document.getElementById('addOverlay').classList.remove('open')}
 
 function submitGame(){
-  if(!currentUser){closeAddModal();openAuth();return;}
+  if(!CU){closeAddModal();openAuth();return;}
   const title=document.getElementById('fTitle').value.trim();
-  if(!title){document.getElementById('fTitle').style.borderColor='rgba(244,63,142,0.6)';setTimeout(()=>document.getElementById('fTitle').style.borderColor='',800);return;}
+  if(!title){const el=document.getElementById('fTitle');el.style.borderColor='rgba(255,61,127,.6)';setTimeout(()=>el.style.borderColor='',800);return;}
   games.unshift({id:nid++,title,genre:document.getElementById('fGenre').value,status:document.getElementById('fStatus').value,platform:document.getElementById('fPlatform').value,year:document.getElementById('fYear').value||'',rating:0,cover:pendingCover,added:new Date().toISOString().slice(0,10),notes:document.getElementById('fNotes').value.trim(),hours:parseInt(document.getElementById('fHours').value)||0,dev:document.getElementById('fDev').value.trim()});
-  saveUserGames(games);closeAddModal();render();toast(`"${title}" added!`,'🎮');
+  saveGames();closeAddModal();render();toast(`"${title}" added!`,'🎮');
 }
 
-// ═══════════════════════════════════════════════════════════
-// DETAIL MODAL
-// ═══════════════════════════════════════════════════════════
-function openDetailById(id){
-  const g=games.find(g=>g.id===id);if(!g)return;
-  detailGameId=id;
-  const ph=document.getElementById('detailCoverPh'),img=document.getElementById('detailCoverImg');
-  if(g.cover){img.src=g.cover;img.style.display='block';ph.style.display='none';}else{img.style.display='none';ph.style.display='flex';ph.textContent=GENRE_ICONS[g.genre]||'🎮';}
-  document.getElementById('detailTitleView').textContent=g.title;
-  const ac=GENRE_COLORS[g.genre]||'#7c6af7',sc2=SC[g.status]||'#a89ffc';
-  document.getElementById('detailBadges').innerHTML=`<span class="detail-badge" style="background:${ac}22;color:${ac};border:1px solid ${ac}44">${GENRE_ICONS[g.genre]||'🎮'} ${g.genre}</span><span class="detail-badge" style="background:${sc2}22;color:${sc2};border:1px solid ${sc2}44">${g.status}</span>${g.platform?`<span class="detail-badge" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)">${g.platform}</span>`:''}${g.year?`<span class="detail-badge" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)">${g.year}</span>`:''}`;
-  document.getElementById('detailStars').innerHTML=[1,2,3,4,5].map(n=>`<span class="star${g.rating>=n?' on':''}" onclick="setDetailRating(${n})" style="font-size:21px;cursor:pointer">${g.rating>=n?'★':'☆'}</span>`).join('');
-  document.getElementById('detailStatus').value=g.status;
-  document.getElementById('detailNotes').value=g.notes||'';
-  document.getElementById('detailHours').value=g.hours||'';
-  document.getElementById('detailDev').value=g.dev||'';
-  document.getElementById('detailDelBtn').style.display='flex';
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// DETAIL
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openDetail(id){
+  const g=games.find(g=>g.id===id);if(!g)return;detailId=id;
+  const ph=document.getElementById('dCoverPh'),img=document.getElementById('dCoverImg');
+  if(g.cover){img.src=g.cover;img.style.display='block';ph.style.display='none';}else{img.style.display='none';ph.style.display='flex';ph.textContent=GI[g.genre]||'🎮';}
+  document.getElementById('dTitle').textContent=g.title;
+  const ac=GC[g.genre]||'#7b61ff',sc=SC[g.status]||'#a89ffc';
+  document.getElementById('dBadges').innerHTML=`<span class="d-badge" style="background:${ac}22;color:${ac};border:1px solid ${ac}44">${GI[g.genre]||'🎮'} ${g.genre}</span><span class="d-badge" style="background:${sc}22;color:${sc};border:1px solid ${sc}44">${g.status}</span>${g.platform?`<span class="d-badge" style="background:var(--bg2);color:var(--text2);border:1px solid var(--border)">${g.platform}</span>`:''}${g.year?`<span class="d-badge" style="background:var(--bg2);color:var(--text2);border:1px solid var(--border)">${g.year}</span>`:''}`;
+  document.getElementById('dStars').innerHTML=[1,2,3,4,5].map(n=>`<span class="star${g.rating>=n?' on':''}" onclick="setDRating(${n})" style="font-size:20px;cursor:pointer">${g.rating>=n?'★':'☆'}</span>`).join('');
+  document.getElementById('dStatus').value=g.status;
+  document.getElementById('dNotes').value=g.notes||'';
+  document.getElementById('dHours').value=g.hours||'';
+  document.getElementById('dDev').value=g.dev||'';
   document.getElementById('detailOverlay').classList.add('open');
 }
-function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');detailGameId=null}
-function setDetailRating(n){const g=games.find(g=>g.id===detailGameId);if(!g)return;g.rating=g.rating===n?0:n;document.getElementById('detailStars').innerHTML=[1,2,3,4,5].map(i=>`<span class="star${g.rating>=i?' on':''}" onclick="setDetailRating(${i})" style="font-size:21px;cursor:pointer">${g.rating>=i?'★':'☆'}</span>`).join('')}
-function saveDetail(){const g=games.find(g=>g.id===detailGameId);if(!g)return;g.status=document.getElementById('detailStatus').value;g.notes=document.getElementById('detailNotes').value.trim();g.hours=parseInt(document.getElementById('detailHours').value)||0;g.dev=document.getElementById('detailDev').value.trim();saveUserGames(games);closeDetail();render();toast('Saved','💾')}
-function deleteFromDetail(){if(!confirm('Remove this game?'))return;games=games.filter(g=>g.id!==detailGameId);saveUserGames(games);closeDetail();render();toast('Removed','🗑')}
+function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');detailId=null;}
+function setDRating(n){const g=games.find(g=>g.id===detailId);if(!g)return;g.rating=g.rating===n?0:n;document.getElementById('dStars').innerHTML=[1,2,3,4,5].map(i=>`<span class="star${g.rating>=i?' on':''}" onclick="setDRating(${i})" style="font-size:20px;cursor:pointer">${g.rating>=i?'★':'☆'}</span>`).join('');}
+function saveDetail(){const g=games.find(g=>g.id===detailId);if(!g)return;g.status=document.getElementById('dStatus').value;g.notes=document.getElementById('dNotes').value.trim();g.hours=parseInt(document.getElementById('dHours').value)||0;g.dev=document.getElementById('dDev').value.trim();saveGames();closeDetail();render();toast('Saved','💾');}
+function deleteDetail(){if(!confirm('Remove this game?'))return;games=games.filter(g=>g.id!==detailId);saveGames();closeDetail();render();toast('Removed','🗑');}
 
-// ═══════════════════════════════════════════════════════════
-// FILTERS
-// ═══════════════════════════════════════════════════════════
-function onMainSearch(inp){searchQuery=inp.value.trim().toLowerCase();document.getElementById('searchClear').style.display=searchQuery?'block':'none';render()}
-function clearSearch(){document.getElementById('mainSearch').value='';searchQuery='';document.getElementById('searchClear').style.display='none';render()}
-function setGenreFilter(g,el){filterGenre=g;document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('active'));el.classList.add('active');render()}
-function setStatusFilter(s,el){filterStatus=s;document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active','active-all','active-playing','active-backlog','active-completed','active-dropped'));el.classList.add(STATUS_META[s].cls);render()}
-function setRating(id,r){const g=games.find(g=>g.id===id);if(g){g.rating=g.rating===r?0:r;saveUserGames(games);render()}}
-function setStatus(id,s){const g=games.find(g=>g.id===id);if(g){g.status=s;saveUserGames(games);render()}}
-function delGame(id){if(!confirm('Remove?'))return;games=games.filter(g=>g.id!==id);saveUserGames(games);render();toast('Removed','🗑')}
-
-// ═══════════════════════════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // RENDER
-// ═══════════════════════════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function onSearch(inp){searchQuery=inp.value.trim().toLowerCase();document.getElementById('searchClear').style.display=searchQuery?'block':'none';render();}
+function clearSearch(){document.getElementById('mainSearch').value='';searchQuery='';document.getElementById('searchClear').style.display='none';render();}
+function setGenre(g,el){filterGenre=g;document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('active'));el.classList.add('active');render();}
+function setStatus(s,el){filterStatus=s;document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active','active-all','active-playing','active-backlog','active-completed','active-dropped'));el.classList.add(SM[s].c);render();}
+function setRating(id,r){const g=games.find(g=>g.id===id);if(g){g.rating=g.rating===r?0:r;saveGames();render();}}
+function setCardStatus(id,s){const g=games.find(g=>g.id===id);if(g){g.status=s;saveGames();render();}}
+function delCard(id){if(!confirm('Remove?'))return;games=games.filter(g=>g.id!==id);saveGames();render();toast('Removed','🗑');}
+
 function buildTabs(){
-  const src=currentUser?games:GAMES;
+  const src=CU?games:GAMES;
   const genres=['All',...[...new Set(src.map(g=>g.genre))].sort()];
-  document.getElementById('genreBar').innerHTML=genres.map(g=>`<button class="gtab${g===filterGenre?' active':''}" onclick="setGenreFilter('${g.replace(/'/g,"\\'")}',this)"><span>${GENRE_ICONS[g]||'🎮'}</span>${g}</button>`).join('');
-  const counts={playing:0,backlog:0,completed:0,dropped:0};
-  src.forEach(g=>{if(counts[g.status]!==undefined)counts[g.status]++});
-  document.getElementById('statusBar').innerHTML=Object.entries(STATUS_META).map(([k,v])=>`<button class="stab${filterStatus===k?' '+v.cls:''}" onclick="setStatusFilter('${k}',this)">${v.label}${k!=='all'?` <span style="opacity:0.45;font-size:10px">(${counts[k]||0})</span>`:''}</button>`).join('');
+  document.getElementById('genreBar').innerHTML=genres.map(g=>`<button class="gtab${g===filterGenre?' active':''}" onclick="setGenre('${g.replace(/'/g,"\\'")}',this)">${GI[g]||'🎮'} ${g}</button>`).join('');
+  const cnt={playing:0,backlog:0,completed:0,dropped:0};
+  src.forEach(g=>{if(cnt[g.status]!==undefined)cnt[g.status]++;});
+  document.getElementById('statusBar').innerHTML=Object.entries(SM).map(([k,v])=>`<button class="stab${filterStatus===k?' '+v.c:''}" onclick="setStatus('${k}',this)">${v.l}${k!=='all'?` <span style="opacity:.4;font-size:10px">(${cnt[k]||0})</span>`:''}</button>`).join('');
 }
 
 function render(){
   buildTabs();
-  const src=currentUser?games:GAMES.map((g,i)=>({id:i+1,...g,status:'backlog',rating:0,added:'',notes:'',hours:0}));
-  const filtered=src.filter(g=>{
+  const src=CU?games:GAMES.map((g,i)=>({id:i+1,...g,status:'backlog',rating:0,added:'',notes:'',hours:0}));
+  const fil=src.filter(g=>{
     const gok=filterGenre==='All'||g.genre===filterGenre;
     const sok=filterStatus==='all'||g.status===filterStatus;
     const qok=!searchQuery||g.title.toLowerCase().includes(searchQuery)||(g.genre&&g.genre.toLowerCase().includes(searchQuery))||(g.dev&&g.dev.toLowerCase().includes(searchQuery))||(g.platform&&g.platform.toLowerCase().includes(searchQuery));
@@ -1184,53 +1297,73 @@ function render(){
   });
   const stats={playing:0,backlog:0,completed:0};
   src.forEach(g=>{if(g.status==='playing')stats.playing++;else if(g.status==='backlog')stats.backlog++;else if(g.status==='completed')stats.completed++;});
-  document.getElementById('hdrStats').innerHTML=`<div class="hstat"><span class="hstat-n" style="color:#c4bfff">${src.length}</span><span class="hstat-l">Total</span></div><div class="hstat"><span class="hstat-n" style="color:#0fd4b8">${stats.playing}</span><span class="hstat-l">Playing</span></div><div class="hstat"><span class="hstat-n" style="color:#fb923c">${stats.completed}</span><span class="hstat-l">Done</span></div>`;
-  if(!filtered.length){document.getElementById('gameGrid').innerHTML=`<div class="empty-wrap"><div class="empty-icon">🕹️</div><div class="empty-text">${searchQuery?'No results for "'+searchQuery+'"':'No games here!'}</div></div>`;return;}
-  document.getElementById('gameGrid').innerHTML=filtered.map((g,i)=>{
-    const ac=GENRE_COLORS[g.genre]||'#7c6af7';
-    const delay=`animation-delay:${Math.min(i*0.035,1.5)}s`;
-    const starHtml=currentUser?[1,2,3,4,5].map(n=>`<span class="star${g.rating>=n?' on':''}" onclick="event.stopPropagation();setRating(${g.id},${n})">★</span>`).join(''):'';
-    const coverHtml=g.cover?`<img src="${g.cover}" alt="${g.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:' ';
-    return`<div class="game-card" style="${delay}" onclick="${currentUser?`openDetailById(${g.id})`:`openAuth('signin')`}">
+  document.getElementById('hdrStats').innerHTML=`<div class="hstat"><span class="hstat-n" style="color:#c4bfff">${src.length}</span><span class="hstat-l">Total</span></div><div class="hstat"><span class="hstat-n" style="color:#00d2b4">${stats.playing}</span><span class="hstat-l">Playing</span></div><div class="hstat"><span class="hstat-n" style="color:#ff8c5a">${stats.completed}</span><span class="hstat-l">Done</span></div>`;
+  if(!fil.length){document.getElementById('gameGrid').innerHTML=`<div class="empty-wrap"><div class="empty-icon">🕹️</div><div class="empty-text">${searchQuery?'No results for "'+searchQuery+'"':'No games here yet!'}</div></div>`;return;}
+  document.getElementById('gameGrid').innerHTML=fil.map((g,i)=>{
+    const ac=GC[g.genre]||'#7b61ff';
+    const delay=`animation-delay:${Math.min(i*.033,1.4)}s`;
+    const covHtml=g.cover?`<img src="${g.cover}" alt="${g.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:' ';
+    const starHtml=CU?[1,2,3,4,5].map(n=>`<span class="star${g.rating>=n?' on':''}" onclick="event.stopPropagation();setRating(${g.id},${n})">★</span>`).join(''):'';
+    return`<div class="game-card" style="${delay}" onclick="${CU?`openDetail(${g.id})`:`openAuth('in')`}">
       <div class="card-cover">
-        ${coverHtml}
-        <div class="cover-placeholder"${g.cover?' style="display:none"':''}><div class="ph-icon">${GENRE_ICONS[g.genre]||'🎮'}</div><div class="ph-label">No Cover</div></div>
-        <div class="status-ribbon r-${g.status}">${g.status}</div>
+        ${covHtml}
+        <div class="cover-ph"${g.cover?' style="display:none"':''}><div class="cover-ph-icon">${GI[g.genre]||'🎮'}</div><div class="cover-ph-label">No Cover</div></div>
+        <div class="s-ribbon r-${g.status}">${g.status}</div>
       </div>
       <div class="card-body">
-        <div class="card-genre-row">
-          <div class="genre-chip"><div class="genre-dot" style="background:${ac}"></div>${g.genre}${g.platform?` · ${g.platform}`:''}</div>
-          ${g.year?`<span style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">${g.year}</span>`:''}
+        <div class="card-meta">
+          <div class="genre-chip"><div class="g-dot" style="background:${ac}"></div>${g.genre}${g.platform?` · ${g.platform}`:''}</div>
+          ${g.year?`<span style="font-size:9.5px;color:var(--text3);font-family:'JetBrains Mono',monospace">${g.year}</span>`:''}
         </div>
         <div class="card-title">${g.title}</div>
-        ${currentUser?`<div class="stars">${starHtml}</div>`:''}
-        ${currentUser?`<div class="card-footer"><select class="card-status-sel css-${g.status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();setStatus(${g.id},this.value)"><option value="playing"${g.status==='playing'?' selected':''}>Playing</option><option value="backlog"${g.status==='backlog'?' selected':''}>Backlog</option><option value="completed"${g.status==='completed'?' selected':''}>Completed</option><option value="dropped"${g.status==='dropped'?' selected':''}>Dropped</option></select><div class="card-actions"><button class="act-btn del" onclick="event.stopPropagation();delGame(${g.id})" title="Remove">✕</button></div></div>`:`<div style="padding-top:9px;border-top:1px solid var(--border);text-align:center"><span style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace">Sign in to track</span></div>`}
+        ${CU?`<div class="stars">${starHtml}</div>`:''}
+        ${CU?`<div class="card-footer"><select class="csel css-${g.status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();setCardStatus(${g.id},this.value)"><option value="playing"${g.status==='playing'?' selected':''}>Playing</option><option value="backlog"${g.status==='backlog'?' selected':''}>Backlog</option><option value="completed"${g.status==='completed'?' selected':''}>Completed</option><option value="dropped"${g.status==='dropped'?' selected':''}>Dropped</option></select><div class="card-actions"><button class="act-btn del" onclick="event.stopPropagation();delCard(${g.id})">✕</button></div></div>`:`<div style="padding-top:9px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">Sign in to track</div>`}
       </div>
     </div>`;
   }).join('');
 }
 
-// ═══════════════════════════════════════════════════════════
-// KEYBOARD & CLOSE
-// ═══════════════════════════════════════════════════════════
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();closeDetail();closeAuth();closeRankings();closeQuiz();closeHelpContact();}});
-['addOverlay','detailOverlay','authOverlay','rankOverlay','quizOverlay','helpContactOverlay'].forEach(id=>{document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget){e.target.classList.remove('open');if(id==='quizOverlay'){}}}); });
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// KEYBOARD + CLOSE LISTENERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();closeDetail();closeAuth();closeHelp();}});
+['addOverlay','detailOverlay','authOverlay','helpOverlay'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('click',e=>{if(e.target===e.currentTarget)el.classList.remove('open');});
+});
 
-// ═══════════════════════════════════════════════════════════
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // INIT
-// ═══════════════════════════════════════════════════════════
-(function init(){
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+(async function init(){
   // Theme
-  const savedTheme=localStorage.getItem('bhq_theme')||'dark';
-  isDark=savedTheme==='dark';
+  const t=localStorage.getItem('bhq_theme')||'dark';
+  isDark=t==='dark';
   document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
-  document.getElementById('themeBtn').textContent=isDark?'🌙':'☀️';
-  // Session
-  try{const s=JSON.parse(localStorage.getItem('bhq_session')||'null');if(s){const users=getUsers();if(users[s.id])currentUser=users[s.id];}}catch(e){}
-  renderAuthArea();loadGames();render();
-})();
+  syncThemeBtns();
 
-window.addEventListener('beforeunload',()=>{if(currentUser)localStorage.setItem('bhq_session',JSON.stringify({id:currentUser.id}));else localStorage.removeItem('bhq_session');});
+  // Supabase session restore
+  if(SB_READY){
+    const{data}=await sb.auth.getSession();
+    if(data.session) await handleSession(data.session);
+    // Listen for auth state changes (OAuth redirect callback)
+    sb.auth.onAuthStateChange(async(_,session)=>{
+      if(session){await handleSession(session);}
+      else{CU=null;games=[];renderAllAuthAreas();render();}
+    });
+  }else{
+    // Local session fallback
+    try{
+      const s=lsGet('bhq_session',null);
+      if(s){const users=lsGet('bhq_users',{});if(users[s.id])CU={id:s.id,...users[s.id],email:s.id,avatar:users[s.id].name[0].toUpperCase()};}
+    }catch(e){}
+    window.addEventListener('beforeunload',()=>{if(CU)lsSet('bhq_session',{id:CU.id});else localStorage.removeItem('bhq_session');});
+  }
+
+  renderAllAuthAreas();
+  loadGames();
+  render();
+})();
 </script>
 </body>
 </html>
