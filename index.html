@@ -1854,7 +1854,7 @@ function loginSuccess(user){
   // Bootstrap profile — generates UID + registers in global registry
   const p=getMyProfile();
   // Always re-register so the user is findable even after profile already existed
-  registerInRegistry(p);
+  registerInRegistry(p).catch(()=>{});
   // Sync avatar/color from profile to CU
   CU.avatar=p.avatarEmoji||user.name[0].toUpperCase();
   CU.color=p.avatarColor||user.color||'#7b61ff';
@@ -1868,8 +1868,6 @@ function loginSuccess(user){
   const qmeta=lsGet('bhq_qmeta_'+user.id,{});
   if(!qmeta.lastQuizTime)qmeta.lastQuizTime=Date.now()-86400000*4;
   lsSet('bhq_qmeta_'+user.id,qmeta);
-  // Broadcast login so other open tabs know this user is now searchable
-  try{friendChannel.postMessage({type:'registry-update',id:CU.id});}catch(e){}
 }
 
 function logout(){
@@ -2768,8 +2766,8 @@ function getMyProfile(){
 function saveMyProfile(p){
   if(!CU)return;
   lsSet('bhq_profile_'+CU.id,p);
-  // Sync to registry so others can find us
-  registerInRegistry(p);
+  // Sync to registry so others can find us (async, fire-and-forget)
+  registerInRegistry(p).catch(()=>{});
   // Sync avatar/color to CU so it reflects everywhere
   CU.avatar=p.avatarEmoji;
   CU.color=p.avatarColor;
@@ -2779,24 +2777,44 @@ function saveMyProfile(p){
   if(lb[CU.id]){lb[CU.id].name=p.displayName;lb[CU.id].avatar=p.avatarEmoji;lb[CU.id].color=p.avatarColor;lsSet('bhq_lb',lb);}
 }
 
-// Global registry: bhq_registry = { uid: {id,uid,gamertag,displayName,avatarEmoji,avatarColor}, ... }
-// Also indexed by gamertag for search
-function registerInRegistry(p){
+// Global registry — localStorage + Supabase user_registry table
+async function registerInRegistry(p){
   if(!CU)return;
+  // Always write localStorage for same-device fallback
   const reg=lsGet('bhq_registry',{});
   reg[CU.id]={id:CU.id,uid:p.uid,gamertag:p.gamertag.toLowerCase(),displayName:p.displayName,avatarEmoji:p.avatarEmoji,avatarColor:p.avatarColor};
   lsSet('bhq_registry',reg);
+  // Upsert to Supabase
+  if(!SB_READY||!sb)return;
+  try{
+    await sb.from('user_registry').upsert({
+      id:CU.id,slq_id:p.uid,gamertag:p.gamertag.toLowerCase(),
+      display_name:p.displayName,avatar_emoji:p.avatarEmoji,
+      avatar_color:p.avatarColor,updated_at:new Date().toISOString()
+    },{onConflict:'id'});
+  }catch(e){console.warn('Registry upsert:',e);}
 }
 
-function findUserByQuery(query){
+async function findUserByQuery(query){
   const q=query.trim().toLowerCase();
+  // Supabase search first
+  if(SB_READY&&sb){
+    try{
+      const{data}=await sb.from('user_registry').select('*')
+        .or(`slq_id.ilike.${q},gamertag.ilike.${q},display_name.ilike.${q}`)
+        .limit(1);
+      if(data&&data[0]){
+        const u=data[0];
+        return{id:u.id,uid:u.slq_id,gamertag:u.gamertag,name:u.display_name,avatar:u.avatar_emoji,color:u.avatar_color};
+      }
+    }catch(e){console.warn('Registry search:',e);}
+  }
+  // localStorage fallback
   const reg=lsGet('bhq_registry',{});
-  // Search by BHQ UID (case-insensitive), gamertag, or display name
-  return Object.values(reg).find(u=>
-    u.uid?.toLowerCase()===q ||
-    u.gamertag?.toLowerCase()===q ||
-    u.displayName?.toLowerCase()===q
-  )||null;
+  const found=Object.values(reg).find(u=>
+    u.uid?.toLowerCase()===q||u.gamertag?.toLowerCase()===q||u.displayName?.toLowerCase()===q
+  );
+  return found?{id:found.id,uid:found.uid,gamertag:found.gamertag,name:found.displayName,avatar:found.avatarEmoji,color:found.avatarColor}:null;
 }
 
 // Profile modal state
@@ -3054,189 +3072,193 @@ function scheduleNotifChecks(){
 }
 
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  FRIENDS SYSTEM                                              ║
+// ║  FRIENDS SYSTEM — SUPABASE POWERED                          ║
 // ╚══════════════════════════════════════════════════════════════╝
-// Storage schema:
-//   bhq_fr_{userId}  = { friends:[{id,name,avatar,color}], sent:[{id,name,time}], received:[{id,name,avatar,color,time}] }
-//   bhq_chat_{key}   = [{from,msg,time}]  where key = sorted([uid1,uid2]).join('_')
-// For demo: all users stored in bhq_users (local auth) or bhq_lb (for Supabase users)
-// NOTE: The friend system syncs via localStorage + BroadcastChannel — works across
-//       tabs on the same browser. For cross-device, a Supabase friends table is needed.
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// BroadcastChannel: notify other open tabs when friend data changes
-const friendChannel=(()=>{
-  try{
-    const ch=new BroadcastChannel('stacklog_friends');
-    ch.onmessage=(e)=>{
-      if(!CU)return;
-      const{type,targetId}=e.data||{};
-      if(type==='friend-update'&&(targetId===CU.id||!targetId)){
-        updateFriendsBadge();
-        renderNotifBadge();
-        renderNotifDropdown();
-        const page=document.getElementById('page-friends');
-        if(page&&page.classList.contains('active'))renderFriendsPage();
-      }
-      if(type==='registry-update'){
-        // Another tab just logged in — refresh search capability silently
-      }
-    };
-    return ch;
-  }catch(e){return{postMessage:()=>{}};}
-})();
+let chatPartnerId=null,chatPollTimer=null,chatRealtimeSub=null;
+let friendPagePollTimer=null,friendRealtimeSub=null;
+let _chatMsgs=[];
 
-let chatPartnerId=null,chatPollTimer=null;
-let friendPagePollTimer=null;
-
-function getFriendData(){
+// ── localStorage fallback helpers ─────────────────────────────
+function getFriendDataLS(){
   if(!CU)return{friends:[],sent:[],received:[]};
   return lsGet('bhq_fr_'+CU.id,{friends:[],sent:[],received:[]});
 }
-function saveFriendData(data){
-  if(!CU)return;
-  lsSet('bhq_fr_'+CU.id,data);
-  try{friendChannel.postMessage({type:'friend-update',targetId:CU.id});}catch(e){}
+function saveFriendDataLS(data){if(!CU)return;lsSet('bhq_fr_'+CU.id,data);}
+
+// Push a notification into another user's localStorage slot (same-device best-effort)
+function pushNotifForUser(userId,icon,msg,type){
+  try{
+    const arr=lsGet('bhq_notifs_'+userId,[]);
+    arr.unshift({icon,msg,type,time:Date.now(),read:false});
+    lsSet('bhq_notifs_'+userId,arr.slice(0,20));
+  }catch(e){}
 }
 
-// Get all known users — from global registry (primary) + leaderboard fallback
-function getAllKnownUsers(){
-  const reg=lsGet('bhq_registry',{});
-  const lb=lsGet('bhq_lb',{});
-  const all={};
-  // Registry is the source of truth (has UID + gamertag)
-  Object.values(reg).forEach(u=>{
-    all[u.id]={id:u.id,uid:u.uid,gamertag:u.gamertag,name:u.displayName,avatar:u.avatarEmoji||u.displayName?.[0]||'?',color:u.avatarColor||'#7b61ff'};
-  });
-  // Fallback: leaderboard entries not in registry yet
-  Object.values(lb).forEach(p=>{
-    if(p.id&&p.name&&!all[p.id])all[p.id]={id:p.id,name:p.name,avatar:p.avatar,color:p.color};
-  });
-  return Object.values(all);
-}
-
-function sendFriendRequest(){
+// ── Send friend request ────────────────────────────────────────
+async function sendFriendRequest(){
   if(!CU){openAuth('in');return;}
   const query=document.getElementById('friendSearchInput')?.value.trim();
-  if(!query){toast('Enter a BHQ ID or gamertag to search','⚠️');return;}
+  if(!query){toast('Enter a Stack ID or gamertag','⚠️');return;}
   const res=document.getElementById('friendSearchResult');
+  if(res)res.innerHTML='<span style="color:var(--text3)">🔍 Searching…</span>';
 
-  // Try registry search first (by BHQ UID or gamertag)
-  let found=findUserByQuery(query);
-
-  // Fallback to full user list search
+  const found=await findUserByQuery(query);
   if(!found){
-    const allUsers=getAllKnownUsers();
-    found=allUsers.find(u=>
-      u.uid?.toLowerCase()===query.toLowerCase()||
-      u.gamertag?.toLowerCase()===query.toLowerCase()||
-      u.name?.toLowerCase()===query.toLowerCase()
-    )||null;
-  }
-
-  if(!found){
-    if(res)res.innerHTML='❌ User not found. Ask them to share their <strong style="color:#a89ffc">Stack ID</strong> (in their profile menu).';
+    if(res)res.innerHTML='❌ User not found. Ask them to share their <strong style="color:#a89ffc">Stack ID</strong> from their profile.';
     return;
   }
   if(found.id===CU.id){if(res)res.textContent='❌ That\'s you!';return;}
-  const fd=getFriendData();
-  if(fd.friends.find(f=>f.id===found.id)){if(res)res.textContent='✓ Already friends!';return;}
-  if(fd.sent.find(s=>s.id===found.id)){if(res)res.textContent='⏳ Request already sent.';return;}
-  if(fd.received.find(r=>r.id===found.id)){
-    // They already sent us a request — auto-accept!
-    acceptFriendRequest(found.id);
-    if(res)res.textContent=`✅ You're now friends with ${found.name||found.displayName}! (They had already sent you a request)`;
-    return;
-  }
-  // Add to my sent
-  fd.sent.push({id:found.id,name:found.name||found.displayName,avatar:found.avatar||'🎮',color:found.color||'#7b61ff',time:Date.now()});
-  saveFriendData(fd);
-  // Add to their received
-  const myProfile=getMyProfile();
-  const theirFD=lsGet('bhq_fr_'+found.id,{friends:[],sent:[],received:[]});
-  if(!theirFD.received.find(r=>r.id===CU.id)){
-    theirFD.received.push({id:CU.id,name:myProfile.displayName,avatar:myProfile.avatarEmoji,color:myProfile.avatarColor,time:Date.now()});
-    lsSet('bhq_fr_'+found.id,theirFD);
-    // Notify their open tab(s) in real-time
-    try{friendChannel.postMessage({type:'friend-update',targetId:found.id});}catch(e){}
-    const theirNotifs=lsGet('bhq_notifs_'+found.id,[]);
-    const theirPrefs=lsGet('bhq_notif_prefs_'+found.id,{friend:true});
-    if(theirPrefs.friend!==false){
-      theirNotifs.unshift({icon:'👥',msg:`${myProfile.displayName} (@${myProfile.gamertag}) sent you a friend request!`,type:'friend',time:Date.now(),read:false});
-      lsSet('bhq_notifs_'+found.id,theirNotifs);
+
+  if(SB_READY&&sb){
+    // Check already friends
+    const{data:alreadyFriend}=await sb.from('friends').select('id').eq('user_id',CU.id).eq('friend_id',found.id).maybeSingle();
+    if(alreadyFriend){if(res)res.textContent='✓ Already friends!';return;}
+    // Check already sent
+    const{data:sentAlready}=await sb.from('friend_requests').select('id,status').eq('from_id',CU.id).eq('to_id',found.id).maybeSingle();
+    if(sentAlready&&sentAlready.status==='pending'){if(res)res.textContent='⏳ Request already sent.';return;}
+    // Check if they sent us one already — auto-accept
+    const{data:theirReq}=await sb.from('friend_requests').select('id').eq('from_id',found.id).eq('to_id',CU.id).eq('status','pending').maybeSingle();
+    if(theirReq){
+      await acceptFriendRequest(found.id);
+      if(res)res.textContent=`✅ You're now friends with ${found.name}! (They had already sent you a request)`;
+      return;
     }
+    // Insert request
+    const myP=getMyProfile();
+    const{error}=await sb.from('friend_requests').upsert({
+      from_id:CU.id,to_id:found.id,
+      from_name:myP.displayName,from_avatar:myP.avatarEmoji,
+      from_color:myP.avatarColor,from_gamertag:myP.gamertag,
+      status:'pending'
+    },{onConflict:'from_id,to_id'});
+    if(error){if(res)res.textContent='❌ Error sending request. Try again.';console.error(error);return;}
+    pushNotifForUser(found.id,'👥',`${myP.displayName} (@${myP.gamertag}) sent you a friend request!`,'friend');
+  }else{
+    // localStorage fallback
+    const fd=getFriendDataLS();
+    if(fd.friends.find(f=>f.id===found.id)){if(res)res.textContent='✓ Already friends!';return;}
+    if(fd.sent.find(s=>s.id===found.id)){if(res)res.textContent='⏳ Already sent.';return;}
+    if(fd.received.find(r=>r.id===found.id)){await acceptFriendRequest(found.id);if(res)res.textContent=`✅ Now friends with ${found.name}!`;return;}
+    const myP=getMyProfile();
+    fd.sent.push({id:found.id,name:found.name,avatar:found.avatar||'🎮',color:found.color||'#7b61ff',time:Date.now()});
+    saveFriendDataLS(fd);
+    const theirFD=lsGet('bhq_fr_'+found.id,{friends:[],sent:[],received:[]});
+    if(!theirFD.received.find(r=>r.id===CU.id)){
+      theirFD.received.push({id:CU.id,name:myP.displayName,avatar:myP.avatarEmoji,color:myP.avatarColor,time:Date.now()});
+      lsSet('bhq_fr_'+found.id,theirFD);
+    }
+    pushNotifForUser(found.id,'👥',`${myP.displayName} sent you a friend request!`,'friend');
   }
-  if(res)res.innerHTML=`✅ Friend request sent to <strong>${found.name||found.displayName}</strong>!`;
+  if(res)res.innerHTML=`✅ Friend request sent to <strong>${found.name}</strong>!`;
   document.getElementById('friendSearchInput').value='';
-  toast(`Request sent to ${found.name||found.displayName}!`,'📤');
+  toast(`Request sent to ${found.name}!`,'📤');
   renderFriendsPage();
 }
 
-function acceptFriendRequest(fromId){
-  const fd=getFriendData();
-  const req=fd.received.find(r=>r.id===fromId);
-  if(!req)return;
-  fd.received=fd.received.filter(r=>r.id!==fromId);
-  if(!fd.friends.find(f=>f.id===fromId))fd.friends.push({id:req.id,name:req.name,avatar:req.avatar,color:req.color});
-  saveFriendData(fd);
-  // Update their sent → friends
-  const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
-  theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
-  if(!theirFD.friends.find(f=>f.id===CU.id)){
-    const myP=getMyProfile();
-    theirFD.friends.push({id:CU.id,name:myP.displayName,avatar:myP.avatarEmoji,color:myP.avatarColor});
+// ── Accept request ─────────────────────────────────────────────
+async function acceptFriendRequest(fromId){
+  const myP=getMyProfile();
+  if(SB_READY&&sb){
+    const{data:req}=await sb.from('friend_requests').select('*').eq('from_id',fromId).eq('to_id',CU.id).maybeSingle();
+    const theirName=req?.from_name||'Friend';
+    const theirAvatar=req?.from_avatar||'🎮';
+    const theirColor=req?.from_color||'#7b61ff';
+    await sb.from('friend_requests').update({status:'accepted'}).eq('from_id',fromId).eq('to_id',CU.id);
+    await sb.from('friends').upsert([
+      {user_id:CU.id,friend_id:fromId,friend_name:theirName,friend_avatar:theirAvatar,friend_color:theirColor},
+      {user_id:fromId,friend_id:CU.id,friend_name:myP.displayName,friend_avatar:myP.avatarEmoji,friend_color:myP.avatarColor}
+    ],{onConflict:'user_id,friend_id'});
+    pushNotifForUser(fromId,'🤝',`${myP.displayName} accepted your friend request!`,'friend');
+    toast(`You and ${theirName} are now friends! 🎮`,'🤝');
+  }else{
+    const fd=getFriendDataLS();
+    const req=fd.received.find(r=>r.id===fromId);
+    if(!req)return;
+    fd.received=fd.received.filter(r=>r.id!==fromId);
+    if(!fd.friends.find(f=>f.id===fromId))fd.friends.push({id:req.id,name:req.name,avatar:req.avatar,color:req.color});
+    saveFriendDataLS(fd);
+    const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
+    theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
+    if(!theirFD.friends.find(f=>f.id===CU.id))theirFD.friends.push({id:CU.id,name:myP.displayName,avatar:myP.avatarEmoji,color:myP.avatarColor});
+    lsSet('bhq_fr_'+fromId,theirFD);
+    pushNotifForUser(fromId,'🤝',`${myP.displayName} accepted your friend request!`,'friend');
+    toast(`You and ${req.name} are now friends! 🎮`,'🤝');
   }
-  lsSet('bhq_fr_'+fromId,theirFD);
-  // Notify their open tab(s)
-  try{friendChannel.postMessage({type:'friend-update',targetId:fromId});}catch(e){}
-  // Notify them
-  const theirNotifs=lsGet('bhq_notifs_'+fromId,[]);
-  theirNotifs.unshift({icon:'🤝',msg:`${CU.name} accepted your friend request!`,type:'friend',time:Date.now(),read:false});
-  lsSet('bhq_notifs_'+fromId,theirNotifs);
-  toast(`You and ${req.name} are now friends! 🎮`,'🤝');
-  renderFriendsPage();
+  await renderFriendsPage();
   updateFriendsBadge();
 }
 
-function rejectFriendRequest(fromId){
-  const fd=getFriendData();
-  fd.received=fd.received.filter(r=>r.id!==fromId);
-  saveFriendData(fd);
-  // Remove from their sent
-  const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
-  theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
-  lsSet('bhq_fr_'+fromId,theirFD);
+// ── Reject request ─────────────────────────────────────────────
+async function rejectFriendRequest(fromId){
+  if(SB_READY&&sb){
+    await sb.from('friend_requests').update({status:'rejected'}).eq('from_id',fromId).eq('to_id',CU.id);
+  }else{
+    const fd=getFriendDataLS();
+    fd.received=fd.received.filter(r=>r.id!==fromId);
+    saveFriendDataLS(fd);
+    const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
+    theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
+    lsSet('bhq_fr_'+fromId,theirFD);
+  }
   toast('Request declined','👋');
   renderFriendsPage();
   updateFriendsBadge();
 }
 
-function removeFriend(friendId){
+// ── Cancel sent request ────────────────────────────────────────
+async function cancelFriendRequest(toId){
+  if(SB_READY&&sb){
+    await sb.from('friend_requests').delete().eq('from_id',CU.id).eq('to_id',toId);
+  }else{
+    const fd=getFriendDataLS();
+    fd.sent=fd.sent.filter(s=>s.id!==toId);
+    saveFriendDataLS(fd);
+    const theirFD=lsGet('bhq_fr_'+toId,{friends:[],sent:[],received:[]});
+    theirFD.received=theirFD.received.filter(r=>r.id!==CU.id);
+    lsSet('bhq_fr_'+toId,theirFD);
+  }
+  toast('Request cancelled','✕');
+  renderFriendsPage();
+}
+
+// ── Remove friend ──────────────────────────────────────────────
+async function removeFriend(friendId){
   if(!confirm('Remove this friend?'))return;
-  const fd=getFriendData();
-  fd.friends=fd.friends.filter(f=>f.id!==friendId);
-  saveFriendData(fd);
-  // Mutual removal
-  const theirFD=lsGet('bhq_fr_'+friendId,{friends:[],sent:[],received:[]});
-  theirFD.friends=theirFD.friends.filter(f=>f.id!==CU.id);
-  lsSet('bhq_fr_'+friendId,theirFD);
+  if(SB_READY&&sb){
+    await sb.from('friends').delete().or(`and(user_id.eq.${CU.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${CU.id})`);
+    await sb.from('friend_requests').delete().or(`and(from_id.eq.${CU.id},to_id.eq.${friendId}),and(from_id.eq.${friendId},to_id.eq.${CU.id})`);
+  }else{
+    const fd=getFriendDataLS();
+    fd.friends=fd.friends.filter(f=>f.id!==friendId);
+    saveFriendDataLS(fd);
+    const theirFD=lsGet('bhq_fr_'+friendId,{friends:[],sent:[],received:[]});
+    theirFD.friends=theirFD.friends.filter(f=>f.id!==CU.id);
+    lsSet('bhq_fr_'+friendId,theirFD);
+  }
   toast('Friend removed','👋');
   renderFriendsPage();
   updateFriendsBadge();
 }
 
-function updateFriendsBadge(){
-  const fd=getFriendData();
+// ── Badge ──────────────────────────────────────────────────────
+async function updateFriendsBadge(){
   const badge=document.getElementById('frReqBadge');
-  if(!badge)return;
-  const pending=fd.received.length;
+  if(!badge||!CU)return;
+  let pending=0;
+  if(SB_READY&&sb){
+    try{
+      const{count}=await sb.from('friend_requests').select('id',{count:'exact',head:true}).eq('to_id',CU.id).eq('status','pending');
+      pending=count||0;
+    }catch(e){pending=getFriendDataLS().received.length;}
+  }else{pending=getFriendDataLS().received.length;}
   if(pending>0){badge.textContent=pending;badge.style.display='';}
   else{badge.style.display='none';}
 }
 
-function renderFriendsPage(){
+// ── Render friends page ────────────────────────────────────────
+async function renderFriendsPage(){
   if(!CU)return;
-  // Show UID hint
   const myUidHint=document.getElementById('myUidHint');
   if(myUidHint){
     const p=getMyProfile();
@@ -3245,53 +3267,60 @@ function renderFriendsPage(){
       <button class="uid-copy-btn" onclick="copyUID('${p.uid}')">📋 Copy ID</button>
     </div>`;
   }
-  const fd=getFriendData();
-  // Friends count
-  const fc=document.getElementById('friendsCount');if(fc)fc.textContent=fd.friends.length;
-  const pc=document.getElementById('pendingCount');if(pc)pc.textContent=fd.received.length;
-  const sc=document.getElementById('sentCount');if(sc)sc.textContent=fd.sent.length;
+
+  let friendsList=[],receivedList=[],sentList=[];
+  if(SB_READY&&sb){
+    try{
+      const[frRes,recRes,sentRes]=await Promise.all([
+        sb.from('friends').select('*').eq('user_id',CU.id),
+        sb.from('friend_requests').select('*').eq('to_id',CU.id).eq('status','pending'),
+        sb.from('friend_requests').select('*').eq('from_id',CU.id).eq('status','pending')
+      ]);
+      friendsList=(frRes.data||[]).map(r=>({id:r.friend_id,name:r.friend_name,avatar:r.friend_avatar,color:r.friend_color}));
+      receivedList=(recRes.data||[]).map(r=>({id:r.from_id,name:r.from_name,avatar:r.from_avatar,color:r.from_color}));
+      sentList=(sentRes.data||[]).map(r=>({id:r.to_id,name:r.from_name||'?',avatar:'🎮',color:'#7b61ff'}));
+    }catch(e){const fd=getFriendDataLS();friendsList=fd.friends;receivedList=fd.received;sentList=fd.sent;}
+  }else{const fd=getFriendDataLS();friendsList=fd.friends;receivedList=fd.received;sentList=fd.sent;}
+
+  const fc=document.getElementById('friendsCount');if(fc)fc.textContent=friendsList.length;
+  const pc=document.getElementById('pendingCount');if(pc)pc.textContent=receivedList.length;
+  const sc=document.getElementById('sentCount');if(sc)sc.textContent=sentList.length;
+  const lb=lsGet('bhq_lb',{});
 
   // Friends list
   const fl=document.getElementById('friendsList');
   if(fl){
-    if(!fd.friends.length){fl.innerHTML='<div class="friends-empty"><div class="friends-empty-icon">👥</div>No friends yet — add one above!</div>';}
-    else{
-      const lb=lsGet('bhq_lb',{});
-      fl.innerHTML=fd.friends.map(f=>{
-        const fp=lb[f.id]||{};
-        const lb_=lsGet('bhq_lb',{});
-        const chatKey=[CU.id,f.id].sort().join('_');
-        const chatMsgs=lsGet('bhq_chat_'+chatKey,[]);
-        const unread=chatMsgs.filter(m=>m.from!==CU.id&&!m.read).length;
-        return`<div class="friend-card">
-          <div class="fc-av" style="background:${f.color||'#7b61ff'}">${f.avatar||f.name[0]}</div>
-          <div class="fc-info">
-            <div class="fc-name">${f.name}</div>
-            <div class="fc-sub">✅ ${fp.completed||0} · 📚 ${fp.total||0} · ⏱ ${fp.hours||0}h</div>
-          </div>
-          <div class="fc-actions">
-            <button class="fc-btn view" onclick="openFriendProfile('${f.id}')">⚔️ VS</button>
-            <button class="fc-btn chat" onclick="openChat('${f.id}','${f.name}','${f.avatar||f.name[0]}','${f.color||'#7b61ff'}')" style="position:relative">
-              💬${unread>0?`<span class="chat-msg-badge">${unread}</span>`:''}
-            </button>
-            <button class="fc-btn remove" onclick="removeFriend('${f.id}')">✕</button>
-          </div>
-        </div>`;
-      }).join('');
-    }
+    if(!friendsList.length){fl.innerHTML='<div class="friends-empty"><div class="friends-empty-icon">👥</div>No friends yet — add one above!</div>';}
+    else{fl.innerHTML=friendsList.map(f=>{
+      const fp=lb[f.id]||{};
+      const ck=[CU.id,f.id].sort().join('_');
+      const unread=(lsGet('bhq_chat_'+ck,[])).filter(m=>m.from!==CU.id&&!m.read).length;
+      const safeName=escHtml(f.name||'?');
+      return`<div class="friend-card">
+        <div class="fc-av" style="background:${f.color||'#7b61ff'}">${f.avatar||f.name[0]}</div>
+        <div class="fc-info">
+          <div class="fc-name">${safeName}</div>
+          <div class="fc-sub">✅ ${fp.completed||0} · 📚 ${fp.total||0} · ⏱ ${fp.hours||0}h</div>
+        </div>
+        <div class="fc-actions">
+          <button class="fc-btn view" onclick="openFriendProfile('${f.id}')">⚔️ VS</button>
+          <button class="fc-btn chat" onclick="openChat('${f.id}','${safeName}','${f.avatar||f.name[0]}','${f.color||'#7b61ff'}')" style="position:relative">
+            💬${unread>0?`<span class="chat-msg-badge">${unread}</span>`:''}
+          </button>
+          <button class="fc-btn remove" onclick="removeFriend('${f.id}')">✕</button>
+        </div>
+      </div>`;
+    }).join('');}
   }
 
   // Pending received
   const pl=document.getElementById('pendingList');
   if(pl){
-    if(!fd.received.length){pl.innerHTML='<div class="friends-empty"><div class="friends-empty-icon">📭</div>No pending requests</div>';}
-    else{pl.innerHTML=fd.received.map(r=>`
+    if(!receivedList.length){pl.innerHTML='<div class="friends-empty"><div class="friends-empty-icon">📭</div>No pending requests</div>';}
+    else{pl.innerHTML=receivedList.map(r=>`
       <div class="friend-card">
         <div class="fc-av" style="background:${r.color||'#7b61ff'}">${r.avatar||r.name[0]}</div>
-        <div class="fc-info">
-          <div class="fc-name">${r.name}</div>
-          <div class="fc-sub">Wants to be friends</div>
-        </div>
+        <div class="fc-info"><div class="fc-name">${escHtml(r.name||'?')}</div><div class="fc-sub">Wants to be friends</div></div>
         <div class="fc-actions">
           <button class="fc-btn accept" onclick="acceptFriendRequest('${r.id}')">✓ Accept</button>
           <button class="fc-btn reject" onclick="rejectFriendRequest('${r.id}')">✕</button>
@@ -3302,50 +3331,48 @@ function renderFriendsPage(){
   // Sent requests
   const sl=document.getElementById('sentList');
   if(sl){
-    if(!fd.sent.length){sl.innerHTML='<div class="friends-empty"><div class="friends-empty-icon">📭</div>No sent requests</div>';}
-    else{sl.innerHTML=fd.sent.map(s=>`
+    if(!sentList.length){sl.innerHTML='<div class="friends-empty"><div class="friends-empty-icon">📭</div>No sent requests</div>';}
+    else{sl.innerHTML=sentList.map(s=>`
       <div class="friend-card">
         <div class="fc-av" style="background:${s.color||'#7b61ff'}">${s.avatar||s.name[0]}</div>
-        <div class="fc-info">
-          <div class="fc-name">${s.name}</div>
-          <div class="fc-sub">Awaiting response</div>
-        </div>
-        <div class="fc-actions">
-          <button class="fc-btn remove" onclick="cancelFriendRequest('${s.id}')">Cancel</button>
-        </div>
+        <div class="fc-info"><div class="fc-name">${escHtml(s.name||'?')}</div><div class="fc-sub">Awaiting response</div></div>
+        <div class="fc-actions"><button class="fc-btn remove" onclick="cancelFriendRequest('${s.id}')">Cancel</button></div>
       </div>`).join('');}
   }
   updateFriendsBadge();
-  // Poll for updates
-  startFriendPagePoll();
 }
 
-function cancelFriendRequest(toId){
-  const fd=getFriendData();
-  fd.sent=fd.sent.filter(s=>s.id!==toId);
-  saveFriendData(fd);
-  // Remove from their received
-  const theirFD=lsGet('bhq_fr_'+toId,{friends:[],sent:[],received:[]});
-  theirFD.received=theirFD.received.filter(r=>r.id!==CU.id);
-  lsSet('bhq_fr_'+toId,theirFD);
-  toast('Request cancelled','✕');
-  renderFriendsPage();
-}
-
+// ── Realtime subscriptions ─────────────────────────────────────
 function startFriendPagePoll(){
-  if(friendPagePollTimer)return;
-  friendPagePollTimer=setInterval(()=>{
-    if(!CU)return;
-    const fd=getFriendData();
-    const pending=fd.received.length;
-    const badge=document.getElementById('frReqBadge');
-    if(badge){badge.textContent=pending;badge.style.display=pending>0?'':'none';}
-    // Re-render friend list if on friends page
-    const page=document.getElementById('page-friends');
-    if(page&&page.classList.contains('active'))renderFriendsPage();
-    // Check for new chat messages
-    renderNotifBadge();
-  },5000);
+  if(friendPagePollTimer){clearInterval(friendPagePollTimer);friendPagePollTimer=null;}
+  if(SB_READY&&sb&&CU){
+    if(friendRealtimeSub){try{sb.removeChannel(friendRealtimeSub);}catch(e){}}
+    friendRealtimeSub=sb.channel('friend-rt-'+CU.id)
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'friend_requests',filter:`to_id=eq.${CU.id}`},()=>{
+        updateFriendsBadge();
+        pushNotif('👥','You have a new friend request!','friend');
+        const page=document.getElementById('page-friends');
+        if(page&&page.classList.contains('active'))renderFriendsPage();
+      })
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'friend_requests',filter:`from_id=eq.${CU.id}`},(payload)=>{
+        if(payload.new.status==='accepted'){
+          pushNotif('🤝',`${payload.new.from_name||'Someone'} accepted your friend request!`,'friend');
+          renderFriendsPage();updateFriendsBadge();
+        }
+      })
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'friends',filter:`user_id=eq.${CU.id}`},()=>{
+        renderFriendsPage();updateFriendsBadge();
+      })
+      .subscribe();
+  }else{
+    friendPagePollTimer=setInterval(()=>{
+      if(!CU)return;
+      updateFriendsBadge();
+      const page=document.getElementById('page-friends');
+      if(page&&page.classList.contains('active'))renderFriendsPage();
+      renderNotifBadge();
+    },5000);
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -3423,30 +3450,48 @@ function openFriendProfile(friendId){
 function closeFriendProfile(){document.getElementById('friendProfileOverlay').classList.remove('open');}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// CHAT
+// CHAT — SUPABASE POWERED
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function chatKey(a,b){return 'bhq_chat_'+[a,b].sort().join('_');}
-function getChat(partnerId){return lsGet(chatKey(CU.id,partnerId),[]);}
-function saveChat(partnerId,msgs){lsSet(chatKey(CU.id,partnerId),msgs);}
+function chatLSKey(a,b){return 'bhq_chat_'+[a,b].sort().join('_');}
 
-function openChat(partnerId,partnerName,partnerAv,partnerColor){
+async function loadChatMessages(){
+  if(!chatPartnerId||!CU)return;
+  if(SB_READY&&sb){
+    try{
+      const{data}=await sb.from('chat_messages').select('*')
+        .or(`and(from_id.eq.${CU.id},to_id.eq.${chatPartnerId}),and(from_id.eq.${chatPartnerId},to_id.eq.${CU.id})`)
+        .order('created_at',{ascending:true}).limit(100);
+      _chatMsgs=(data||[]).map(m=>({from:m.from_id,msg:m.message,time:new Date(m.created_at).getTime(),read:m.read,id:m.id}));
+    }catch(e){_chatMsgs=lsGet(chatLSKey(CU.id,chatPartnerId),[]);}
+  }else{
+    _chatMsgs=lsGet(chatLSKey(CU.id,chatPartnerId),[]);
+  }
+}
+
+async function openChat(partnerId,partnerName,partnerAv,partnerColor){
   if(!CU){toast('Sign in to chat','🔐');return;}
   chatPartnerId=partnerId;
   const avEl=document.getElementById('chatPartnerAv');
   if(avEl){avEl.textContent=partnerAv;avEl.style.background=partnerColor;}
   const nameEl=document.getElementById('chatPartnerName');
   if(nameEl)nameEl.textContent=partnerName;
-  // Mark messages as read
-  const msgs=getChat(partnerId);
-  msgs.forEach(m=>{if(m.from!==CU.id)m.read=true;});
-  saveChat(partnerId,msgs);
+  _chatMsgs=[];
+  await loadChatMessages();
+  // Mark incoming messages as read
+  if(SB_READY&&sb){
+    sb.from('chat_messages').update({read:true}).eq('to_id',CU.id).eq('from_id',partnerId).eq('read',false).then(()=>{});
+  }else{
+    const msgs=lsGet(chatLSKey(CU.id,partnerId),[]);
+    msgs.forEach(m=>{if(m.from!==CU.id)m.read=true;});
+    lsSet(chatLSKey(CU.id,partnerId),msgs);
+  }
   renderChatMessages();
   document.getElementById('chatOverlay').classList.add('open');
   document.getElementById('chatInput')?.focus();
   startChatPoll();
-  // Refresh friends list to clear badge
-  setTimeout(()=>renderFriendsPage(),100);
+  setTimeout(()=>renderFriendsPage(),150);
 }
+
 function closeChat(){
   document.getElementById('chatOverlay').classList.remove('open');
   chatPartnerId=null;
@@ -3454,14 +3499,12 @@ function closeChat(){
 }
 
 function renderChatMessages(){
-  if(!chatPartnerId||!CU)return;
-  const msgs=getChat(chatPartnerId);
   const box=document.getElementById('chatMessages');
   if(!box)return;
-  if(!msgs.length){box.innerHTML='<div class="chat-empty">Say hello! 👋</div>';return;}
+  if(!_chatMsgs.length){box.innerHTML='<div class="chat-empty">Say hello! 👋</div>';return;}
   const timeStr=t=>{const d=new Date(t);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');};
-  let html='';let lastDay='';
-  msgs.forEach(m=>{
+  let html='',lastDay='';
+  _chatMsgs.forEach(m=>{
     const day=new Date(m.time).toLocaleDateString();
     if(day!==lastDay){html+=`<div class="chat-day-sep">${day}</div>`;lastDay=day;}
     const isMe=m.from===CU.id;
@@ -3471,31 +3514,54 @@ function renderChatMessages(){
   box.scrollTop=box.scrollHeight;
 }
 
-function sendChatMsg(){
+async function sendChatMsg(){
   const input=document.getElementById('chatInput');
   const msg=input?.value.trim();
   if(!msg||!chatPartnerId||!CU)return;
-  const msgs=getChat(chatPartnerId);
-  msgs.push({from:CU.id,msg,time:Date.now(),read:false});
-  saveChat(chatPartnerId,msgs);
   input.value='';
-  renderChatMessages();
-  // Notify partner
-  const theirPrefs=lsGet('bhq_notif_prefs_'+chatPartnerId,{chat:true});
-  if(theirPrefs.chat!==false){
-    const theirNotifs=lsGet('bhq_notifs_'+chatPartnerId,[]);
-    theirNotifs.unshift({icon:'💬',msg:`${CU.name}: ${msg.length>40?msg.slice(0,40)+'…':msg}`,type:'chat',time:Date.now(),read:false});
-    lsSet('bhq_notifs_'+chatPartnerId,theirNotifs);
+  if(SB_READY&&sb){
+    const{data,error}=await sb.from('chat_messages').insert({from_id:CU.id,to_id:chatPartnerId,message:msg,read:false}).select().single();
+    if(!error&&data){
+      _chatMsgs.push({from:data.from_id,msg:data.message,time:new Date(data.created_at).getTime(),read:false,id:data.id});
+      renderChatMessages();
+    }
+  }else{
+    const key=chatLSKey(CU.id,chatPartnerId);
+    const msgs=lsGet(key,[]);
+    msgs.push({from:CU.id,msg,time:Date.now(),read:false});
+    lsSet(key,msgs);
+    _chatMsgs=msgs;
+    renderChatMessages();
+    pushNotifForUser(chatPartnerId,'💬',`${CU.name}: ${msg.length>40?msg.slice(0,40)+'…':msg}`,'chat');
   }
 }
 
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 function startChatPoll(){
   stopChatPoll();
-  chatPollTimer=setInterval(()=>{if(chatPartnerId&&CU)renderChatMessages();},2500);
+  if(SB_READY&&sb&&chatPartnerId&&CU){
+    if(chatRealtimeSub){try{sb.removeChannel(chatRealtimeSub);}catch(e){}}
+    chatRealtimeSub=sb.channel('chat-rt-'+[CU.id,chatPartnerId].sort().join('-'))
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages',filter:`to_id=eq.${CU.id}`},async(payload)=>{
+        if(payload.new.from_id===chatPartnerId){
+          _chatMsgs.push({from:payload.new.from_id,msg:payload.new.message,time:new Date(payload.new.created_at).getTime(),read:false,id:payload.new.id});
+          renderChatMessages();
+          sb.from('chat_messages').update({read:true}).eq('id',payload.new.id).then(()=>{});
+          setTimeout(()=>renderFriendsPage(),200);
+        }
+      })
+      .subscribe();
+  }else{
+    chatPollTimer=setInterval(async()=>{
+      if(chatPartnerId&&CU){await loadChatMessages();renderChatMessages();}
+    },2500);
+  }
 }
-function stopChatPoll(){if(chatPollTimer){clearInterval(chatPollTimer);chatPollTimer=null;}}
+function stopChatPoll(){
+  if(chatPollTimer){clearInterval(chatPollTimer);chatPollTimer=null;}
+  if(chatRealtimeSub&&sb){try{sb.removeChannel(chatRealtimeSub);}catch(e){}chatRealtimeSub=null;}
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // KEYBOARD + CLOSE LISTENERS
