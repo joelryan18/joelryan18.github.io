@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7262404901375077" crossorigin="anonymous"></script>
 <!-- Supabase JS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -287,47 +289,189 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 .auth-note a{color:#a89ffc;cursor:pointer;text-decoration:underline}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   RANKINGS PAGE
+   LIBRARY / BROWSE TABS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.page-hero{text-align:center;padding:52px 0 36px}
-.page-hero h1{font-size:40px;font-weight:900;background:linear-gradient(135deg,#7b61ff,#ff3d7f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:10px}
-.page-hero p{font-size:15px;color:var(--text2);max-width:440px;margin:0 auto}
-.rank-tabs{display:flex;gap:8px;margin-bottom:26px;justify-content:center;flex-wrap:wrap}
-.rank-tab{padding:8px 18px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
-.rank-tab.active{background:rgba(255,107,53,.1);border-color:rgba(255,107,53,.35);color:#ff8c5a}
-.rank-container{max-width:700px;margin:0 auto}
-.rank-list{display:flex;flex-direction:column;gap:10px}
-.rank-item{display:flex;align-items:center;gap:13px;padding:14px 16px;background:var(--bg1);border:1px solid var(--border);border-radius:15px;transition:border-color .2s}
-.rank-item:hover{border-color:rgba(123,97,255,.25)}
-.rank-item.me{border-color:rgba(123,97,255,.45);background:rgba(123,97,255,.06)}
-.rank-pos{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;width:30px;text-align:center;flex-shrink:0}
-.rank-pos-1{color:#f59e0b}.rank-pos-2{color:#94a3b8}.rank-pos-3{color:#b45309}
-.rank-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0}
-.rank-info{flex:1;min-width:0}
-.rank-name{font-size:14px;font-weight:700;color:var(--text1)}
-.rank-sub{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
-.rank-score{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#ff8c5a;flex-shrink:0}
-.rank-you{font-size:9px;padding:2px 7px;border-radius:100px;background:rgba(123,97,255,.15);color:#a89ffc;border:1px solid rgba(123,97,255,.25);font-family:'JetBrains Mono',monospace;font-weight:700;margin-left:7px}
-.rank-empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px;background:var(--bg1);border:1px solid var(--border);border-radius:15px}
+.view-tabs{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:4px;gap:3px;margin-bottom:22px;width:fit-content}
+.view-tab{padding:8px 20px;border-radius:12px;font-size:13.5px;font-weight:700;cursor:pointer;color:var(--text3);transition:all .22s;border:none;background:transparent;font-family:'Outfit',sans-serif;display:flex;align-items:center;gap:7px}
+.view-tab:hover{color:var(--text1)}
+.view-tab.active{background:var(--bg1);color:var(--text1);box-shadow:0 2px 14px var(--shadow);border:1px solid var(--border2)}
+.view-tab.active.vt-lib{color:#a89ffc}
+.view-tab.active.vt-browse{color:#00d2b4}
+
+/* Browse add button */
+.card-add-btn{width:100%;padding:7px 10px;background:rgba(0,210,180,.09);border:1px solid rgba(0,210,180,.28);border-radius:10px;color:#00d2b4;font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:5px}
+.card-add-btn:hover{background:rgba(0,210,180,.18);border-color:rgba(0,210,180,.5);transform:translateY(-1px)}
+.card-in-lib{width:100%;padding:7px 10px;background:rgba(123,97,255,.08);border:1px solid rgba(123,97,255,.2);border-radius:10px;color:#a89ffc;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;text-align:center;margin-top:6px;letter-spacing:.5px}
+
+/* Empty library state */
+.lib-zero{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 24px 80px;border:2px dashed var(--border2);border-radius:26px;background:linear-gradient(135deg,rgba(123,97,255,.025),rgba(0,210,180,.02));animation:cardIn .4s ease both;text-align:center}
+.lib-zero-glyph{font-size:80px;opacity:.14;margin-bottom:22px;filter:drop-shadow(0 0 40px rgba(123,97,255,.5))}
+.lib-zero-title{font-size:24px;font-weight:900;color:var(--text1);margin-bottom:10px}
+.lib-zero-sub{font-size:14px;color:var(--text3);line-height:1.65;max-width:380px;margin-bottom:30px}
+.lib-zero-btns{display:flex;gap:11px;flex-wrap:wrap;justify-content:center}
+.lz-cta{display:flex;align-items:center;gap:8px;padding:12px 26px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:100px;color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 6px 28px rgba(123,97,255,.35);transition:opacity .2s,transform .1s}
+.lz-cta:hover{opacity:.87}.lz-cta:active{transform:scale(.97)}
+.lz-browse{display:flex;align-items:center;gap:8px;padding:12px 24px;background:rgba(0,210,180,.07);border:1px solid rgba(0,210,180,.28);border-radius:100px;color:#00d2b4;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.lz-browse:hover{background:rgba(0,210,180,.14);border-color:rgba(0,210,180,.5)}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   QUIZ PAGE
+   RANKINGS PAGE — FULL OVERHAUL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.quiz-wrap{max-width:660px;margin:0 auto;padding-top:10px}
-.quiz-start-card{background:var(--bg1);border:1px solid var(--border);border-radius:22px;padding:40px;text-align:center}
-.quiz-start-card h2{font-size:28px;font-weight:900;color:var(--text1);margin-bottom:10px}
-.quiz-start-card p{font-size:14.5px;color:var(--text2);line-height:1.6;max-width:400px;margin:0 auto 26px}
-.quiz-cats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:30px}
-.quiz-cat{padding:9px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
-.quiz-cat.sel,.quiz-cat:hover{border-color:rgba(0,210,180,.5);color:var(--teal);background:rgba(0,210,180,.08)}
+.page-hero{text-align:center;padding:44px 0 28px}
+.page-hero h1{font-size:40px;font-weight:900;background:linear-gradient(135deg,#f59e0b,#ff3d7f,#7b61ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
+.page-hero p{font-size:15px;color:var(--text2);max-width:480px;margin:0 auto}
+
+/* Rank tabs */
+.rank-tabs{display:flex;gap:7px;margin-bottom:28px;justify-content:center;flex-wrap:wrap}
+.rank-tab{padding:8px 18px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.rank-tab.active{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#f59e0b}
+.rank-container{max-width:760px;margin:0 auto}
+
+/* PODIUM */
+.podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:14px;margin-bottom:36px;padding:0 10px;position:relative}
+.podium-wrap::before{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:90%;height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent)}
+.pod-slot{display:flex;flex-direction:column;align-items:center;gap:0;flex:1;max-width:180px;position:relative}
+/* reorder: 2nd left, 1st centre, 3rd right */
+.pod-2{order:1}.pod-1{order:2}.pod-3{order:3}
+.pod-crown{font-size:22px;margin-bottom:4px;animation:bobCrown 2.2s ease-in-out infinite}
+@keyframes bobCrown{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-5px) rotate(5deg)}}
+.pod-av-ring{position:relative;margin-bottom:10px}
+.pod-av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900}
+.pod-1 .pod-av{width:68px;height:68px;font-size:26px;border:3px solid #f59e0b;box-shadow:0 0 0 6px rgba(245,158,11,.15),0 0 30px rgba(245,158,11,.35)}
+.pod-2 .pod-av{width:54px;height:54px;font-size:20px;border:3px solid #94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.12)}
+.pod-3 .pod-av{width:48px;height:48px;font-size:18px;border:3px solid #b45309;box-shadow:0 0 0 4px rgba(180,83,9,.12)}
+.pod-pulse{position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(245,158,11,.4);animation:pulseRing 2s ease-out infinite}
+@keyframes pulseRing{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.35);opacity:0}}
+.pod-name{font-size:12.5px;font-weight:800;color:var(--text1);text-align:center;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;padding:0 6px}
+.pod-xp{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text3);margin-bottom:9px}
+.pod-xp span{color:#f59e0b;font-weight:700}
+.pod-block{width:100%;border-radius:12px 12px 4px 4px;display:flex;align-items:center;justify-content:center;font-size:28px;border:1px solid transparent}
+.pod-1 .pod-block{height:96px;background:linear-gradient(180deg,rgba(245,158,11,.2),rgba(245,158,11,.04));border-color:rgba(245,158,11,.25)}
+.pod-2 .pod-block{height:68px;background:linear-gradient(180deg,rgba(148,163,184,.14),rgba(148,163,184,.03));border-color:rgba(148,163,184,.2)}
+.pod-3 .pod-block{height:50px;background:linear-gradient(180deg,rgba(180,83,9,.14),rgba(180,83,9,.03));border-color:rgba(180,83,9,.2)}
+
+/* Tier badges */
+.tier-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:9.5px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;flex-shrink:0;text-transform:uppercase}
+.t-recruit{background:rgba(100,116,139,.14);color:#94a3b8;border:1px solid rgba(100,116,139,.22)}
+.t-gamer{background:rgba(0,210,180,.11);color:#00d2b4;border:1px solid rgba(0,210,180,.28)}
+.t-regular{background:rgba(123,97,255,.11);color:#a89ffc;border:1px solid rgba(123,97,255,.28)}
+.t-veteran{background:rgba(56,189,248,.11);color:#38bdf8;border:1px solid rgba(56,189,248,.28)}
+.t-hardcore{background:rgba(255,107,53,.11);color:#ff8c5a;border:1px solid rgba(255,107,53,.28)}
+.t-elite{background:rgba(245,158,11,.14);color:#fbbf24;border:1px solid rgba(245,158,11,.28)}
+.t-legend{background:linear-gradient(135deg,rgba(255,61,127,.14),rgba(123,97,255,.14));color:#ff7eb6;border:1px solid rgba(255,61,127,.3)}
+.t-prestige{background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(255,61,127,.2),rgba(123,97,255,.2));color:#fbbf24;border:1px solid rgba(245,158,11,.4);box-shadow:0 0 12px rgba(245,158,11,.15);animation:prestigeShimmer 3s ease-in-out infinite}
+@keyframes prestigeShimmer{0%,100%{box-shadow:0 0 12px rgba(245,158,11,.15)}50%{box-shadow:0 0 20px rgba(245,158,11,.35)}}
+
+/* Rank list rows */
+.rank-list{display:flex;flex-direction:column;gap:9px}
+.rrow{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--bg1);border:1px solid var(--border);border-radius:16px;transition:all .22s;animation:cardIn .3s ease both;position:relative;overflow:hidden}
+.rrow::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;border-radius:3px 0 0 3px;transition:background .2s}
+.rrow:hover{border-color:rgba(123,97,255,.22);transform:translateX(3px)}
+.rrow:hover::before{background:rgba(123,97,255,.4)}
+.rrow.is-me{border-color:rgba(123,97,255,.4);background:rgba(123,97,255,.04)}
+.rrow.is-me::before{background:linear-gradient(180deg,#7b61ff,#ff3d7f)}
+.rrow.top1{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04)}
+.rrow.top1::before{background:linear-gradient(180deg,#f59e0b,#ff8c5a)}
+.rrow.top2{border-color:rgba(148,163,184,.22)}
+.rrow.top2::before{background:#94a3b8}
+.rrow.top3{border-color:rgba(180,83,9,.22)}
+.rrow.top3::before{background:#b45309}
+.rpos{font-family:'JetBrains Mono',monospace;font-size:13.5px;font-weight:700;width:32px;text-align:center;flex-shrink:0;color:var(--text3)}
+.rpos.p1{color:#f59e0b;font-size:18px}.rpos.p2{color:#94a3b8;font-size:17px}.rpos.p3{color:#b45309;font-size:16px}
+.rav{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;flex-shrink:0}
+.rinfo{flex:1;min-width:0}
+.rname{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:800;color:var(--text1);margin-bottom:6px;flex-wrap:wrap}
+.you-chip{font-size:8.5px;padding:2px 7px;border-radius:100px;background:rgba(123,97,255,.16);color:#a89ffc;border:1px solid rgba(123,97,255,.28);font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.5px}
+/* XP bar */
+.xp-row{display:flex;align-items:center;gap:7px}
+.xp-bar-track{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.xp-bar-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.22,1,.36,1);background:linear-gradient(90deg,#7b61ff,#ff3d7f)}
+.xp-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);white-space:nowrap;flex-shrink:0}
+/* Right score */
+.rscore-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.rscore{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#f59e0b;line-height:1}
+.rscore-unit{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;text-align:right}
+
+/* My rank summary strip */
+.my-rank-strip{margin-top:18px;padding:16px 20px;background:rgba(123,97,255,.07);border:1px solid rgba(123,97,255,.2);border-radius:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.mrs-label{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:2px}
+.mrs-val{font-size:24px;font-weight:900;color:#a89ffc;font-family:'JetBrains Mono',monospace;line-height:1}
+.mrs-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;flex-shrink:0;border:2px solid rgba(123,97,255,.35)}
+.rank-empty-card{text-align:center;padding:64px 24px;background:var(--bg1);border:2px dashed var(--border2);border-radius:20px}
+.rank-empty-card p{font-size:14px;color:var(--text2);margin-bottom:6px}
+.rank-empty-card small{font-size:12px;color:var(--text3)}
+.rank-join-btn{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:11px 26px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:100px;color:#fff;font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:opacity .2s;box-shadow:0 5px 22px rgba(123,97,255,.3)}
+.rank-join-btn:hover{opacity:.86}
+
+/* XP breakdown tooltip info */
+.xp-info{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   QUIZ PAGE — TIERED SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.quiz-wrap{max-width:680px;margin:0 auto;padding-top:10px}
+
+/* Level Select Screen */
+.quiz-level-card{background:var(--bg1);border:1px solid var(--border);border-radius:22px;padding:32px 28px}
+.quiz-level-card h2{font-size:26px;font-weight:900;color:var(--text1);text-align:center;margin-bottom:6px}
+.quiz-level-sub{font-size:13.5px;color:var(--text2);text-align:center;margin-bottom:24px}
+.ql-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.ql-card{border:2px solid var(--border2);border-radius:16px;padding:16px 15px;cursor:pointer;transition:all .22s;background:var(--bg2);position:relative;overflow:hidden}
+.ql-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px var(--card-shadow)}
+.ql-card.sel{transform:translateY(-3px);box-shadow:0 10px 28px var(--card-shadow)}
+.ql-bronze:hover,.ql-bronze.sel{border-color:#cd7f32;background:rgba(205,127,50,.07)}
+.ql-silver:hover,.ql-silver.sel{border-color:#94a3b8;background:rgba(148,163,184,.07)}
+.ql-gold:hover,.ql-gold.sel{border-color:#f59e0b;background:rgba(245,158,11,.07)}
+.ql-pro:hover,.ql-pro.sel{border-color:#a78bfa;background:rgba(167,139,250,.07)}
+.ql-icon{font-size:26px;margin-bottom:5px}
+.ql-name{font-size:15px;font-weight:800;color:var(--text1);margin-bottom:2px;display:flex;align-items:center;gap:7px}
+.ql-timer-warn{font-size:9px;background:rgba(255,107,53,.15);color:#ff8c5a;padding:1px 6px;border-radius:100px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px}
+.ql-desc{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;line-height:1.5;margin-bottom:8px}
+.ql-xp-rate{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;padding:2px 9px;border-radius:100px}
+.ql-bronze .ql-xp-rate{background:rgba(205,127,50,.15);color:#cd7f32}
+.ql-silver .ql-xp-rate{background:rgba(148,163,184,.15);color:#94a3b8}
+.ql-gold .ql-xp-rate{background:rgba(245,158,11,.15);color:#f59e0b}
+.ql-pro .ql-xp-rate{background:rgba(167,139,250,.15);color:#a78bfa}
+.ql-check{position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:#00d2b4;display:none;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.ql-card.sel .ql-check{display:flex}
+.ql-hot-tag{position:absolute;top:0;right:0;background:linear-gradient(135deg,#ff3d7f,#7b61ff);color:#fff;font-size:8.5px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;padding:3px 8px 3px 6px;border-radius:0 14px 0 8px}
+
+/* Genre picker sub-section */
+.qgp-section{background:var(--bg3);border-radius:14px;padding:16px;margin-bottom:18px;animation:cardIn .25s ease both}
+.qgp-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:var(--text3);margin-bottom:11px;text-align:center}
+.qgp-chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.qgp-chip{padding:6px 14px;border-radius:100px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif}
+.qgp-chip:hover,.qgp-chip.sel{border-color:rgba(0,210,180,.55);color:#00d2b4;background:rgba(0,210,180,.09)}
+
 .btn-start{display:inline-flex;align-items:center;gap:9px;padding:13px 32px;background:linear-gradient(135deg,#00d2b4,#7b61ff);border:none;border-radius:100px;color:#fff;font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s;box-shadow:0 6px 24px rgba(0,210,180,.28)}
 .btn-start:hover{opacity:.87}
 
+/* Question Card */
 .quiz-card{background:var(--bg1);border:1px solid var(--border);border-radius:22px;padding:32px}
-.q-progress{display:flex;align-items:center;margin-bottom:22px;gap:13px}
+.q-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.q-level-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.qlc-bronze{background:rgba(205,127,50,.15);color:#cd7f32;border:1px solid rgba(205,127,50,.3)}
+.qlc-silver{background:rgba(148,163,184,.15);color:#a0aec0;border:1px solid rgba(148,163,184,.3)}
+.qlc-gold{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.qlc-pro{background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.3)}
+.q-progress{display:flex;align-items:center;flex:1;gap:10px;min-width:140px}
 .q-prog-bar{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
 .q-prog-fill{height:100%;background:linear-gradient(90deg,#00d2b4,#7b61ff);border-radius:3px;transition:width .4s ease}
 .q-num{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);white-space:nowrap}
+
+/* Pro timer */
+.q-timer-block{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:9px 14px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:12px}
+.q-timer-svg{width:38px;height:38px;transform:rotate(-90deg);flex-shrink:0}
+.q-timer-track{fill:none;stroke:var(--bg3);stroke-width:3.5}
+.q-timer-fill{fill:none;stroke:#f59e0b;stroke-width:3.5;stroke-linecap:round;stroke-dasharray:107;transition:stroke-dashoffset .97s linear,stroke .3s}
+.timer-urgent .q-timer-fill{stroke:#ff3d7f}
+.q-timer-info{flex:1}
+.q-timer-num{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#f59e0b;line-height:1}
+.q-timer-num.urgent{color:#ff3d7f;animation:timerPulse .5s ease infinite alternate}
+@keyframes timerPulse{from{opacity:1}to{opacity:.5}}
+.q-timer-lbl{font-size:9.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+.q-xp-hint{margin-left:auto;font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--text3)}
+
 .q-question{font-size:18px;font-weight:800;color:var(--text1);margin-bottom:20px;line-height:1.4}
 .q-opts{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
 .q-opt{padding:14px 18px;border-radius:13px;border:2px solid var(--border2);background:var(--bg2);color:var(--text1);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-align:left}
@@ -341,15 +485,53 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 .btn-next.show{display:inline-flex}
 .btn-next:hover{opacity:.87}
 
-.quiz-result-card{background:var(--bg1);border:1px solid var(--border);border-radius:22px;padding:40px;text-align:center}
-.score-ring{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#00d2b4,#7b61ff);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 10px 40px rgba(0,210,180,.28)}
+/* Result Card */
+.quiz-result-card{background:var(--bg1);border:1px solid var(--border);border-radius:22px;padding:36px 32px;text-align:center}
+.score-ring{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#00d2b4,#7b61ff);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 10px 40px rgba(0,210,180,.28)}
 .score-n{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:700;color:#fff;line-height:1}
 .score-max{font-size:11px;color:rgba(255,255,255,.7);margin-top:3px;font-family:'JetBrains Mono',monospace}
-.quiz-result-card h3{font-size:20px;font-weight:800;color:var(--text1);margin-bottom:8px}
-.quiz-result-card p{font-size:14px;color:var(--text2);margin-bottom:24px}
+.quiz-result-card h3{font-size:19px;font-weight:800;color:var(--text1);margin-bottom:6px}
+.quiz-result-card>p{font-size:13.5px;color:var(--text2);margin-bottom:0}
+.quiz-xp-earned{margin:18px 0 20px;padding:20px;background:linear-gradient(135deg,rgba(123,97,255,.09),rgba(0,210,180,.06));border:1px solid rgba(123,97,255,.22);border-radius:18px}
+.qxp-lbl{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:var(--text3);margin-bottom:4px}
+.qxp-num{font-family:'JetBrains Mono',monospace;font-size:52px;font-weight:700;background:linear-gradient(135deg,#00d2b4,#7b61ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;animation:qxpPop .45s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes qxpPop{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
+.qxp-sub{font-size:12px;color:var(--text2);margin-top:5px}
+.qxp-breakdown{display:flex;gap:14px;justify-content:center;margin-top:10px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:10px}
+.qxp-bd{font-size:10.5px;font-family:'JetBrains Mono',monospace;color:var(--text3)}
+.qxp-bd span{color:var(--text2)}
+.qxp-perfect{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 12px;border-radius:100px;background:rgba(245,158,11,.15);color:#f59e0b;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace}
 .result-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .btn-retry{padding:10px 20px;background:var(--bg3);border:1px solid var(--border2);border-radius:100px;color:var(--text1);font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
 .btn-retry:hover{border-color:rgba(123,97,255,.4);background:rgba(123,97,255,.08)}
+.btn-ranking{padding:10px 20px;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);border-radius:100px;color:#ff8c5a;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-ranking:hover{background:rgba(255,107,53,.18)}
+
+/* Quiz stats panel on start screen */
+.quiz-stats-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.qstat-card{flex:1;min-width:90px;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;text-align:center}
+.qstat-n{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;line-height:1;color:var(--text1)}
+.qstat-l{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:3px}
+.qstat-card.qs-xp .qstat-n{background:linear-gradient(135deg,#00d2b4,#7b61ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.qstat-card.qs-streak .qstat-n{color:#f59e0b}
+.qstat-card.qs-best .qstat-n{color:#a78bfa}
+
+/* Combo/streak flash during quiz */
+.combo-flash{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);opacity:0;z-index:900;pointer-events:none;font-size:42px;font-weight:900;text-align:center;transition:none}
+.combo-flash.fire{animation:comboAnim .75s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes comboAnim{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}70%{opacity:1;transform:translate(-50%,-52%) scale(1)}100%{opacity:0;transform:translate(-50%,-60%) scale(.9)}}
+
+/* Streak indicator bar in quiz */
+.q-streak-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:7px 12px;border-radius:10px;background:var(--bg3);transition:background .3s}
+.q-streak-bar.hot{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25)}
+.q-streak-bar.fire{background:rgba(255,61,127,.1);border:1px solid rgba(255,61,127,.25)}
+.q-streak-dots{display:flex;gap:5px}
+.q-streak-dot{width:10px;height:10px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--border2);transition:all .2s}
+.q-streak-dot.lit{background:#f59e0b;border-color:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,.5)}
+.q-streak-dot.lit.fire{background:#ff3d7f;border-color:#ff3d7f;box-shadow:0 0 6px rgba(255,61,127,.5)}
+.q-streak-label{font-size:10.5px;font-family:'JetBrains Mono',monospace;color:var(--text3);margin-left:auto}
+.q-streak-label.hot{color:#f59e0b}
+.q-streak-label.fire{color:#ff3d7f}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    HELP MODAL
@@ -384,8 +566,11 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
   .form-grid{grid-template-columns:1fr}
   .contact-grid{grid-template-columns:1fr}
   .page-hero h1{font-size:28px}
-  .quiz-start-card{padding:24px}
+  .quiz-level-card{padding:22px 18px}
+  .ql-grid{grid-template-columns:1fr 1fr;gap:9px}
   .quiz-card{padding:22px}
+  .quiz-result-card{padding:26px 20px}
+  .qxp-num{font-size:40px}
 }
 </style>
 </head>
@@ -394,6 +579,7 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 <div class="ambient">
   <div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div>
 </div>
+<div class="combo-flash" id="comboFlash"></div>
 
 <!-- ══════════════════════════════════════════
   PAGE: HOME (library)
@@ -434,15 +620,22 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
       </div>
     </header>
 
-    <div class="search-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:0">
+      <div class="view-tabs" id="viewTabs">
+        <button class="view-tab active vt-lib" id="vtLib" onclick="setView('library')">📚 My Library</button>
+        <button class="view-tab vt-browse" id="vtBrowse" onclick="setView('browse')">🔍 Browse Games</button>
+      </div>
+    </div>
+
+    <div class="search-wrap" style="margin-top:18px">
       <span class="search-icon">🔍</span>
       <input type="text" class="search-input" id="mainSearch" placeholder="Search games, genres, developers…" oninput="onSearch(this)">
       <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
     </div>
     <div class="genre-bar" id="genreBar"></div>
-    <div class="top-bar">
+    <div class="top-bar" id="topBar">
       <div class="status-bar" id="statusBar"></div>
-      <button class="btn-add" onclick="openAddModal()">＋ Add Game</button>
+      <button class="btn-add" id="btnAddGame" onclick="openAddModal()">＋ Add Game</button>
     </div>
     <div class="game-grid" id="gameGrid"></div>
   </div>
@@ -469,17 +662,19 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
     </header>
 
     <div class="page-hero">
-      <h1>🏆 Player Rankings</h1>
-      <p>See how you stack up against other BacklogHQ players around the world.</p>
+      <h1>🏆 Global Rankings</h1>
+      <p>Earn XP through games and quizzes. Check the 🧠 Quiz XP tab to see who's grinding the hardest.</p>
     </div>
 
     <div class="rank-container">
       <div class="rank-tabs" id="rankTabs">
-        <button class="rank-tab active" onclick="setRankTab('completed',this)">✅ Most Completed</button>
-        <button class="rank-tab" onclick="setRankTab('playing',this)">🎮 Playing Now</button>
-        <button class="rank-tab" onclick="setRankTab('total',this)">📚 Total Library</button>
-        <button class="rank-tab" onclick="setRankTab('hours',this)">⏱ Hours Played</button>
+        <button class="rank-tab active" onclick="setRankTab('xp',this)">⭐ Total XP</button>
+        <button class="rank-tab" onclick="setRankTab('quizXP',this)">🧠 Quiz XP</button>
+        <button class="rank-tab" onclick="setRankTab('completed',this)">✅ Completions</button>
+        <button class="rank-tab" onclick="setRankTab('total',this)">📚 Library</button>
+        <button class="rank-tab" onclick="setRankTab('hours',this)">⏱ Hours</button>
       </div>
+      <div id="podiumArea"></div>
       <div class="rank-list" id="rankList"></div>
     </div>
   </div>
@@ -507,7 +702,7 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 
     <div class="page-hero">
       <h1>🧠 Gaming Quiz</h1>
-      <p>Test your gaming knowledge across 5 categories. Can you score perfect?</p>
+      <p>Bronze → Silver → Gold → Pro. Higher levels = more XP. Quiz points dominate the rankings.</p>
     </div>
 
     <div class="quiz-wrap">
@@ -855,14 +1050,43 @@ const QD={
     {q:'Creator of both Zelda and Mario franchises?',o:['Shigeru Miyamoto','Satoru Iwata','Gunpei Yokoi','Masahiro Sakurai'],a:0,e:'Shigeru Miyamoto is the legendary Nintendo designer behind both franchises.'},
     {q:'First 3D platformer ever released?',o:['Super Mario 64','Crash Bandicoot','Jumping Flash!','Bug!'],a:2,e:'Jumping Flash! (1995) on PS1 is considered the first true 3D platformer.'},
     {q:'Year the original PlayStation launched in Japan?',o:['1992','1993','1994','1995'],a:2,e:'The original PlayStation launched in Japan on December 3, 1994.'},
-  ]
+  ],
+  hard:[
+    {q:'Which game engine powers Red Dead Redemption 2?',o:['RAGE Engine','Unreal Engine','Dunia','Creation Engine'],a:0,e:'Rockstar\'s proprietary RAGE (Rockstar Advanced Game Engine) powers both GTA V and RDR2.'},
+    {q:'What is the maximum level cap in the original Dark Souls?',o:['99','712','821','999'],a:3,e:'Dark Souls has a soft cap at SL 120-150 but the absolute maximum level is 999.'},
+    {q:'Who composed the soundtrack for Undertale?',o:['Darren Korb','Toby Fox','Koji Kondo','Yasunori Mitsuda'],a:1,e:'Toby Fox, Undertale\'s sole developer, also composed the entire soundtrack.'},
+    {q:'What does BOTW stand for in gaming circles?',o:['Best of the Week','Battle of the Wilderness','Breath of the Wild','Back of the World'],a:2,e:'BOTW = Breath of the Wild, the 2017 Zelda masterpiece on Switch.'},
+    {q:'Which Counter-Strike map is nicknamed "Dust2"?',o:['de_inferno','de_dust2','cs_dust2','de_sand2'],a:1,e:'de_dust2 is officially called Dust II and is the most-played CS map ever.'},
+    {q:'What was the original internal codename for the Nintendo Switch?',o:['Fusion','Horizon','NX','Arc'],a:2,e:'Nintendo referred to the Switch as "NX" during development before its official reveal.'},
+    {q:'In Minecraft, what is the maximum depth of the world (Y-level) after the 2022 Caves & Cliffs update?',o:['-60','-64','-128','-256'],a:1,e:'After Caves & Cliffs Part II, the world floor moved to Y=-64, adding 64 new underground layers.'},
+    {q:'Which developer made Bloodborne?',o:['Bandai Namco','FromSoftware','Platinum Games','Capcom'],a:1,e:'Bloodborne was developed by FromSoftware and published by Sony exclusively for PS4.'},
+    {q:'What is the name of the final boss in Hollow Knight?',o:['The Radiance','Grimm','Soul Master','Hornet'],a:0,e:'The Radiance is the true final boss, revealed as the ancient god behind the Infection.'},
+    {q:'Which game introduced the concept of "Battle Pass" monetisation to mainstream gaming?',o:['Apex Legends','Dota 2','Fortnite','PUBG'],a:2,e:'Fortnite popularised the Battle Pass model in 2018, which was then adopted across the industry.'},
+    {q:'What year did League of Legends officially launch?',o:['2007','2008','2009','2010'],a:2,e:'League of Legends launched on October 27, 2009 by Riot Games.'},
+    {q:'In Cyberpunk 2077, what is the name of the city the game takes place in?',o:['Neo Tokyo','Night City','Neon Bay','Chrome City'],a:1,e:'Night City is the fictional Californian metropolis at the heart of Cyberpunk 2077.'},
+    {q:'Which game pioneered the "open-world survival craft" genre on PC in the early 2010s?',o:['Rust','DayZ','Minecraft','The Forest'],a:2,e:'Minecraft (alpha 2009, full release 2011) pioneered large-scale open-world survival-crafting.'},
+    {q:'What special mechanic does XCOM 2\'s "Ironman Mode" enforce?',o:['No manual saves','One life per mission','Perma-death for commander','Halved turn limit'],a:0,e:'Ironman Mode disables manual saves, creating a single auto-save that forces you to live with every decision.'},
+    {q:'The "Konami Code" originally appeared in which game?',o:['Contra','Gradius','Metal Gear','Castlevania'],a:1,e:'The Konami Code (↑↑↓↓←→←→BA) was first used in Gradius for the Famicom in 1986.'},
+  ],
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// QUIZ LEVEL CONFIG
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const QUIZ_LEVELS={
+  bronze:{label:'Bronze',icon:'🥉',cls:'bronze',color:'#cd7f32',questions:5, time:null, xpPer:20, bonusXP:30,  desc:'5 Questions · No timer · Pick genre'},
+  silver:{label:'Silver',icon:'🥈',cls:'silver',color:'#94a3b8',questions:7, time:null, xpPer:35, bonusXP:55,  desc:'7 Questions · No timer · Pick genre'},
+  gold:  {label:'Gold',  icon:'🥇',cls:'gold',  color:'#f59e0b',questions:10,time:null, xpPer:60, bonusXP:150, desc:'10 Questions · All categories'},
+  pro:   {label:'Pro',   icon:'💎',cls:'pro',   color:'#a78bfa',questions:12,time:30,   xpPer:100,bonusXP:350, desc:'12 Questions · 30s timer · All categories'},
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // STATE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let CU=null,games=[],nid=1,filterGenre='All',filterStatus='all',searchQuery='',detailId=null;
+let CU=null,games=[],nid=1,filterGenre='All',filterStatus='all',searchQuery='',detailId=null,libView='library';
 let rankTab='completed',quizCat='general',qQs=[],qIdx=0,qScore=0;
+let quizLevel='bronze',quizGenrePick='general',qTimeLeft=30,qTimer=null;
+let qStreak=0,qMaxStreak=0; // combo tracking
 let isDark=true,pendingCover='',titleTimer=null;
 let helpOpen=false,menuOpen=false;
 
@@ -1029,18 +1253,20 @@ function loadGames(){
   const k='bhq_g_'+CU.id;
   const saved=lsGet(k,null);
   if(saved){games=saved;nid=games.length?Math.max(...games.map(g=>g.id))+1:1;return;}
-  games=GAMES.slice(0,6).map((g,i)=>({id:i+1,...g,rating:i<2?5:0,status:i===0?'completed':i===1?'playing':'backlog',added:new Date().toISOString().slice(0,10),notes:'',hours:0}));
-  nid=7;saveGames();
+  // Brand-new user — empty library
+  games=[];nid=1;saveGames();
 }
 function saveGames(){
   if(!CU)return;
   lsSet('bhq_g_'+CU.id,games);
   const lb=lsGet('bhq_lb',{});
+  const existing=lb[CU.id]||{};
   lb[CU.id]={id:CU.id,name:CU.name,avatar:CU.avatar,color:CU.color,
     completed:games.filter(g=>g.status==='completed').length,
     playing:games.filter(g=>g.status==='playing').length,
     total:games.length,
-    hours:games.reduce((s,g)=>s+(g.hours||0),0)
+    hours:games.reduce((s,g)=>s+(g.hours||0),0),
+    quizXP:existing.quizXP||0  // preserve accumulated quiz XP
   };
   lsSet('bhq_lb',lb);
 }
@@ -1077,6 +1303,34 @@ function sendMsg(){const m=document.getElementById('contactMsg').value.trim();if
 function sendBug(){const d=document.getElementById('bugTxt').value.trim();if(!d)return;toast('Bug reported — thank you!','🐛');closeHelp();}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// XP + TIER SYSTEM
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const TIERS=[
+  {min:0,   max:99,   label:'Recruit',  cls:'t-recruit', icon:'🌱'},
+  {min:100, max:299,  label:'Gamer',    cls:'t-gamer',   icon:'🎮'},
+  {min:300, max:699,  label:'Regular',  cls:'t-regular', icon:'⚡'},
+  {min:700, max:1499, label:'Veteran',  cls:'t-veteran', icon:'🛡'},
+  {min:1500,max:2999, label:'Hardcore', cls:'t-hardcore',icon:'🔥'},
+  {min:3000,max:5999, label:'Elite',    cls:'t-elite',   icon:'💎'},
+  {min:6000,max:11999,label:'Legend',   cls:'t-legend',  icon:'👑'},
+  {min:12000,max:Infinity,label:'Prestige',cls:'t-prestige',icon:'✨'},
+];
+function calcXP(p){
+  // Game XP (reduced weight — quiz XP is the high-value path)
+  const gameXP=(p.completed||0)*100+(p.total||0)*12+(p.hours||0)*5+(p.playing||0)*20;
+  // Quiz XP (primary ranking driver)
+  const quizXP=p.quizXP||0;
+  return gameXP+quizXP;
+}
+function getTier(xp){for(let i=TIERS.length-1;i>=0;i--){if(xp>=TIERS[i].min)return TIERS[i];}return TIERS[0];}
+function getXPProg(xp){
+  const t=getTier(xp);if(t.max===Infinity)return{pct:100,current:xp,needed:0,next:'MAX'};
+  const range=t.max-t.min+1,prog=xp-t.min;
+  const ni=TIERS.findIndex(x=>x===t)+1;
+  return{pct:Math.round((prog/range)*100),current:prog,needed:range-prog,next:TIERS[ni]?.label||'MAX'};
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // RANKINGS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function setRankTab(tab,el){
@@ -1086,65 +1340,288 @@ function setRankTab(tab,el){
 }
 function buildRankList(tab){
   const lb=lsGet('bhq_lb',{});
-  const players=Object.values(lb);
-  const el=document.getElementById('rankList');
-  if(!el)return;
-  if(!players.length){el.innerHTML='<div class="rank-empty">🎮 No players yet — sign up and start tracking games!</div>';return;}
-  const key={completed:'completed',playing:'playing',total:'total',hours:'hours'}[tab];
-  players.sort((a,b)=>(b[key]||0)-(a[key]||0));
-  const unit={completed:'games completed',playing:'currently playing',total:'games tracked',hours:'hours played'}[tab];
-  el.innerHTML=players.map((p,i)=>{
-    const pos=i+1,pc=pos===1?'rank-pos-1':pos===2?'rank-pos-2':pos===3?'rank-pos-3':'';
-    const em=pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':'#'+pos;
+  const players=Object.values(lb).map(p=>({...p,_xp:calcXP(p)}));
+  const podEl=document.getElementById('podiumArea');
+  const listEl=document.getElementById('rankList');
+  if(!listEl)return;
+  if(!players.length){
+    if(podEl)podEl.innerHTML='';
+    listEl.innerHTML=`<div class="rank-empty-card"><div style="font-size:50px;opacity:.14;margin-bottom:14px">🏆</div><p>No players yet — be the first!</p><small>Sign up, track games, and earn XP to claim a spot.</small>${!CU?`<br><button class="rank-join-btn" onclick="openAuth('in')">🔐 Join the Leaderboard</button>`:''}</div>`;
+    return;
+  }
+  const sortKey={xp:'_xp',quizXP:'quizXP',completed:'completed',total:'total',hours:'hours'}[tab]||'_xp';
+  const unitLabel={xp:'XP',quizXP:'quiz XP',completed:'completions',total:'tracked',hours:'hours'}[tab];
+  players.sort((a,b)=>(b[sortKey]||0)-(a[sortKey]||0));
+  const topVal=players[0][sortKey]||1;
+
+  // PODIUM
+  if(podEl){
+    if(players.length>=2){
+      const vis=[players[1],players[0],players[2]].filter(Boolean);
+      const slots=[2,1,3],medals=['🥈','🥇','🥉'];
+      podEl.innerHTML=`<div class="podium-wrap">${vis.map((p,vi)=>{
+        const sl=slots[vi];const isMe=CU&&p.id===CU.id;const tier=getTier(p._xp);const score=p[sortKey]||0;
+        return`<div class="pod-slot pod-${sl}">
+          ${sl===1?'<div class="pod-crown">👑</div>':'<div style="height:26px"></div>'}
+          <div class="pod-av-ring">
+            <div class="pod-av" style="background:${p.color||AV[0]}">${p.avatar||'?'}</div>
+            ${sl===1?'<div class="pod-pulse"></div>':''}
+          </div>
+          <div class="pod-name">${p.name}${isMe?' 🫵':''}</div>
+          <div class="pod-xp"><span>${score.toLocaleString()}</span> ${unitLabel}</div>
+          <span class="tier-badge ${tier.cls}" style="margin-bottom:9px">${tier.icon} ${tier.label}</span>
+          <div class="pod-block">${medals[vi]}</div>
+        </div>`;
+      }).join('')}</div>`;
+    } else {podEl.innerHTML='';}
+  }
+
+  // LIST ROWS
+  const listPlayers=players.length>=3?players.slice(3):players;
+  const myIdx=players.findIndex(p=>CU&&p.id===CU.id);
+  let html=listPlayers.map((p,i)=>{
+    const pos=players.length>=3?i+4:i+1;
+    const score=p[sortKey]||0;
+    const pct=topVal>0?Math.round((score/topVal)*100):0;
+    const tier=getTier(p._xp);
     const isMe=CU&&p.id===CU.id;
-    return`<div class="rank-item${isMe?' me':''}">
-      <div class="rank-pos ${pc}">${em}</div>
-      <div class="rank-avatar" style="background:${p.color||AV[i%AV.length]}">${p.avatar||'?'}</div>
-      <div class="rank-info">
-        <div class="rank-name">${p.name}${isMe?'<span class="rank-you">YOU</span>':''}</div>
-        <div class="rank-sub">${p[key]||0} ${unit}</div>
+    const rClass=(pos===1?'top1':pos===2?'top2':pos===3?'top3':'')+(isMe?' is-me':'');
+    const pLabel=pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':'#'+pos;
+    const pClass=pos<=3?'p'+pos:'';
+    return`<div class="rrow ${rClass}" style="animation-delay:${i*.04}s">
+      <div class="rpos ${pClass}">${pLabel}</div>
+      <div class="rav" style="background:${p.color||AV[i%AV.length]}">${p.avatar||'?'}</div>
+      <div class="rinfo">
+        <div class="rname">${p.name}${isMe?'<span class="you-chip">YOU</span>':''}<span class="tier-badge ${tier.cls}">${tier.icon} ${tier.label}</span></div>
+        <div class="xp-row"><div class="xp-bar-track"><div class="xp-bar-fill" style="width:${pct}%"></div></div><span class="xp-label">${p._xp.toLocaleString()} XP</span></div>
+        <div class="xp-info">✅ ${p.completed||0} &nbsp;📚 ${p.total||0} &nbsp;⏱ ${p.hours||0}h &nbsp;🧠 ${(p.quizXP||0).toLocaleString()} quiz XP</div>
       </div>
-      <div class="rank-score">${p[key]||0}</div>
+      <div class="rscore-wrap"><div class="rscore">${score.toLocaleString()}</div><div class="rscore-unit">${unitLabel}</div></div>
     </div>`;
   }).join('');
+
+  // MY RANK STRIP
+  if(CU&&myIdx>=0){
+    const me=players[myIdx];const myT=getTier(me._xp);const prog=getXPProg(me._xp);
+    html+=`<div class="my-rank-strip">
+      <div class="mrs-av" style="background:${me.color||'#7b61ff'}">${me.avatar}</div>
+      <div style="flex:1;min-width:0">
+        <div class="mrs-label">Your Standing</div>
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><div class="mrs-val">#${myIdx+1}</div><span class="tier-badge ${myT.cls}">${myT.icon} ${myT.label}</span></div>
+        <div class="xp-row"><div class="xp-bar-track" style="max-width:220px"><div class="xp-bar-fill" style="width:${prog.pct}%;background:linear-gradient(90deg,#a89ffc,#7b61ff)"></div></div><span class="xp-label">${prog.current} / ${prog.current+prog.needed} → ${prog.next}</span></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0"><div class="mrs-label">Total XP</div><div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#a89ffc">${me._xp.toLocaleString()}</div></div>
+    </div>`;
+  }else if(!CU){
+    html+=`<div class="rank-empty-card" style="margin-top:14px;padding:26px 20px"><p>Sign in to track your rank</p><small>XP = games (completions×100 + library×12 + hours×5) <strong>+</strong> quiz XP (up to 100/question!)</small><br><button class="rank-join-btn" onclick="openAuth('in')">🔐 Sign In to Compete</button></div>`;
+  }
+  listEl.innerHTML=html;
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// QUIZ
+// LIBRARY / BROWSE VIEW
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setView(v){
+  libView=v;
+  document.getElementById('vtLib').classList.toggle('active',v==='library');
+  document.getElementById('vtBrowse').classList.toggle('active',v==='browse');
+  document.getElementById('vtLib').classList.toggle('vt-lib',v==='library');
+  document.getElementById('vtBrowse').classList.toggle('vt-browse',v==='browse');
+  const ab=document.getElementById('btnAddGame');if(ab)ab.style.display=v==='browse'?'none':'';
+  filterGenre='All';filterStatus='all';searchQuery='';
+  const si=document.getElementById('mainSearch');if(si)si.value='';
+  const sc=document.getElementById('searchClear');if(sc)sc.style.display='none';
+  render();
+}
+function addFromBrowse(dbIdx){
+  if(!CU){openAuth('in');toast('Sign in to add games','🔐');return;}
+  const g=GAMES[dbIdx];if(!g)return;
+  if(games.find(x=>x.title===g.title)){toast('Already in library','✓');return;}
+  games.push({id:nid++,...g,status:'backlog',rating:0,added:new Date().toISOString().slice(0,10),notes:'',hours:0});
+  saveGames();render();toast(`${g.title} added!`,'🎮');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// QUIZ — TIERED SYSTEM
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function awardQuizXP(xp){
+  if(!CU||!xp)return;
+  const lb=lsGet('bhq_lb',{});
+  if(!lb[CU.id]){
+    // Create entry for user even if no library yet
+    lb[CU.id]={id:CU.id,name:CU.name,avatar:CU.avatar,color:CU.color,completed:0,playing:0,total:0,hours:0,quizXP:0};
+  }
+  lb[CU.id].quizXP=(lb[CU.id].quizXP||0)+xp;
+  lsSet('bhq_lb',lb);
+}
+
 function showQuizStart(){
-  qIdx=0;qScore=0;
-  document.getElementById('quizContent').innerHTML=`
-    <div class="quiz-start-card">
-      <h2>Test Your Knowledge!</h2>
-      <p>Pick a category and answer 10 questions. Each correct answer scores a point.</p>
-      <div class="quiz-cats">
-        <div class="quiz-cat sel" onclick="pickCat('general',this)">🌍 General</div>
-        <div class="quiz-cat" onclick="pickCat('pc',this)">💻 PC Gaming</div>
-        <div class="quiz-cat" onclick="pickCat('mobile',this)">📱 Mobile</div>
-        <div class="quiz-cat" onclick="pickCat('history',this)">📜 History</div>
-        <div class="quiz-cat" onclick="pickCat('mixed',this)">🎲 Mixed</div>
+  if(qTimer){clearInterval(qTimer);qTimer=null;}
+  qIdx=0;qScore=0;qStreak=0;qMaxStreak=0;quizLevel='bronze';quizGenrePick='general';
+
+  // Pull user's saved quiz stats
+  const lb=lsGet('bhq_lb',{});
+  const myData=CU&&lb[CU.id]?lb[CU.id]:null;
+  const totalQuizXP=myData?(myData.quizXP||0):0;
+  const quizMeta=lsGet('bhq_qmeta_'+(CU?CU.id:'guest'),{runs:0,best:'—',maxStreak:0});
+
+  const statsHtml=CU?`
+    <div class="quiz-stats-bar">
+      <div class="qstat-card qs-xp">
+        <div class="qstat-n">${totalQuizXP.toLocaleString()}</div>
+        <div class="qstat-l">Quiz XP</div>
       </div>
-      <button class="btn-start" onclick="startQuiz()">▶ Start Quiz</button>
+      <div class="qstat-card">
+        <div class="qstat-n">${quizMeta.runs||0}</div>
+        <div class="qstat-l">Runs</div>
+      </div>
+      <div class="qstat-card qs-best">
+        <div class="qstat-n">${quizMeta.best||'—'}</div>
+        <div class="qstat-l">Best Level</div>
+      </div>
+      <div class="qstat-card qs-streak">
+        <div class="qstat-n">${quizMeta.maxStreak||0}</div>
+        <div class="qstat-l">Best Streak</div>
+      </div>
+    </div>`:'';
+
+  document.getElementById('quizContent').innerHTML=`
+    <div class="quiz-level-card">
+      <h2>🧠 Choose Your Level</h2>
+      <p class="quiz-level-sub">Higher levels earn <strong>more XP</strong> — quiz points dominate the rankings!</p>
+      ${statsHtml}
+      <div class="ql-grid">
+        <div class="ql-card ql-bronze sel" onclick="pickLevel('bronze',this)">
+          <div class="ql-check">✓</div>
+          <div class="ql-icon">🥉</div>
+          <div class="ql-name">Bronze</div>
+          <div class="ql-desc">Beginner · Pick genre<br>5 questions · No timer</div>
+          <div class="ql-xp-rate">⭐ 20 XP / correct</div>
+        </div>
+        <div class="ql-card ql-silver" onclick="pickLevel('silver',this)">
+          <div class="ql-check">✓</div>
+          <div class="ql-icon">🥈</div>
+          <div class="ql-name">Silver</div>
+          <div class="ql-desc">Intermediate · Pick genre<br>7 questions · No timer</div>
+          <div class="ql-xp-rate">⭐ 35 XP / correct</div>
+        </div>
+        <div class="ql-card ql-gold" onclick="pickLevel('gold',this)">
+          <div class="ql-check">✓</div>
+          <div class="ql-icon">🥇</div>
+          <div class="ql-name">Gold</div>
+          <div class="ql-desc">Advanced · All categories<br>10 questions · No timer</div>
+          <div class="ql-xp-rate">⭐ 60 XP / correct</div>
+        </div>
+        <div class="ql-card ql-pro" onclick="pickLevel('pro',this)">
+          <div class="ql-hot-tag">MAX XP</div>
+          <div class="ql-check">✓</div>
+          <div class="ql-icon">💎</div>
+          <div class="ql-name">Pro <span class="ql-timer-warn">⏱ 30s</span></div>
+          <div class="ql-desc">Expert · All categories<br>12 questions · Timed!</div>
+          <div class="ql-xp-rate">⭐ 100 XP / correct</div>
+        </div>
+      </div>
+
+      <div id="qGenrePicker" style="display:block">
+        <div class="qgp-section">
+          <div class="qgp-title">🎮 Pick Your Game Genre</div>
+          <div class="qgp-chips">
+            <div class="qgp-chip sel" onclick="pickGenre('general',this)">🌍 General</div>
+            <div class="qgp-chip" onclick="pickGenre('pc',this)">💻 PC Gaming</div>
+            <div class="qgp-chip" onclick="pickGenre('mobile',this)">📱 Mobile</div>
+            <div class="qgp-chip" onclick="pickGenre('history',this)">📜 History</div>
+            <div class="qgp-chip" onclick="pickGenre('mixed',this)">🎲 Mixed</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center">
+        <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-bottom:14px">
+          🔥 3 in a row = 1.5× XP &nbsp;|&nbsp; 5 in a row = 2× XP combo!
+        </div>
+        <button class="btn-start" onclick="startQuiz()">▶ Start Quiz</button>
+      </div>
     </div>`;
 }
-function pickCat(cat,el){quizCat=cat;document.querySelectorAll('.quiz-cat').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+
+function pickLevel(level,el){
+  quizLevel=level;
+  document.querySelectorAll('.ql-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  // Show genre picker only for bronze/silver
+  const gp=document.getElementById('qGenrePicker');
+  if(gp) gp.style.display=(level==='bronze'||level==='silver')?'block':'none';
+}
+
+function pickGenre(genre,el){
+  quizGenrePick=genre;
+  document.querySelectorAll('.qgp-chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
 function startQuiz(){
-  const pool=quizCat==='mixed'?Object.values(QD).flat():QD[quizCat]||QD.general;
-  qQs=[...pool].sort(()=>Math.random()-.5).slice(0,10);
+  qStreak=0;qMaxStreak=0;
+  const lvl=QUIZ_LEVELS[quizLevel];
+  let pool;
+  if(quizLevel==='bronze'||quizLevel==='silver'){
+    pool=quizGenrePick==='mixed'?Object.values(QD).flat():QD[quizGenrePick]||QD.general;
+  } else if(quizLevel==='gold'){
+    pool=[...QD.general,...QD.pc,...QD.mobile,...QD.history];
+  } else {
+    pool=[...QD.hard,...QD.general,...QD.pc,...QD.history];
+  }
+  qQs=[...pool].sort(()=>Math.random()-.5).slice(0,lvl.questions);
   qIdx=0;qScore=0;showQuestion();
 }
+
+function buildStreakBar(){
+  const max=5;
+  const isHot=qStreak>=3&&qStreak<5;
+  const isFire=qStreak>=5;
+  const barClass=isFire?'fire':isHot?'hot':'';
+  const dotClass=isFire?'lit fire':'lit';
+  const label=isFire?`🔥 ${qStreak}× COMBO! (2× XP)`:isHot?`⚡ ${qStreak} streak (1.5× XP)`:`${qStreak} streak`;
+  const dots=Array.from({length:max},(_,i)=>`<div class="q-streak-dot${i<qStreak?' '+dotClass:''}"></div>`).join('');
+  return`<div class="q-streak-bar ${barClass}">
+    <div class="q-streak-dots">${dots}</div>
+    <span class="q-streak-label ${barClass}">${label}</span>
+  </div>`;
+}
+
 function showQuestion(){
   if(qIdx>=qQs.length){showResult();return;}
+  if(qTimer){clearInterval(qTimer);qTimer=null;}
   const q=qQs[qIdx];
+  const lvl=QUIZ_LEVELS[quizLevel];
   const pct=Math.round((qIdx/qQs.length)*100);
+  const multiplier=qStreak>=5?2:qStreak>=3?1.5:1;
+  const xpThisQ=Math.round(lvl.xpPer*multiplier);
+
+  const timerHtml=lvl.time?`
+    <div class="q-timer-block" id="qTimerBlock">
+      <svg class="q-timer-svg" viewBox="0 0 38 38">
+        <circle class="q-timer-track" cx="19" cy="19" r="17"/>
+        <circle class="q-timer-fill" id="qTimerRing" cx="19" cy="19" r="17"/>
+      </svg>
+      <div class="q-timer-info">
+        <div class="q-timer-num" id="qTimerNum">${lvl.time}</div>
+        <div class="q-timer-lbl">SECONDS</div>
+      </div>
+      <div class="q-xp-hint">+${xpThisQ} XP if correct${multiplier>1?` (${multiplier}×)`:''}</div>
+    </div>`:'';
+
   document.getElementById('quizContent').innerHTML=`
     <div class="quiz-card">
-      <div class="q-progress">
-        <div class="q-num">Q${qIdx+1}</div>
-        <div class="q-prog-bar"><div class="q-prog-fill" style="width:${pct}%"></div></div>
-        <div class="q-num">${qScore} pts</div>
+      <div class="q-header">
+        <span class="q-level-chip qlc-${quizLevel}">${lvl.icon} ${lvl.label}</span>
+        <div class="q-progress">
+          <div class="q-num">Q${qIdx+1}/${qQs.length}</div>
+          <div class="q-prog-bar"><div class="q-prog-fill" style="width:${pct}%"></div></div>
+          <div class="q-num">${qScore}pts</div>
+        </div>
       </div>
+      ${buildStreakBar()}
+      ${timerHtml}
       <div class="q-question">${q.q}</div>
       <div class="q-opts">
         ${q.o.map((o,i)=>`<button class="q-opt" onclick="answerQ(${i})">${['A','B','C','D'][i]}. ${o}</button>`).join('')}
@@ -1152,30 +1629,134 @@ function showQuestion(){
       <div class="q-exp" id="qExp">${q.e}</div>
       <button class="btn-next" id="qNext" onclick="nextQ()">${qIdx+1<qQs.length?'Next →':'See Results 🏆'}</button>
     </div>`;
+
+  if(lvl.time){
+    qTimeLeft=lvl.time;
+    const circumference=107;
+    const ring=document.getElementById('qTimerRing');
+    const num=document.getElementById('qTimerNum');
+    const block=document.getElementById('qTimerBlock');
+    qTimer=setInterval(()=>{
+      qTimeLeft--;
+      if(num)num.textContent=qTimeLeft;
+      if(ring){
+        const offset=circumference-(circumference*(qTimeLeft/lvl.time));
+        ring.style.strokeDashoffset=offset;
+      }
+      if(qTimeLeft<=8){
+        if(num)num.classList.add('urgent');
+        if(block)block.classList.add('timer-urgent');
+      }
+      if(qTimeLeft<=0){
+        clearInterval(qTimer);qTimer=null;
+        qStreak=0; // break streak on timeout
+        document.querySelectorAll('.q-opt').forEach((o,i)=>{
+          o.classList.add('disabled');
+          if(i===qQs[qIdx].a)o.classList.add('correct');
+        });
+        document.getElementById('qExp').classList.add('show');
+        document.getElementById('qNext').classList.add('show');
+        toast('⏱ Time\'s up!','⏰');
+      }
+    },1000);
+  }
 }
+
+function fireComboFlash(text,color){
+  const el=document.getElementById('comboFlash');
+  if(!el)return;
+  el.textContent=text;
+  el.style.color=color;
+  el.classList.remove('fire');
+  void el.offsetWidth; // reflow
+  el.classList.add('fire');
+}
+
 function answerQ(chosen){
+  if(qTimer){clearInterval(qTimer);qTimer=null;}
   const q=qQs[qIdx];
+  const lvl=QUIZ_LEVELS[quizLevel];
+  const isCorrect=chosen===q.a;
+
   document.querySelectorAll('.q-opt').forEach((o,i)=>{
     o.classList.add('disabled');
     if(i===q.a)o.classList.add('correct');
-    else if(i===chosen&&chosen!==q.a)o.classList.add('wrong');
+    else if(i===chosen&&!isCorrect)o.classList.add('wrong');
   });
-  if(chosen===q.a)qScore++;
+
+  if(isCorrect){
+    qStreak++;
+    if(qStreak>qMaxStreak)qMaxStreak=qStreak;
+    qScore++;
+    // Combo flash
+    if(qStreak===3)fireComboFlash('⚡ 3 STREAK! 1.5× XP','#f59e0b');
+    else if(qStreak===5)fireComboFlash('🔥 5 STREAK! 2× XP!','#ff3d7f');
+    else if(qStreak>5&&qStreak%5===0)fireComboFlash(`💥 ${qStreak} STREAK!`,'#ff3d7f');
+  } else {
+    if(qStreak>=3)toast(`Streak broken at ${qStreak}!`,'💔');
+    qStreak=0;
+  }
+
   document.getElementById('qExp').classList.add('show');
   document.getElementById('qNext').classList.add('show');
 }
+
 function nextQ(){qIdx++;showQuestion();}
+
 function showResult(){
+  if(qTimer){clearInterval(qTimer);qTimer=null;}
+  const lvl=QUIZ_LEVELS[quizLevel];
   const pct=Math.round((qScore/qQs.length)*100);
-  const msg=pct===100?'Perfect! You\'re a gaming legend! 🏆':pct>=80?'Excellent! Great gaming knowledge!':pct>=60?'Good job! Solid gamer.':pct>=40?'Not bad — keep playing!':'Keep practising!';
+  // XP: each correct at base rate. Bonus for perfect. Streak bonus not applied per-question here but summarised.
+  const baseXP=qScore*lvl.xpPer;
+  const isPerfect=qScore===qQs.length;
+  const bonusXP=isPerfect?lvl.bonusXP:0;
+  // Streak bonus: if max streak >= 5 add 20% extra, >= 3 add 10%
+  const streakBonus=qMaxStreak>=5?Math.round(baseXP*0.2):qMaxStreak>=3?Math.round(baseXP*0.1):0;
+  const totalXP=baseXP+bonusXP+streakBonus;
+
+  // Save quiz metadata
+  const metaKey='bhq_qmeta_'+(CU?CU.id:'guest');
+  const LEVEL_ORDER=['bronze','silver','gold','pro'];
+  const meta=lsGet(metaKey,{runs:0,best:'—',bestIdx:-1,maxStreak:0});
+  meta.runs=(meta.runs||0)+1;
+  const levelIdx=LEVEL_ORDER.indexOf(quizLevel);
+  if(levelIdx>(meta.bestIdx||-1)){meta.best=lvl.icon+' '+lvl.label;meta.bestIdx=levelIdx;}
+  if(qMaxStreak>(meta.maxStreak||0))meta.maxStreak=qMaxStreak;
+  lsSet(metaKey,meta);
+
+  awardQuizXP(totalXP);
+
+  const msg=pct===100?'Perfect Score! Absolute Legend! 🏆':
+    pct>=80?'Excellent! Sharp gaming mind!':
+    pct>=60?'Good job! Solid gamer.':
+    pct>=40?'Not bad — keep grinding!':'Keep practising, rookie!';
+
+  const loginNote=!CU?`<div style="font-size:12px;color:var(--text3);margin-top:8px;font-family:'JetBrains Mono',monospace">⚠ Sign in to save XP to your ranking</div>`:'';
+  const savedNote=CU&&totalXP>0?`<div style="font-size:11px;color:#00d2b4;margin-top:8px;font-family:'JetBrains Mono',monospace">✓ +${totalXP} XP added to your ranking!</div>`:'';
+
   document.getElementById('quizContent').innerHTML=`
     <div class="quiz-result-card">
       <div class="score-ring"><div class="score-n">${qScore}</div><div class="score-max">/ ${qQs.length}</div></div>
       <h3>${msg}</h3>
-      <p>You scored ${pct}% — ${qScore} out of ${qQs.length} correct.</p>
+      <p>You scored ${pct}% — ${qScore} of ${qQs.length} correct.</p>
+      <div class="quiz-xp-earned">
+        <div class="qxp-lbl">Quiz XP Earned</div>
+        <div class="qxp-num">${totalXP>0?'+'+totalXP:'0'}</div>
+        ${isPerfect?`<div class="qxp-perfect">🌟 Perfect Score Bonus: +${bonusXP} XP</div>`:''}
+        ${streakBonus>0?`<div class="qxp-perfect" style="background:rgba(245,158,11,.12);color:#f59e0b">🔥 Streak Bonus: +${streakBonus} XP (best: ${qMaxStreak}×)</div>`:''}
+        <div class="qxp-breakdown">
+          <div class="qxp-bd"><span>${qScore}</span> correct × <span>${lvl.xpPer}</span> = <span>${baseXP}</span></div>
+          ${bonusXP?`<div class="qxp-bd">🎯 Perfect: <span>+${bonusXP}</span></div>`:''}
+          ${streakBonus?`<div class="qxp-bd">🔥 Streak: <span>+${streakBonus}</span></div>`:''}
+          <div class="qxp-bd">${lvl.icon} <span>${lvl.label}</span></div>
+        </div>
+        ${loginNote}${savedNote}
+      </div>
       <div class="result-actions">
-        <button class="btn-retry" onclick="showQuizStart()">🔄 New Quiz</button>
-        <button class="btn-start" onclick="startQuiz()" style="padding:10px 22px;font-size:13px">▶ Play Again</button>
+        <button class="btn-retry" onclick="showQuizStart()">🔄 Change Level</button>
+        <button class="btn-retry" onclick="startQuiz()">▶ Play Again</button>
+        <button class="btn-ranking" onclick="goPage('rankings')">🏆 See Rankings</button>
       </div>
     </div>`;
 }
@@ -1278,37 +1859,74 @@ function setCardStatus(id,s){const g=games.find(g=>g.id===id);if(g){g.status=s;s
 function delCard(id){if(!confirm('Remove?'))return;games=games.filter(g=>g.id!==id);saveGames();render();toast('Removed','🗑');}
 
 function buildTabs(){
-  const src=CU?games:GAMES;
+  const isBrowse=libView==='browse';
+  const src=isBrowse?GAMES:(CU?games:GAMES);
   const genres=['All',...[...new Set(src.map(g=>g.genre))].sort()];
   document.getElementById('genreBar').innerHTML=genres.map(g=>`<button class="gtab${g===filterGenre?' active':''}" onclick="setGenre('${g.replace(/'/g,"\\'")}',this)">${GI[g]||'🎮'} ${g}</button>`).join('');
-  const cnt={playing:0,backlog:0,completed:0,dropped:0};
-  src.forEach(g=>{if(cnt[g.status]!==undefined)cnt[g.status]++;});
-  document.getElementById('statusBar').innerHTML=Object.entries(SM).map(([k,v])=>`<button class="stab${filterStatus===k?' '+v.c:''}" onclick="setStatus('${k}',this)">${v.l}${k!=='all'?` <span style="opacity:.4;font-size:10px">(${cnt[k]||0})</span>`:''}</button>`).join('');
+  if(isBrowse){
+    document.getElementById('statusBar').innerHTML='';
+  } else {
+    const cnt={playing:0,backlog:0,completed:0,dropped:0};
+    src.forEach(g=>{if(cnt[g.status]!==undefined)cnt[g.status]++;});
+    document.getElementById('statusBar').innerHTML=Object.entries(SM).map(([k,v])=>`<button class="stab${filterStatus===k?' '+v.c:''}" onclick="setStatus('${k}',this)">${v.l}${k!=='all'?` <span style="opacity:.4;font-size:10px">(${cnt[k]||0})</span>`:''}</button>`).join('');
+  }
 }
 
 function render(){
   buildTabs();
-  const src=CU?games:GAMES.map((g,i)=>({id:i+1,...g,status:'backlog',rating:0,added:'',notes:'',hours:0}));
-  const fil=src.filter(g=>{
+  const isBrowse=libView==='browse';
+  const raw=isBrowse?GAMES.map((g,i)=>({...g,_dbIdx:i})):(CU?games:GAMES.map((g,i)=>({id:i+1,...g,status:'backlog',rating:0,added:'',notes:'',hours:0})));
+  const fil=raw.filter(g=>{
     const gok=filterGenre==='All'||g.genre===filterGenre;
-    const sok=filterStatus==='all'||g.status===filterStatus;
+    const sok=isBrowse||filterStatus==='all'||g.status===filterStatus;
     const qok=!searchQuery||g.title.toLowerCase().includes(searchQuery)||(g.genre&&g.genre.toLowerCase().includes(searchQuery))||(g.dev&&g.dev.toLowerCase().includes(searchQuery))||(g.platform&&g.platform.toLowerCase().includes(searchQuery));
     return gok&&sok&&qok;
   });
-  const stats={playing:0,backlog:0,completed:0};
-  src.forEach(g=>{if(g.status==='playing')stats.playing++;else if(g.status==='backlog')stats.backlog++;else if(g.status==='completed')stats.completed++;});
-  document.getElementById('hdrStats').innerHTML=`<div class="hstat"><span class="hstat-n" style="color:#c4bfff">${src.length}</span><span class="hstat-l">Total</span></div><div class="hstat"><span class="hstat-n" style="color:#00d2b4">${stats.playing}</span><span class="hstat-l">Playing</span></div><div class="hstat"><span class="hstat-n" style="color:#ff8c5a">${stats.completed}</span><span class="hstat-l">Done</span></div>`;
+  // Header stats — always user's own library
+  const uLib=CU?games:[];
+  const uSt={playing:0,backlog:0,completed:0};
+  uLib.forEach(g=>{if(uSt[g.status]!==undefined)uSt[g.status]++;});
+  document.getElementById('hdrStats').innerHTML=`<div class="hstat"><span class="hstat-n" style="color:#c4bfff">${uLib.length}</span><span class="hstat-l">Total</span></div><div class="hstat"><span class="hstat-n" style="color:#00d2b4">${uSt.playing}</span><span class="hstat-l">Playing</span></div><div class="hstat"><span class="hstat-n" style="color:#ff8c5a">${uSt.completed}</span><span class="hstat-l">Done</span></div>`;
+
+  // Empty library for new signed-in users
+  if(!isBrowse&&CU&&games.length===0&&!searchQuery){
+    document.getElementById('gameGrid').innerHTML=`<div class="lib-zero">
+      <div class="lib-zero-glyph">🎮</div>
+      <div class="lib-zero-title">Your library is empty</div>
+      <div class="lib-zero-sub">This is where your gaming universe lives. Add games you're playing, want to tackle, or already finished — then earn XP and climb the global leaderboard.</div>
+      <div class="lib-zero-btns">
+        <button class="lz-cta" onclick="openAddModal()">＋ Add Your First Game</button>
+        <button class="lz-browse" onclick="setView('browse')">🔍 Browse the Catalog</button>
+      </div>
+    </div>`;return;
+  }
+
   if(!fil.length){document.getElementById('gameGrid').innerHTML=`<div class="empty-wrap"><div class="empty-icon">🕹️</div><div class="empty-text">${searchQuery?'No results for "'+searchQuery+'"':'No games here yet!'}</div></div>`;return;}
+
   document.getElementById('gameGrid').innerHTML=fil.map((g,i)=>{
     const ac=GC[g.genre]||'#7b61ff';
     const delay=`animation-delay:${Math.min(i*.033,1.4)}s`;
     const covHtml=g.cover?`<img src="${g.cover}" alt="${g.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:' ';
-    const starHtml=CU?[1,2,3,4,5].map(n=>`<span class="star${g.rating>=n?' on':''}" onclick="event.stopPropagation();setRating(${g.id},${n})">★</span>`).join(''):'';
-    return`<div class="game-card" style="${delay}" onclick="${CU?`openDetail(${g.id})`:`openAuth('in')`}">
+    const starHtml=(!isBrowse&&CU)?[1,2,3,4,5].map(n=>`<span class="star${g.rating>=n?' on':''}" onclick="event.stopPropagation();setRating(${g.id},${n})">★</span>`).join(''):'';
+    const alreadyAdded=isBrowse&&CU&&games.find(x=>x.title===g.title);
+    let footer;
+    if(isBrowse){
+      footer=CU
+        ?(alreadyAdded
+          ?`<div class="card-in-lib">✓ IN YOUR LIBRARY</div>`
+          :`<button class="card-add-btn" onclick="event.stopPropagation();addFromBrowse(${g._dbIdx})">＋ Add to Library</button>`)
+        :`<div style="padding-top:9px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">Sign in to add</div>`;
+    }else{
+      footer=CU
+        ?`<div class="stars">${starHtml}</div><div class="card-footer"><select class="csel css-${g.status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();setCardStatus(${g.id},this.value)"><option value="playing"${g.status==='playing'?' selected':''}>Playing</option><option value="backlog"${g.status==='backlog'?' selected':''}>Backlog</option><option value="completed"${g.status==='completed'?' selected':''}>Completed</option><option value="dropped"${g.status==='dropped'?' selected':''}>Dropped</option></select><div class="card-actions"><button class="act-btn del" onclick="event.stopPropagation();delCard(${g.id})">✕</button></div></div>`
+        :`<div style="padding-top:9px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">Sign in to track</div>`;
+    }
+    const clickFn=isBrowse?(CU?`addFromBrowse(${g._dbIdx})`:`openAuth('in')`):(CU?`openDetail(${g.id})`:`openAuth('in')`);
+    return`<div class="game-card" style="${delay}" onclick="${clickFn}">
       <div class="card-cover">
         ${covHtml}
         <div class="cover-ph"${g.cover?' style="display:none"':''}><div class="cover-ph-icon">${GI[g.genre]||'🎮'}</div><div class="cover-ph-label">No Cover</div></div>
-        <div class="s-ribbon r-${g.status}">${g.status}</div>
+        ${!isBrowse?`<div class="s-ribbon r-${g.status}">${g.status}</div>`:''}
       </div>
       <div class="card-body">
         <div class="card-meta">
@@ -1316,8 +1934,7 @@ function render(){
           ${g.year?`<span style="font-size:9.5px;color:var(--text3);font-family:'JetBrains Mono',monospace">${g.year}</span>`:''}
         </div>
         <div class="card-title">${g.title}</div>
-        ${CU?`<div class="stars">${starHtml}</div>`:''}
-        ${CU?`<div class="card-footer"><select class="csel css-${g.status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();setCardStatus(${g.id},this.value)"><option value="playing"${g.status==='playing'?' selected':''}>Playing</option><option value="backlog"${g.status==='backlog'?' selected':''}>Backlog</option><option value="completed"${g.status==='completed'?' selected':''}>Completed</option><option value="dropped"${g.status==='dropped'?' selected':''}>Dropped</option></select><div class="card-actions"><button class="act-btn del" onclick="event.stopPropagation();delCard(${g.id})">✕</button></div></div>`:`<div style="padding-top:9px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">Sign in to track</div>`}
+        ${footer}
       </div>
     </div>`;
   }).join('');
