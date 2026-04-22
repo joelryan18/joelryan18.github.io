@@ -561,6 +561,64 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(123,97,255,.2);border-radius:3px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   AMAZON DEALS BANNER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.amz-banner{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:13px 20px;margin-bottom:20px;
+  background:linear-gradient(120deg,rgba(255,153,0,0.10) 0%,rgba(255,107,53,0.08) 50%,rgba(123,97,255,0.08) 100%);
+  border:1px solid rgba(255,153,0,0.25);border-radius:16px;
+  position:relative;overflow:hidden;flex-wrap:wrap;
+  text-decoration:none;cursor:pointer;
+  transition:border-color .25s,box-shadow .25s;
+}
+.amz-banner:hover{
+  border-color:rgba(255,153,0,0.55);
+  box-shadow:0 6px 30px rgba(255,153,0,0.12);
+}
+.amz-banner::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,153,0,0.07) 50%,transparent 70%);
+  transform:translateX(-100%);
+  animation:amzShimmer 3.5s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes amzShimmer{
+  0%{transform:translateX(-100%)}
+  60%,100%{transform:translateX(200%)}
+}
+.amz-left{display:flex;align-items:center;gap:13px}
+.amz-icon{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,#ff9900,#ff6b1a);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+  box-shadow:0 4px 16px rgba(255,153,0,0.35);
+}
+.amz-text{}
+.amz-eyebrow{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:2.5px;text-transform:uppercase;color:#ff9900;margin-bottom:2px}
+.amz-headline{font-size:14px;font-weight:700;color:var(--text1);line-height:1.25}
+.amz-sub{font-size:11.5px;color:var(--text2);margin-top:2px}
+.amz-cta{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 18px;
+  background:linear-gradient(135deg,#ff9900,#e68a00);
+  border:none;border-radius:100px;
+  color:#0b0d20;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:800;
+  white-space:nowrap;flex-shrink:0;
+  box-shadow:0 4px 18px rgba(255,153,0,0.3);
+  transition:opacity .2s,transform .15s;
+}
+.amz-banner:hover .amz-cta{opacity:.9;transform:scale(1.04)}
+.amz-dismiss{
+  position:absolute;top:8px;right:10px;
+  background:none;border:none;color:var(--text3);font-size:13px;
+  cursor:pointer;padding:3px 5px;border-radius:5px;line-height:1;
+  transition:color .15s;
+}
+.amz-dismiss:hover{color:var(--text1)}
 @media(max-width:680px){
   .hdr-stats{display:none}
   .form-grid{grid-template-columns:1fr}
@@ -619,6 +677,20 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
         <div id="authArea"></div>
       </div>
     </header>
+
+    <!-- ── AMAZON DEALS BANNER ── -->
+    <a id="amzBanner" class="amz-banner" href="https://www.amazon.in/gp/goldbox?&linkCode=ll2&tag=stackwithme-21&linkId=81d22b6770880e2ba45887492dfd1c4c&ref_=as_li_ss_tl" target="_blank" rel="noopener sponsored">
+      <div class="amz-left">
+        <div class="amz-icon">🛒</div>
+        <div class="amz-text">
+          <div class="amz-eyebrow">🔥 Limited Time</div>
+          <div class="amz-headline">Amazon Today's Deals — Games, Gear & More</div>
+          <div class="amz-sub">Grab the best prices on controllers, headsets, and top game titles</div>
+        </div>
+      </div>
+      <div class="amz-cta">Shop Deals →</div>
+      <button class="amz-dismiss" onclick="event.preventDefault();event.stopPropagation();document.getElementById('amzBanner').style.display='none'" title="Dismiss">✕</button>
+    </a>
 
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:0">
       <div class="view-tabs" id="viewTabs">
