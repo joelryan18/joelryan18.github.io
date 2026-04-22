@@ -630,6 +630,240 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
   .quiz-result-card{padding:26px 20px}
   .qxp-num{font-size:40px}
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   LEVEL LOCK SYSTEM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.ql-card{position:relative;overflow:hidden}
+.ql-lock-overlay{
+  position:absolute;inset:0;
+  background:rgba(8,9,16,0.75);
+  backdrop-filter:blur(3px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;border-radius:inherit;cursor:not-allowed;z-index:5;
+}
+.ql-lock-icon{font-size:24px;opacity:.7}
+.ql-lock-text{font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--text2);letter-spacing:.4px;text-align:center;padding:0 8px;line-height:1.5}
+.ql-unlock-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:100px;
+  background:rgba(123,97,255,.14);border:1px solid rgba(123,97,255,.28);
+  font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#c4bfff;
+  margin-top:3px;
+}
+.ql-card.locked{opacity:.65}
+
+/* Unlock celebration */
+.unlock-toast{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.5);
+  background:var(--bg1);
+  border:2px solid rgba(123,97,255,.45);border-radius:24px;
+  padding:30px 38px;z-index:1000;text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 50px rgba(123,97,255,.18);
+  opacity:0;pointer-events:none;
+}
+.unlock-toast.pop{animation:unlockPop .65s cubic-bezier(.34,1.56,.64,1) forwards}
+.unlock-toast.fade{animation:unlockFade .4s ease forwards}
+@keyframes unlockPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes unlockFade{0%{opacity:1}100%{opacity:0;transform:translate(-50%,-54%) scale(.95)}}
+.unlock-toast-icon{font-size:50px;line-height:1;margin-bottom:10px}
+.unlock-toast-title{font-size:21px;font-weight:800;color:var(--text1);margin-bottom:5px}
+.unlock-toast-sub{font-size:13px;color:var(--text2)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   REAL-TIME RANKINGS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.rank-live-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 14px;border-radius:100px;
+  background:rgba(0,210,180,.07);border:1px solid rgba(0,210,180,.22);
+  font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#00d2b4;
+  margin-bottom:18px;
+}
+.rank-live-dot{
+  width:7px;height:7px;border-radius:50%;background:#00d2b4;flex-shrink:0;
+  animation:livePulse 1.4s ease-in-out infinite;
+}
+@keyframes livePulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,210,180,.55)}60%{opacity:.5;box-shadow:0 0 0 6px rgba(0,210,180,0)}}
+.rank-updated-flash{animation:rowFlash .55s ease}
+@keyframes rowFlash{0%{background:rgba(0,210,180,.1)}100%{background:transparent}}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PERSONAL LIBRARY QUIZ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.qgp-chip.lib-chip{border-color:rgba(0,210,180,.35);color:#00d2b4;background:rgba(0,210,180,.07)}
+.qgp-chip.lib-chip.sel{background:rgba(0,210,180,.18);border-color:#00d2b4}
+.lib-quiz-note{
+  display:flex;align-items:center;gap:8px;padding:9px 13px;
+  background:rgba(0,210,180,.06);border:1px solid rgba(0,210,180,.18);border-radius:10px;
+  font-size:11.5px;color:var(--text2);margin-bottom:12px;line-height:1.45;
+}
+.lib-quiz-note strong{color:#00d2b4}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NOTIFICATION BELL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.notif-wrap{position:relative}
+.notif-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg2);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;transition:all .2s;flex-shrink:0;
+  position:relative;
+}
+.notif-btn:hover{border-color:rgba(123,97,255,.5);transform:scale(1.06)}
+.notif-badge{
+  position:absolute;top:-3px;right:-3px;
+  width:16px;height:16px;border-radius:50%;
+  background:#ff3d7f;color:#fff;
+  font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--bg0);animation:badgePop .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes badgePop{from{transform:scale(0)}to{transform:scale(1)}}
+.notif-badge.hidden{display:none}
+.notif-dropdown{
+  position:absolute;top:calc(100% + 10px);right:0;
+  background:var(--bg1);border:1px solid var(--border2);
+  border-radius:18px;padding:10px;min-width:300px;z-index:500;
+  box-shadow:0 24px 60px var(--shadow);display:none;
+}
+.notif-dropdown.open{display:block;animation:popIn .16s ease}
+.notif-hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.notif-hdr-title{font-size:13px;font-weight:700;color:var(--text1)}
+.notif-settings-link{font-size:11px;color:var(--text3);cursor:pointer;font-family:'JetBrains Mono',monospace;transition:color .15s}
+.notif-settings-link:hover{color:var(--accent)}
+.notif-item{display:flex;align-items:flex-start;gap:10px;padding:9px 10px;border-radius:11px;transition:background .15s;cursor:default}
+.notif-item:hover{background:var(--bg2)}
+.notif-item.unread{background:rgba(123,97,255,.06)}
+.notif-item-icon{width:32px;height:32px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px}
+.notif-item-body{flex:1;min-width:0}
+.notif-item-msg{font-size:12.5px;color:var(--text1);font-weight:600;line-height:1.4}
+.notif-item-time{font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.notif-empty{padding:20px 10px;text-align:center;font-size:12px;color:var(--text3)}
+.notif-clear{width:100%;margin-top:6px;padding:8px;background:none;border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:12px;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;font-weight:600}
+.notif-clear:hover{border-color:rgba(123,97,255,.35);color:var(--text1)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   NOTIFICATION SETTINGS MODAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.notif-perm-banner{
+  display:flex;align-items:center;gap:12px;padding:13px 16px;
+  background:rgba(123,97,255,.08);border:1px solid rgba(123,97,255,.22);
+  border-radius:13px;margin-bottom:16px;
+}
+.notif-perm-text{flex:1;font-size:13px;color:var(--text2);line-height:1.45}
+.notif-perm-text strong{color:var(--text1)}
+.btn-allow-notif{padding:7px 15px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:100px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:'Outfit',sans-serif}
+.notif-toggle-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border)}
+.notif-toggle-row:last-child{border-bottom:none}
+.ntrow-left{}
+.ntrow-label{font-size:13.5px;font-weight:600;color:var(--text1)}
+.ntrow-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.toggle-switch{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{position:absolute;inset:0;background:var(--bg3);border-radius:100px;cursor:pointer;transition:background .2s;border:1px solid var(--border2)}
+.toggle-switch input:checked+.toggle-track{background:linear-gradient(90deg,#7b61ff,#ff3d7f);border-color:transparent}
+.toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.toggle-switch input:checked+.toggle-track::after{transform:translateX(18px)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FRIENDS PAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.friends-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:4px}
+@media(max-width:800px){.friends-layout{grid-template-columns:1fr}}
+.friends-panel{background:var(--bg1);border:1px solid var(--border);border-radius:18px;overflow:hidden}
+.fp-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.fp-title{font-size:15px;font-weight:700;color:var(--text1)}
+.fp-count{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);background:var(--bg3);padding:2px 9px;border-radius:100px}
+.fp-body{padding:14px}
+.friend-search-wrap{display:flex;gap:8px;margin-bottom:14px}
+.friend-search-input{flex:1;padding:9px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:11px;color:var(--text1);font-size:13px;font-family:'Outfit',sans-serif;outline:none;transition:border-color .2s}
+.friend-search-input:focus{border-color:rgba(123,97,255,.45)}
+.friend-search-input::placeholder{color:var(--text3)}
+.btn-add-friend{padding:9px 16px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:11px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:opacity .2s}
+.btn-add-friend:hover{opacity:.85}
+.friend-card{display:flex;align-items:center;gap:11px;padding:10px;border-radius:13px;transition:background .15s;position:relative}
+.friend-card:hover{background:var(--bg2)}
+.fc-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0}
+.fc-info{flex:1;min-width:0}
+.fc-name{font-size:13.5px;font-weight:700;color:var(--text1)}
+.fc-sub{font-size:10.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:1px}
+.fc-actions{display:flex;gap:6px;flex-shrink:0}
+.fc-btn{padding:5px 12px;border-radius:100px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;border:none}
+.fc-btn.accept{background:rgba(0,210,180,.15);color:#00d2b4;border:1px solid rgba(0,210,180,.3)}
+.fc-btn.accept:hover{background:rgba(0,210,180,.25)}
+.fc-btn.reject{background:rgba(255,61,127,.1);color:#ff7eb6;border:1px solid rgba(255,61,127,.25)}
+.fc-btn.reject:hover{background:rgba(255,61,127,.2)}
+.fc-btn.view{background:rgba(123,97,255,.12);color:#a89ffc;border:1px solid rgba(123,97,255,.25)}
+.fc-btn.view:hover{background:rgba(123,97,255,.22)}
+.fc-btn.chat{background:rgba(56,189,248,.12);color:#38bdf8;border:1px solid rgba(56,189,248,.25)}
+.fc-btn.chat:hover{background:rgba(56,189,248,.22)}
+.fc-btn.remove{background:rgba(255,61,127,.08);color:var(--text3);border:1px solid var(--border)}
+.fc-btn.remove:hover{background:rgba(255,61,127,.15);color:#ff7eb6}
+.fc-online-dot{width:8px;height:8px;border-radius:50%;background:#00d2b4;position:absolute;top:10px;left:42px;border:2px solid var(--bg1)}
+.friends-empty{padding:24px 14px;text-align:center;color:var(--text3);font-size:13px}
+.friends-empty-icon{font-size:38px;opacity:.2;margin-bottom:10px}
+
+/* pending request badge on friends nav */
+.fr-badge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#ff3d7f;color:#fff;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-left:5px;animation:badgePop .3s cubic-bezier(.34,1.56,.64,1)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FRIEND PROFILE + VS MODAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.vs-header{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.vs-player{display:flex;flex-direction:column;align-items:center;gap:7px}
+.vs-av{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;border:3px solid transparent}
+.vs-av.me{border-color:rgba(123,97,255,.5);box-shadow:0 0 20px rgba(123,97,255,.25)}
+.vs-av.them{border-color:rgba(0,210,180,.4);box-shadow:0 0 20px rgba(0,210,180,.18)}
+.vs-name{font-size:14px;font-weight:700;color:var(--text1)}
+.vs-divider{font-size:28px;font-weight:900;color:var(--text3);opacity:.5;align-self:center}
+.vs-stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px}
+.vs-stat{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 10px;text-align:center}
+.vs-stat-label{font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.vs-stat-vals{display:flex;align-items:center;justify-content:center;gap:8px}
+.vs-val{font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.vs-val.win{color:#00d2b4}
+.vs-val.lose{color:var(--text3)}
+.vs-val.tie{color:#f59e0b}
+.vs-sep{font-size:11px;color:var(--text3)}
+.vs-winner-banner{text-align:center;padding:12px;background:rgba(0,210,180,.08);border:1px solid rgba(0,210,180,.2);border-radius:12px;font-size:14px;font-weight:700;color:#00d2b4;margin-bottom:16px}
+.friend-lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;max-height:280px;overflow-y:auto}
+.flib-card{background:var(--bg2);border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.flib-cover{height:80px;overflow:hidden;background:var(--bg3)}
+.flib-cover img{width:100%;height:100%;object-fit:cover}
+.flib-body{padding:8px}
+.flib-title{font-size:11px;font-weight:700;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flib-status{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--text3);margin-top:2px}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CHAT MODAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.chat-modal{max-width:440px;height:520px;display:flex;flex-direction:column;padding:0;overflow:hidden}
+.chat-modal .modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.chat-messages{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.chat-bubble{max-width:74%;padding:8px 13px;border-radius:16px;font-size:13px;line-height:1.45;word-break:break-word;animation:bubbleIn .2s ease}
+@keyframes bubbleIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.chat-bubble.me{align-self:flex-end;background:linear-gradient(135deg,rgba(123,97,255,.28),rgba(255,61,127,.18));border:1px solid rgba(123,97,255,.25);border-bottom-right-radius:4px;color:var(--text1)}
+.chat-bubble.them{align-self:flex-start;background:var(--bg2);border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text1)}
+.chat-bubble-time{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:3px;text-align:right}
+.chat-bubble.them .chat-bubble-time{text-align:left}
+.chat-input-wrap{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.chat-input{flex:1;padding:10px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;color:var(--text1);font-size:13.5px;font-family:'Outfit',sans-serif;outline:none;transition:border-color .2s}
+.chat-input:focus{border-color:rgba(123,97,255,.45)}
+.chat-input::placeholder{color:var(--text3)}
+.chat-send-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .2s;flex-shrink:0}
+.chat-send-btn:hover{opacity:.85}
+.chat-empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+.chat-day-sep{text-align:center;font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--text3);letter-spacing:1px;padding:6px 0;text-transform:uppercase}
+.chat-msg-badge{
+  position:absolute;top:-3px;right:-3px;
+  width:14px;height:14px;border-radius:50%;
+  background:#38bdf8;color:#fff;
+  font-size:8px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--bg1);
+}
 </style>
 </head>
 <body>
@@ -656,6 +890,21 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
         <div class="hdr-stats" id="hdrStats"></div>
         <button class="btn-nav nav-quiz" onclick="goPage('quiz')">🧠 Quiz</button>
         <button class="btn-nav nav-rank" onclick="goPage('rankings')">🏆 Rankings</button>
+        <button class="btn-nav" id="btnFriends" onclick="goPage('friends')" style="border-color:rgba(56,189,248,.28);color:#38bdf8;background:rgba(56,189,248,.06)">👥 Friends<span id="frReqBadge" style="display:none" class="fr-badge">0</span></button>
+        <!-- Notification Bell -->
+        <div class="notif-wrap" id="notifWrap">
+          <button class="notif-btn" id="notifBtn" onclick="toggleNotifDropdown(event)" title="Notifications">🔔
+            <span class="notif-badge hidden" id="notifBadge">0</span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-hdr">
+              <div class="notif-hdr-title">Notifications</div>
+              <span class="notif-settings-link" onclick="openNotifSettings()">⚙ Settings</span>
+            </div>
+            <div id="notifList"><div class="notif-empty">You're all caught up! 🎮</div></div>
+            <button class="notif-clear" onclick="clearNotifs()">Clear all</button>
+          </div>
+        </div>
         <div class="help-wrap" id="helpWrap">
           <button class="btn-nav" onclick="toggleHelp(event)">❓ Help ▾</button>
           <div class="help-menu" id="helpMenu">
@@ -736,6 +985,9 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
     <div class="page-hero">
       <h1>🏆 Global Rankings</h1>
       <p>Earn XP through games and quizzes. Check the 🧠 Quiz XP tab to see who's grinding the hardest.</p>
+    </div>
+    <div>
+      <span class="rank-live-badge"><span class="rank-live-dot"></span>LIVE · updates in real time</span>
     </div>
 
     <div class="rank-container">
@@ -919,7 +1171,141 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
   </div>
 </div>
 
+<!-- NOTIFICATION SETTINGS MODAL -->
+<div class="modal-overlay" id="notifSettingsOverlay">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-hdr"><div class="modal-title">🔔 Notification Settings</div><button class="modal-close" onclick="closeNotifSettings()">✕</button></div>
+    <div id="notifSettingsContent">
+      <div class="notif-perm-banner" id="notifPermBanner">
+        <div class="notif-perm-text"><strong>Enable Browser Notifications</strong><br>Get reminders even when the tab is in the background.</div>
+        <button class="btn-allow-notif" onclick="requestNotifPermission()">Allow</button>
+      </div>
+      <div class="notif-toggle-row">
+        <div class="ntrow-left"><div class="ntrow-label">Weekly Activity Reminder</div><div class="ntrow-desc">Remind me if I haven't logged games in 7 days</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="ntWeekly" onchange="saveNotifPrefs()"><span class="toggle-track"></span></label>
+      </div>
+      <div class="notif-toggle-row">
+        <div class="ntrow-left"><div class="ntrow-label">Quiz Streak Alert</div><div class="ntrow-desc">"Your streak is at risk!" after 3+ days without quizzing</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="ntStreak" onchange="saveNotifPrefs()"><span class="toggle-track"></span></label>
+      </div>
+      <div class="notif-toggle-row">
+        <div class="ntrow-left"><div class="ntrow-label">Daily Quiz Nudge</div><div class="ntrow-desc">Gentle daily reminder to keep your XP growing</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="ntDaily" onchange="saveNotifPrefs()"><span class="toggle-track"></span></label>
+      </div>
+      <div class="notif-toggle-row">
+        <div class="ntrow-left"><div class="ntrow-label">Friend Request Alerts</div><div class="ntrow-desc">Notify when someone sends you a friend request</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="ntFriend" onchange="saveNotifPrefs()"><span class="toggle-track"></span></label>
+      </div>
+      <div class="notif-toggle-row">
+        <div class="ntrow-left"><div class="ntrow-label">Chat Messages</div><div class="ntrow-desc">Notify when a friend sends you a message</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="ntChat" onchange="saveNotifPrefs()"><span class="toggle-track"></span></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FRIEND PROFILE / VS MODAL -->
+<div class="modal-overlay" id="friendProfileOverlay">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-hdr"><div class="modal-title" id="fpModalTitle">👤 Friend Profile</div><button class="modal-close" onclick="closeFriendProfile()">✕</button></div>
+    <div id="friendProfileContent"></div>
+  </div>
+</div>
+
+<!-- CHAT MODAL -->
+<div class="modal-overlay" id="chatOverlay">
+  <div class="modal chat-modal">
+    <div class="modal-hdr" style="padding:14px 18px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="chatPartnerAv" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800"></div>
+        <div>
+          <div class="modal-title" id="chatPartnerName" style="font-size:14px">Chat</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">BacklogHQ</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeChat()">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-wrap">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChatMsg()" maxlength="300">
+      <button class="chat-send-btn" onclick="sendChatMsg()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+  PAGE: FRIENDS
+══════════════════════════════════════════ -->
+<div class="page" id="page-friends">
+  <div class="app-wrap">
+    <header class="hdr">
+      <div class="brand" onclick="goHome()">
+        <div class="brand-mark">🎮</div>
+        <div class="brand-text">
+          <div class="brand-name">BacklogHQ</div>
+          <div class="brand-sub">Your Game Universe</div>
+        </div>
+      </div>
+      <div class="hdr-right">
+        <button class="btn-nav nav-back" onclick="goHome()">← Back to Library</button>
+        <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+        <div id="authArea4"></div>
+      </div>
+    </header>
+    <div class="page-hero">
+      <h1>👥 Friends</h1>
+      <p>Add friends by username, compare libraries, challenge them head-to-head, and chat.</p>
+    </div>
+    <div class="friends-layout">
+      <!-- ADD + MY FRIENDS -->
+      <div>
+        <div class="friends-panel" style="margin-bottom:20px">
+          <div class="fp-head">
+            <div class="fp-title">➕ Add Friend</div>
+          </div>
+          <div class="fp-body">
+            <div class="friend-search-wrap">
+              <input type="text" class="friend-search-input" id="friendSearchInput" placeholder="Enter username or display name…" onkeydown="if(event.key==='Enter')sendFriendRequest()">
+              <button class="btn-add-friend" onclick="sendFriendRequest()">Send Request</button>
+            </div>
+            <div id="friendSearchResult" style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;min-height:16px"></div>
+          </div>
+        </div>
+        <div class="friends-panel">
+          <div class="fp-head">
+            <div class="fp-title">🤝 My Friends</div>
+            <span class="fp-count" id="friendsCount">0</span>
+          </div>
+          <div class="fp-body" id="friendsList"><div class="friends-empty"><div class="friends-empty-icon">👥</div>No friends yet — add one above!</div></div>
+        </div>
+      </div>
+      <!-- PENDING REQUESTS -->
+      <div>
+        <div class="friends-panel" style="margin-bottom:20px">
+          <div class="fp-head">
+            <div class="fp-title">📬 Pending Requests</div>
+            <span class="fp-count" id="pendingCount">0</span>
+          </div>
+          <div class="fp-body" id="pendingList"><div class="friends-empty"><div class="friends-empty-icon">📭</div>No pending requests</div></div>
+        </div>
+        <div class="friends-panel">
+          <div class="fp-head">
+            <div class="fp-title">📤 Sent Requests</div>
+            <span class="fp-count" id="sentCount">0</span>
+          </div>
+          <div class="fp-body" id="sentList"><div class="friends-empty"><div class="friends-empty-icon">📭</div>No sent requests</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+<div class="unlock-toast" id="unlockToast">
+  <div class="unlock-toast-icon" id="unlockIcon">🥈</div>
+  <div class="unlock-toast-title" id="unlockTitle">Level Unlocked!</div>
+  <div class="unlock-toast-sub" id="unlockSub">Silver is now available</div>
+</div>
 
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      SCRIPT
@@ -1158,9 +1544,49 @@ const QUIZ_LEVELS={
 let CU=null,games=[],nid=1,filterGenre='All',filterStatus='all',searchQuery='',detailId=null,libView='library';
 let rankTab='completed',quizCat='general',qQs=[],qIdx=0,qScore=0;
 let quizLevel='bronze',quizGenrePick='general',qTimeLeft=30,qTimer=null;
-let qStreak=0,qMaxStreak=0; // combo tracking
+let qStreak=0,qMaxStreak=0;
 let isDark=true,pendingCover='',titleTimer=null;
 let helpOpen=false,menuOpen=false;
+let rankPollTimer=null; // real-time polling
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LEVEL LOCK SYSTEM
+// unlock[level] = true means the level is playable
+// Bronze always unlocked.
+// Silver: complete 1 Bronze (any score).
+// Gold: complete 1 Silver with ≥60%.
+// Pro: complete 1 Gold with ≥70%.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function getLocks(){
+  const key='bhq_locks_'+(CU?CU.id:'guest');
+  return lsGet(key,{bronze:true,silver:false,gold:false,pro:false});
+}
+function saveLocks(locks){
+  const key='bhq_locks_'+(CU?CU.id:'guest');
+  lsSet(key,locks);
+}
+function checkUnlocks(level,pct){
+  const locks=getLocks();
+  const newUnlocks=[];
+  if(level==='bronze'&&!locks.silver){locks.silver=true;newUnlocks.push({level:'silver',icon:'🥈',label:'Silver Unlocked!'});}
+  if(level==='silver'&&pct>=60&&!locks.gold){locks.gold=true;newUnlocks.push({level:'gold',icon:'🥇',label:'Gold Unlocked!'});}
+  if(level==='gold'&&pct>=70&&!locks.pro){locks.pro=true;newUnlocks.push({level:'pro',icon:'💎',label:'Pro Unlocked!'});}
+  if(newUnlocks.length){saveLocks(locks);newUnlocks.forEach((u,i)=>setTimeout(()=>showUnlockCelebration(u),i*900));}
+  return locks;
+}
+function showUnlockCelebration(u){
+  const el=document.getElementById('unlockToast');
+  if(!el)return;
+  document.getElementById('unlockIcon').textContent=u.icon;
+  document.getElementById('unlockTitle').textContent=u.label;
+  const sub={silver:'Silver is now available — try 7 questions!',gold:'Gold is now unlocked — all categories!',pro:'Pro mode unlocked — 30s timer, max XP!'}[u.level]||'New level available!';
+  document.getElementById('unlockSub').textContent=sub;
+  el.classList.remove('fade','pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+  setTimeout(()=>{el.classList.add('fade');setTimeout(()=>el.classList.remove('pop','fade'),400);},3200);
+  toast(`${u.icon} ${u.label}`,'🔓');
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ROUTING (SPA pages)
@@ -1169,10 +1595,61 @@ function goPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   window.scrollTo(0,0);
-  if(name==='rankings'){buildRankList(rankTab);}
+  if(name==='rankings'){
+    buildRankList(rankTab);
+    startRankPolling();
+  } else {
+    stopRankPolling();
+  }
   if(name==='quiz'){showQuizStart();}
+  if(name==='friends'){
+    if(!CU){openAuth('in');toast('Sign in to use Friends','🔐');goHome();return;}
+    renderFriendsPage();
+  }
   syncThemeBtns();
   renderAllAuthAreas();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// REAL-TIME RANKINGS POLLING
+// Polls localStorage every 4s so changes from other
+// tabs/windows appear live. On Supabase, also subscribes
+// to channel broadcasts for true multi-user realtime.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let _lastRankSnapshot='';
+function startRankPolling(){
+  stopRankPolling();
+  rankPollTimer=setInterval(()=>{
+    const lb=lsGet('bhq_lb',{});
+    const snap=JSON.stringify(lb);
+    if(snap!==_lastRankSnapshot){
+      _lastRankSnapshot=snap;
+      buildRankList(rankTab);
+      // Flash the live badge to signal update
+      const badge=document.querySelector('.rank-live-badge');
+      if(badge){badge.style.background='rgba(0,210,180,.18)';setTimeout(()=>{badge.style.background='';},400);}
+    }
+  },4000);
+  // Supabase realtime broadcast (if connected)
+  if(SB_READY&&sb){
+    try{
+      const ch=sb.channel('rank-updates');
+      ch.on('broadcast',{event:'rank-update'},()=>{
+        buildRankList(rankTab);
+        const badge=document.querySelector('.rank-live-badge');
+        if(badge){badge.style.background='rgba(0,210,180,.18)';setTimeout(()=>{badge.style.background='';},400);}
+      }).subscribe();
+    }catch(e){}
+  }
+}
+function stopRankPolling(){
+  if(rankPollTimer){clearInterval(rankPollTimer);rankPollTimer=null;}
+}
+// Broadcast rank updates when XP changes (Supabase)
+function broadcastRankUpdate(){
+  if(SB_READY&&sb){
+    try{sb.channel('rank-updates').send({type:'broadcast',event:'rank-update',payload:{}});}catch(e){}
+  }
 }
 function goHome(){goPage('home');}
 function syncThemeBtns(){
@@ -1271,6 +1748,16 @@ async function handleSession(session){
 function loginSuccess(user){
   CU=user;closeAuth();loadGames();renderAllAuthAreas();render();
   toast(`Welcome, ${user.name}!`,'🎉');
+  // Bootstrap social features
+  renderNotifBadge();
+  renderNotifDropdown();
+  updateFriendsBadge();
+  startFriendPagePoll();
+  setTimeout(()=>scheduleNotifChecks(),1500);
+  // Track last quiz time for streak notifications
+  const qmeta=lsGet('bhq_qmeta_'+user.id,{});
+  if(!qmeta.lastQuizTime)qmeta.lastQuizTime=Date.now()-86400000*4; // seed as "4 days ago" to test streak alert
+  lsSet('bhq_qmeta_'+user.id,qmeta);
 }
 
 function logout(){
@@ -1294,7 +1781,7 @@ function closeAuth(){document.getElementById('authOverlay').classList.remove('op
 
 // Render auth in all page headers
 function renderAllAuthAreas(){
-  ['authArea','authArea2','authArea3'].forEach(id=>{
+  ['authArea','authArea2','authArea3','authArea4'].forEach(id=>{
     const a=document.getElementById(id);if(!a)return;
     if(CU){
       a.innerHTML=`<div class="ua-wrap"><div class="user-avatar" onclick="toggleUA(event)" style="background:${CU.color||'#7b61ff'}">${CU.avatar}</div><div class="user-menu" id="uM_${id}"><div class="um-info"><div class="um-name">${CU.name}</div><div class="um-email">${CU.email}</div></div><div class="um-item" onclick="goPage('rankings')">🏆 Rankings</div><div class="um-item" onclick="goPage('quiz')">🧠 Quiz</div><div class="um-item danger" onclick="logout()">🚪 Sign Out</div></div></div>`;
@@ -1341,6 +1828,7 @@ function saveGames(){
     quizXP:existing.quizXP||0  // preserve accumulated quiz XP
   };
   lsSet('bhq_lb',lb);
+  broadcastRankUpdate();
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1460,7 +1948,7 @@ function buildRankList(tab){
     const rClass=(pos===1?'top1':pos===2?'top2':pos===3?'top3':'')+(isMe?' is-me':'');
     const pLabel=pos===1?'🥇':pos===2?'🥈':pos===3?'🥉':'#'+pos;
     const pClass=pos<=3?'p'+pos:'';
-    return`<div class="rrow ${rClass}" style="animation-delay:${i*.04}s">
+    return`<div class="rrow ${rClass} rank-updated-flash" style="animation-delay:${i*.04}s">
       <div class="rpos ${pClass}">${pLabel}</div>
       <div class="rav" style="background:${p.color||AV[i%AV.length]}">${p.avatar||'?'}</div>
       <div class="rinfo">
@@ -1525,17 +2013,73 @@ function awardQuizXP(xp){
   }
   lb[CU.id].quizXP=(lb[CU.id].quizXP||0)+xp;
   lsSet('bhq_lb',lb);
+  broadcastRankUpdate();
+  // Track last quiz time for streak notifications
+  const qmeta2=lsGet('bhq_qmeta_'+CU.id,{});
+  qmeta2.lastQuizTime=Date.now();
+  lsSet('bhq_qmeta_'+CU.id,qmeta2);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PERSONAL LIBRARY QUIZ GENERATOR
+// Generates trivia questions from the user's own games
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function generateLibraryQuestions(count){
+  const pool=games.filter(g=>g.dev&&g.genre&&g.year);
+  if(pool.length<4)return null; // need at least 4 for distractors
+  const questions=[];
+  const shuffled=[...pool].sort(()=>Math.random()-.5);
+
+  const pick4=(arr,correct)=>{
+    const others=[...arr].filter(x=>x!==correct).sort(()=>Math.random()-.5).slice(0,3);
+    const opts=[correct,...others].sort(()=>Math.random()-.5);
+    return{opts,ans:opts.indexOf(correct)};
+  };
+
+  for(const g of shuffled){
+    if(questions.length>=count)break;
+    const type=Math.floor(Math.random()*4);
+    if(type===0&&g.dev){
+      // "Who developed X?"
+      const devs=[...new Set(pool.map(x=>x.dev))];
+      if(devs.length<4)continue;
+      const{opts,ans}=pick4(devs,g.dev);
+      questions.push({q:`🎮 Who developed <strong>${g.title}</strong>?`,o:opts,a:ans,e:`${g.title} was developed by ${g.dev} (${g.year}).`});
+    }else if(type===1&&g.genre){
+      // "What genre is X?"
+      const genres=[...new Set(pool.map(x=>x.genre))];
+      if(genres.length<4)continue;
+      const{opts,ans}=pick4(genres,g.genre);
+      questions.push({q:`🎮 What genre is <strong>${g.title}</strong>?`,o:opts,a:ans,e:`${g.title} is a ${g.genre} game by ${g.dev}.`});
+    }else if(type===2&&g.year){
+      // "What year was X released?"
+      const years=[...new Set(pool.map(x=>x.year))];
+      if(years.length<4)continue;
+      const{opts,ans}=pick4(years,g.year);
+      questions.push({q:`📅 What year was <strong>${g.title}</strong> released?`,o:opts,a:ans,e:`${g.title} by ${g.dev} was released in ${g.year}.`});
+    }else if(g.dev){
+      // "Which of these games was made by X dev?"
+      const devsWithGames={};
+      pool.forEach(x=>{if(!devsWithGames[x.dev])devsWithGames[x.dev]=[];devsWithGames[x.dev].push(x.title);});
+      const otherDevs=Object.keys(devsWithGames).filter(d=>d!==g.dev&&devsWithGames[d].length>0);
+      if(otherDevs.length<3)continue;
+      const wrongOpts=otherDevs.sort(()=>Math.random()-.5).slice(0,3).map(d=>devsWithGames[d][0]);
+      const opts=[g.title,...wrongOpts].sort(()=>Math.random()-.5);
+      questions.push({q:`🎮 Which game was made by <strong>${g.dev}</strong>?`,o:opts,a:opts.indexOf(g.title),e:`${g.dev} created ${g.title} (${g.year}).`});
+    }
+  }
+  return questions.length>=3?questions:null;
 }
 
 function showQuizStart(){
   if(qTimer){clearInterval(qTimer);qTimer=null;}
   qIdx=0;qScore=0;qStreak=0;qMaxStreak=0;quizLevel='bronze';quizGenrePick='general';
 
-  // Pull user's saved quiz stats
   const lb=lsGet('bhq_lb',{});
   const myData=CU&&lb[CU.id]?lb[CU.id]:null;
   const totalQuizXP=myData?(myData.quizXP||0):0;
   const quizMeta=lsGet('bhq_qmeta_'+(CU?CU.id:'guest'),{runs:0,best:'—',maxStreak:0});
+  const locks=getLocks();
 
   const statsHtml=CU?`
     <div class="quiz-stats-bar">
@@ -1555,7 +2099,20 @@ function showQuizStart(){
         <div class="qstat-n">${quizMeta.maxStreak||0}</div>
         <div class="qstat-l">Best Streak</div>
       </div>
-    </div>`:'';
+    </div>`:'' ;
+
+  // Lock overlays
+  const lockHTML=(level,unlockHint)=>locks[level]?'':`
+    <div class="ql-lock-overlay">
+      <div class="ql-lock-icon">🔒</div>
+      <div class="ql-lock-text">${unlockHint}</div>
+      <span class="ql-unlock-badge">LOCKED</span>
+    </div>`;
+
+  // Library quiz availability
+  const hasLib=CU&&games.filter(g=>g.dev&&g.genre&&g.year).length>=4;
+  const libChipHtml=hasLib?`<div class="qgp-chip lib-chip" onclick="pickGenre('mylibrary',this)">📚 My Library</div>`:'';
+  const libNoteHtml=quizGenrePick==='mylibrary'?`<div class="lib-quiz-note">📚 Questions will be generated from your <strong>${games.length} games</strong>. Your answers = your knowledge!</div>`:'';
 
   document.getElementById('quizContent').innerHTML=`
     <div class="quiz-level-card">
@@ -1563,48 +2120,54 @@ function showQuizStart(){
       <p class="quiz-level-sub">Higher levels earn <strong>more XP</strong> — quiz points dominate the rankings!</p>
       ${statsHtml}
       <div class="ql-grid">
-        <div class="ql-card ql-bronze sel" onclick="pickLevel('bronze',this)">
+        <div class="ql-card ql-bronze sel${locks.bronze?'':' locked'}" onclick="${locks.bronze?`pickLevel('bronze',this)`:''}" >
           <div class="ql-check">✓</div>
           <div class="ql-icon">🥉</div>
           <div class="ql-name">Bronze</div>
           <div class="ql-desc">Beginner · Pick genre<br>5 questions · No timer</div>
           <div class="ql-xp-rate">⭐ 20 XP / correct</div>
+          ${lockHTML('bronze','')}
         </div>
-        <div class="ql-card ql-silver" onclick="pickLevel('silver',this)">
+        <div class="ql-card ql-silver${locks.silver?'':' locked'}" onclick="${locks.silver?`pickLevel('silver',this)`:''}" >
           <div class="ql-check">✓</div>
           <div class="ql-icon">🥈</div>
           <div class="ql-name">Silver</div>
           <div class="ql-desc">Intermediate · Pick genre<br>7 questions · No timer</div>
           <div class="ql-xp-rate">⭐ 35 XP / correct</div>
+          ${lockHTML('silver','Complete any Bronze quiz to unlock')}
         </div>
-        <div class="ql-card ql-gold" onclick="pickLevel('gold',this)">
+        <div class="ql-card ql-gold${locks.gold?'':' locked'}" onclick="${locks.gold?`pickLevel('gold',this)`:''}" >
           <div class="ql-check">✓</div>
           <div class="ql-icon">🥇</div>
           <div class="ql-name">Gold</div>
           <div class="ql-desc">Advanced · All categories<br>10 questions · No timer</div>
           <div class="ql-xp-rate">⭐ 60 XP / correct</div>
+          ${lockHTML('gold','Score ≥60% on Silver to unlock')}
         </div>
-        <div class="ql-card ql-pro" onclick="pickLevel('pro',this)">
-          <div class="ql-hot-tag">MAX XP</div>
+        <div class="ql-card ql-pro${locks.pro?'':' locked'}" onclick="${locks.pro?`pickLevel('pro',this)`:''}" >
+          ${locks.pro?'<div class="ql-hot-tag">MAX XP</div>':''}
           <div class="ql-check">✓</div>
           <div class="ql-icon">💎</div>
           <div class="ql-name">Pro <span class="ql-timer-warn">⏱ 30s</span></div>
           <div class="ql-desc">Expert · All categories<br>12 questions · Timed!</div>
           <div class="ql-xp-rate">⭐ 100 XP / correct</div>
+          ${lockHTML('pro','Score ≥70% on Gold to unlock')}
         </div>
       </div>
 
       <div id="qGenrePicker" style="display:block">
         <div class="qgp-section">
-          <div class="qgp-title">🎮 Pick Your Game Genre</div>
+          <div class="qgp-title">🎮 Pick Your Genre</div>
           <div class="qgp-chips">
             <div class="qgp-chip sel" onclick="pickGenre('general',this)">🌍 General</div>
             <div class="qgp-chip" onclick="pickGenre('pc',this)">💻 PC Gaming</div>
             <div class="qgp-chip" onclick="pickGenre('mobile',this)">📱 Mobile</div>
             <div class="qgp-chip" onclick="pickGenre('history',this)">📜 History</div>
             <div class="qgp-chip" onclick="pickGenre('mixed',this)">🎲 Mixed</div>
+            ${libChipHtml}
           </div>
         </div>
+        <div id="libNote">${libNoteHtml}</div>
       </div>
 
       <div style="text-align:center">
@@ -1617,10 +2180,11 @@ function showQuizStart(){
 }
 
 function pickLevel(level,el){
+  const locks=getLocks();
+  if(!locks[level]){toast('Complete previous level to unlock this!','🔒');return;}
   quizLevel=level;
   document.querySelectorAll('.ql-card').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
-  // Show genre picker only for bronze/silver
   const gp=document.getElementById('qGenrePicker');
   if(gp) gp.style.display=(level==='bronze'||level==='silver')?'block':'none';
 }
@@ -1629,12 +2193,27 @@ function pickGenre(genre,el){
   quizGenrePick=genre;
   document.querySelectorAll('.qgp-chip').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
+  const libNote=document.getElementById('libNote');
+  if(libNote){
+    if(genre==='mylibrary'&&CU&&games.length>=4){
+      libNote.innerHTML=`<div class="lib-quiz-note">📚 Questions are generated from your <strong>${games.length} library games</strong>. How well do you know your own backlog?</div>`;
+    }else{libNote.innerHTML='';}
+  }
 }
 
 function startQuiz(){
   qStreak=0;qMaxStreak=0;
   const lvl=QUIZ_LEVELS[quizLevel];
   let pool;
+
+  // Personal library quiz mode
+  if(quizGenrePick==='mylibrary'){
+    const libQs=generateLibraryQuestions(lvl.questions+5);
+    if(!libQs||libQs.length<3){toast('Need 4+ games with developer/year info to use Library mode','📚');return;}
+    qQs=libQs.slice(0,lvl.questions);
+    qIdx=0;qScore=0;showQuestion();return;
+  }
+
   if(quizLevel==='bronze'||quizLevel==='silver'){
     pool=quizGenrePick==='mixed'?Object.values(QD).flat():QD[quizGenrePick]||QD.general;
   } else if(quizLevel==='gold'){
@@ -1798,6 +2377,9 @@ function showResult(){
   lsSet(metaKey,meta);
 
   awardQuizXP(totalXP);
+
+  // Check if new levels unlock based on this run's performance
+  if(CU) checkUnlocks(quizLevel,pct);
 
   const msg=pct===100?'Perfect Score! Absolute Legend! 🏆':
     pct>=80?'Excellent! Sharp gaming mind!':
@@ -2012,11 +2594,528 @@ function render(){
   }).join('');
 }
 
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  NOTIFICATIONS SYSTEM                                        ║
+// ╚══════════════════════════════════════════════════════════════╝
+let notifDropOpen=false;
+
+function getNotifPrefs(){
+  return lsGet('bhq_notif_prefs_'+(CU?CU.id:'guest'),{weekly:true,streak:true,daily:false,friend:true,chat:true});
+}
+function saveNotifPrefs(){
+  const prefs={
+    weekly:document.getElementById('ntWeekly')?.checked||false,
+    streak:document.getElementById('ntStreak')?.checked||false,
+    daily:document.getElementById('ntDaily')?.checked||false,
+    friend:document.getElementById('ntFriend')?.checked||false,
+    chat:document.getElementById('ntChat')?.checked||false,
+  };
+  lsSet('bhq_notif_prefs_'+(CU?CU.id:'guest'),prefs);
+}
+
+function getStoredNotifs(){return lsGet('bhq_notifs_'+(CU?CU.id:'guest'),[]);}
+function saveStoredNotifs(arr){lsSet('bhq_notifs_'+(CU?CU.id:'guest'),arr);}
+
+function pushNotif(icon,msg,type='info'){
+  const arr=getStoredNotifs();
+  arr.unshift({icon,msg,type,time:Date.now(),read:false});
+  // Keep max 20
+  if(arr.length>20)arr.splice(20);
+  saveStoredNotifs(arr);
+  renderNotifBadge();
+  renderNotifDropdown();
+  // Browser push notification
+  if(Notification.permission==='granted'){
+    try{new Notification('BacklogHQ',{body:msg,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><text y="28" font-size="28">🎮</text></svg>'});}catch(e){}
+  }
+}
+
+function renderNotifBadge(){
+  const arr=getStoredNotifs();
+  const unread=arr.filter(n=>!n.read).length;
+  const badge=document.getElementById('notifBadge');
+  if(!badge)return;
+  if(unread>0){badge.textContent=unread>9?'9+':unread;badge.classList.remove('hidden');}
+  else{badge.classList.add('hidden');}
+}
+
+function renderNotifDropdown(){
+  const list=document.getElementById('notifList');
+  if(!list)return;
+  const arr=getStoredNotifs();
+  if(!arr.length){list.innerHTML='<div class="notif-empty">You\'re all caught up! 🎮</div>';return;}
+  const timeAgo=t=>{const s=Math.floor((Date.now()-t)/1000);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';};
+  list.innerHTML=arr.slice(0,8).map((n,i)=>`
+    <div class="notif-item${n.read?'':' unread'}">
+      <div class="notif-item-icon">${n.icon}</div>
+      <div class="notif-item-body">
+        <div class="notif-item-msg">${n.msg}</div>
+        <div class="notif-item-time">${timeAgo(n.time)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleNotifDropdown(e){
+  e.stopPropagation();
+  notifDropOpen=!notifDropOpen;
+  const dd=document.getElementById('notifDropdown');
+  dd.classList.toggle('open',notifDropOpen);
+  if(notifDropOpen){
+    // Mark all as read
+    const arr=getStoredNotifs();
+    arr.forEach(n=>n.read=true);
+    saveStoredNotifs(arr);
+    renderNotifBadge();
+    renderNotifDropdown();
+  }
+}
+document.addEventListener('click',()=>{
+  if(notifDropOpen){notifDropOpen=false;const dd=document.getElementById('notifDropdown');if(dd)dd.classList.remove('open');}
+});
+
+function clearNotifs(){saveStoredNotifs([]);renderNotifBadge();renderNotifDropdown();}
+
+function openNotifSettings(){
+  notifDropOpen=false;
+  document.getElementById('notifDropdown')?.classList.remove('open');
+  const prefs=getNotifPrefs();
+  const perm=Notification.permission;
+  const banner=document.getElementById('notifPermBanner');
+  if(banner)banner.style.display=(perm==='granted')?'none':'flex';
+  ['Weekly','Streak','Daily','Friend','Chat'].forEach(k=>{
+    const el=document.getElementById('nt'+k);
+    if(el)el.checked=prefs[k.toLowerCase()]||false;
+  });
+  document.getElementById('notifSettingsOverlay').classList.add('open');
+}
+function closeNotifSettings(){document.getElementById('notifSettingsOverlay').classList.remove('open');}
+
+async function requestNotifPermission(){
+  const perm=await Notification.requestPermission();
+  if(perm==='granted'){
+    document.getElementById('notifPermBanner').style.display='none';
+    toast('Notifications enabled! 🔔','✅');
+    pushNotif('🎮','Welcome! BacklogHQ notifications are ON.','info');
+  }else{
+    toast('Notifications blocked. Enable in browser settings.','⚠️');
+  }
+}
+
+// Schedule notification checks
+function scheduleNotifChecks(){
+  if(!CU)return;
+  const prefs=getNotifPrefs();
+  const now=Date.now();
+  const lastCheck=lsGet('bhq_notif_check_'+(CU?CU.id:'guest'),0);
+  // Only check once per hour per session
+  if(now-lastCheck<3600000)return;
+  lsSet('bhq_notif_check_'+(CU?CU.id:'guest'),now);
+
+  // Weekly activity check
+  if(prefs.weekly){
+    const games_=lsGet('bhq_g_'+CU.id,[]);
+    const lastAdded=games_.length?Math.max(...games_.map(g=>new Date(g.added||0).getTime()||0)):0;
+    const daysSince=lastAdded?(now-lastAdded)/86400000:999;
+    if(daysSince>7){pushNotif('📚','You haven\'t logged any games this week! Your backlog misses you.','weekly');}
+  }
+  // Streak at risk
+  if(prefs.streak){
+    const qmeta=lsGet('bhq_qmeta_'+CU.id,{});
+    const lastQuiz=qmeta.lastQuizTime||0;
+    const daysSinceQuiz=(now-lastQuiz)/86400000;
+    if(lastQuiz&&daysSinceQuiz>3){pushNotif('🔥','Your quiz streak is at risk! Jump in and keep the XP flowing.','streak');}
+  }
+  // Daily nudge
+  if(prefs.daily){
+    const lastNudge=lsGet('bhq_notif_daily_'+CU.id,0);
+    if(now-lastNudge>86400000){
+      lsSet('bhq_notif_daily_'+CU.id,now);
+      pushNotif('🧠','Daily reminder: quiz yourself and climb the rankings!','daily');
+    }
+  }
+}
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  FRIENDS SYSTEM                                              ║
+// ╚══════════════════════════════════════════════════════════════╝
+// Storage schema:
+//   bhq_fr_{userId}  = { friends:[{id,name,avatar,color}], sent:[{id,name,time}], received:[{id,name,avatar,color,time}] }
+//   bhq_chat_{key}   = [{from,msg,time}]  where key = sorted([uid1,uid2]).join('_')
+// For demo: all users stored in bhq_users (local auth) or bhq_lb (for Supabase users)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+let chatPartnerId=null,chatPollTimer=null;
+let friendPagePollTimer=null;
+
+function getFriendData(){
+  if(!CU)return{friends:[],sent:[],received:[]};
+  return lsGet('bhq_fr_'+CU.id,{friends:[],sent:[],received:[]});
+}
+function saveFriendData(data){if(!CU)return;lsSet('bhq_fr_'+CU.id,data);}
+
+// Get all known users from leaderboard + local users
+function getAllKnownUsers(){
+  const lb=lsGet('bhq_lb',{});
+  const localUsers=lsGet('bhq_users',{});
+  const all={};
+  Object.values(lb).forEach(p=>{if(p.id&&p.name)all[p.id]={id:p.id,name:p.name,avatar:p.avatar,color:p.color};});
+  Object.entries(localUsers).forEach(([email,u])=>{if(!all[email])all[email]={id:email,name:u.name,avatar:u.name[0].toUpperCase(),color:u.color};});
+  return Object.values(all);
+}
+
+function sendFriendRequest(){
+  if(!CU){openAuth('in');return;}
+  const query=document.getElementById('friendSearchInput')?.value.trim().toLowerCase();
+  if(!query){toast('Enter a username to search','⚠️');return;}
+  const allUsers=getAllKnownUsers();
+  const found=allUsers.find(u=>u.name.toLowerCase()===query||u.id.toLowerCase()===query);
+  const res=document.getElementById('friendSearchResult');
+  if(!found){
+    if(res)res.textContent='❌ User not found. They need to be registered on BacklogHQ.';
+    return;
+  }
+  if(found.id===CU.id){if(res)res.textContent='❌ That\'s you!';return;}
+  const fd=getFriendData();
+  if(fd.friends.find(f=>f.id===found.id)){if(res)res.textContent='✓ Already friends!';return;}
+  if(fd.sent.find(s=>s.id===found.id)){if(res)res.textContent='⏳ Request already sent.';return;}
+  // Add to my sent
+  fd.sent.push({id:found.id,name:found.name,avatar:found.avatar,color:found.color,time:Date.now()});
+  saveFriendData(fd);
+  // Add to their received
+  const theirFD=lsGet('bhq_fr_'+found.id,{friends:[],sent:[],received:[]});
+  if(!theirFD.received.find(r=>r.id===CU.id)){
+    theirFD.received.push({id:CU.id,name:CU.name,avatar:CU.avatar,color:CU.color,time:Date.now()});
+    lsSet('bhq_fr_'+found.id,theirFD);
+    // Notify them
+    const theirNotifs=lsGet('bhq_notifs_'+found.id,[]);
+    const theirPrefs=lsGet('bhq_notif_prefs_'+found.id,{friend:true});
+    if(theirPrefs.friend!==false){
+      theirNotifs.unshift({icon:'👥',msg:`${CU.name} sent you a friend request!`,type:'friend',time:Date.now(),read:false});
+      lsSet('bhq_notifs_'+found.id,theirNotifs);
+    }
+  }
+  if(res)res.textContent=`✅ Friend request sent to ${found.name}!`;
+  document.getElementById('friendSearchInput').value='';
+  toast(`Request sent to ${found.name}!`,'📤');
+  renderFriendsPage();
+}
+
+function acceptFriendRequest(fromId){
+  const fd=getFriendData();
+  const req=fd.received.find(r=>r.id===fromId);
+  if(!req)return;
+  fd.received=fd.received.filter(r=>r.id!==fromId);
+  if(!fd.friends.find(f=>f.id===fromId))fd.friends.push({id:req.id,name:req.name,avatar:req.avatar,color:req.color});
+  saveFriendData(fd);
+  // Update their sent → friends
+  const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
+  theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
+  if(!theirFD.friends.find(f=>f.id===CU.id))theirFD.friends.push({id:CU.id,name:CU.name,avatar:CU.avatar,color:CU.color});
+  lsSet('bhq_fr_'+fromId,theirFD);
+  // Notify them
+  const theirNotifs=lsGet('bhq_notifs_'+fromId,[]);
+  theirNotifs.unshift({icon:'🤝',msg:`${CU.name} accepted your friend request!`,type:'friend',time:Date.now(),read:false});
+  lsSet('bhq_notifs_'+fromId,theirNotifs);
+  toast(`You and ${req.name} are now friends! 🎮`,'🤝');
+  renderFriendsPage();
+  updateFriendsBadge();
+}
+
+function rejectFriendRequest(fromId){
+  const fd=getFriendData();
+  fd.received=fd.received.filter(r=>r.id!==fromId);
+  saveFriendData(fd);
+  // Remove from their sent
+  const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
+  theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
+  lsSet('bhq_fr_'+fromId,theirFD);
+  toast('Request declined','👋');
+  renderFriendsPage();
+  updateFriendsBadge();
+}
+
+function removeFriend(friendId){
+  if(!confirm('Remove this friend?'))return;
+  const fd=getFriendData();
+  fd.friends=fd.friends.filter(f=>f.id!==friendId);
+  saveFriendData(fd);
+  // Mutual removal
+  const theirFD=lsGet('bhq_fr_'+friendId,{friends:[],sent:[],received:[]});
+  theirFD.friends=theirFD.friends.filter(f=>f.id!==CU.id);
+  lsSet('bhq_fr_'+friendId,theirFD);
+  toast('Friend removed','👋');
+  renderFriendsPage();
+  updateFriendsBadge();
+}
+
+function updateFriendsBadge(){
+  const fd=getFriendData();
+  const badge=document.getElementById('frReqBadge');
+  if(!badge)return;
+  const pending=fd.received.length;
+  if(pending>0){badge.textContent=pending;badge.style.display='';}
+  else{badge.style.display='none';}
+}
+
+function renderFriendsPage(){
+  if(!CU)return;
+  const fd=getFriendData();
+  // Friends count
+  const fc=document.getElementById('friendsCount');if(fc)fc.textContent=fd.friends.length;
+  const pc=document.getElementById('pendingCount');if(pc)pc.textContent=fd.received.length;
+  const sc=document.getElementById('sentCount');if(sc)sc.textContent=fd.sent.length;
+
+  // Friends list
+  const fl=document.getElementById('friendsList');
+  if(fl){
+    if(!fd.friends.length){fl.innerHTML='<div class="friends-empty"><div class="friends-empty-icon">👥</div>No friends yet — add one above!</div>';}
+    else{
+      const lb=lsGet('bhq_lb',{});
+      fl.innerHTML=fd.friends.map(f=>{
+        const fp=lb[f.id]||{};
+        const lb_=lsGet('bhq_lb',{});
+        const chatKey=[CU.id,f.id].sort().join('_');
+        const chatMsgs=lsGet('bhq_chat_'+chatKey,[]);
+        const unread=chatMsgs.filter(m=>m.from!==CU.id&&!m.read).length;
+        return`<div class="friend-card">
+          <div class="fc-av" style="background:${f.color||'#7b61ff'}">${f.avatar||f.name[0]}</div>
+          <div class="fc-info">
+            <div class="fc-name">${f.name}</div>
+            <div class="fc-sub">✅ ${fp.completed||0} · 📚 ${fp.total||0} · ⏱ ${fp.hours||0}h</div>
+          </div>
+          <div class="fc-actions">
+            <button class="fc-btn view" onclick="openFriendProfile('${f.id}')">⚔️ VS</button>
+            <button class="fc-btn chat" onclick="openChat('${f.id}','${f.name}','${f.avatar||f.name[0]}','${f.color||'#7b61ff'}')" style="position:relative">
+              💬${unread>0?`<span class="chat-msg-badge">${unread}</span>`:''}
+            </button>
+            <button class="fc-btn remove" onclick="removeFriend('${f.id}')">✕</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Pending received
+  const pl=document.getElementById('pendingList');
+  if(pl){
+    if(!fd.received.length){pl.innerHTML='<div class="friends-empty"><div class="friends-empty-icon">📭</div>No pending requests</div>';}
+    else{pl.innerHTML=fd.received.map(r=>`
+      <div class="friend-card">
+        <div class="fc-av" style="background:${r.color||'#7b61ff'}">${r.avatar||r.name[0]}</div>
+        <div class="fc-info">
+          <div class="fc-name">${r.name}</div>
+          <div class="fc-sub">Wants to be friends</div>
+        </div>
+        <div class="fc-actions">
+          <button class="fc-btn accept" onclick="acceptFriendRequest('${r.id}')">✓ Accept</button>
+          <button class="fc-btn reject" onclick="rejectFriendRequest('${r.id}')">✕</button>
+        </div>
+      </div>`).join('');}
+  }
+
+  // Sent requests
+  const sl=document.getElementById('sentList');
+  if(sl){
+    if(!fd.sent.length){sl.innerHTML='<div class="friends-empty"><div class="friends-empty-icon">📭</div>No sent requests</div>';}
+    else{sl.innerHTML=fd.sent.map(s=>`
+      <div class="friend-card">
+        <div class="fc-av" style="background:${s.color||'#7b61ff'}">${s.avatar||s.name[0]}</div>
+        <div class="fc-info">
+          <div class="fc-name">${s.name}</div>
+          <div class="fc-sub">Awaiting response</div>
+        </div>
+        <div class="fc-actions">
+          <button class="fc-btn remove" onclick="cancelFriendRequest('${s.id}')">Cancel</button>
+        </div>
+      </div>`).join('');}
+  }
+  updateFriendsBadge();
+  // Poll for updates
+  startFriendPagePoll();
+}
+
+function cancelFriendRequest(toId){
+  const fd=getFriendData();
+  fd.sent=fd.sent.filter(s=>s.id!==toId);
+  saveFriendData(fd);
+  // Remove from their received
+  const theirFD=lsGet('bhq_fr_'+toId,{friends:[],sent:[],received:[]});
+  theirFD.received=theirFD.received.filter(r=>r.id!==CU.id);
+  lsSet('bhq_fr_'+toId,theirFD);
+  toast('Request cancelled','✕');
+  renderFriendsPage();
+}
+
+function startFriendPagePoll(){
+  if(friendPagePollTimer)return;
+  friendPagePollTimer=setInterval(()=>{
+    if(!CU)return;
+    const fd=getFriendData();
+    const pending=fd.received.length;
+    const badge=document.getElementById('frReqBadge');
+    if(badge){badge.textContent=pending;badge.style.display=pending>0?'':'none';}
+    // Re-render friend list if on friends page
+    const page=document.getElementById('page-friends');
+    if(page&&page.classList.contains('active'))renderFriendsPage();
+    // Check for new chat messages
+    renderNotifBadge();
+  },5000);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FRIEND PROFILE + VS MODE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openFriendProfile(friendId){
+  const lb=lsGet('bhq_lb',{});
+  const fd=getFriendData();
+  const friend=fd.friends.find(f=>f.id===friendId)||{id:friendId,name:'Friend',avatar:'?',color:'#7b61ff'};
+  const fp=lb[friendId]||{completed:0,total:0,hours:0,quizXP:0};
+  const me=lb[CU.id]||{completed:0,total:0,hours:0,quizXP:0};
+  const myXP=calcXP(me),theirXP=calcXP(fp);
+  const myTier=getTier(myXP),theirTier=getTier(theirXP);
+
+  // Comparison helper
+  const vs=(a,b)=>{
+    const aw=a>b?'win':a<b?'lose':'tie',bw=a>b?'lose':a<b?'win':'tie';
+    return{a:`<span class="vs-val ${aw}">${a.toLocaleString()}</span>`,b:`<span class="vs-val ${bw}">${b.toLocaleString()}</span>`};
+  };
+
+  // Overall winner
+  let wins=0,losses=0;
+  const cats=[[me.completed||0,fp.completed||0],[me.total||0,fp.total||0],[me.hours||0,fp.hours||0],[me.quizXP||0,fp.quizXP||0],[myXP,theirXP]];
+  cats.forEach(([a,b])=>{if(a>b)wins++;else if(b>a)losses++;});
+  const winner=wins>losses?CU.name:wins<losses?friend.name:'Tie';
+  const winnerBanner=wins===losses?'🤝 It\'s a tie across the board!':wins>losses?`🏆 ${CU.name} wins the head-to-head!`:`🏆 ${friend.name} wins the head-to-head!`;
+
+  // Friend's library games
+  const theirGames=lsGet('bhq_g_'+friendId,[]);
+  const libHtml=theirGames.length?`
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase">📚 ${friend.name}'s Library (${theirGames.length})</div>
+    <div class="friend-lib-grid">
+      ${theirGames.slice(0,20).map(g=>`
+        <div class="flib-card">
+          <div class="flib-cover">${g.cover?`<img src="${g.cover}" alt="${g.title}" onerror="this.style.display='none'">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;opacity:.2">🎮</div>'}</div>
+          <div class="flib-body">
+            <div class="flib-title">${g.title}</div>
+            <div class="flib-status">${{playing:'▶ Playing',backlog:'📦 Backlog',completed:'✅ Done',dropped:'💔 Dropped'}[g.status]||g.status}</div>
+          </div>
+        </div>`).join('')}
+    </div>`:`<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px">No games in their library yet</div>`;
+
+  const c1=vs(me.completed||0,fp.completed||0);
+  const c2=vs(me.total||0,fp.total||0);
+  const c3=vs(me.hours||0,fp.hours||0);
+  const c4=vs(me.quizXP||0,fp.quizXP||0);
+  const c5=vs(myXP,theirXP);
+
+  document.getElementById('fpModalTitle').textContent=`⚔️ ${CU.name} vs ${friend.name}`;
+  document.getElementById('friendProfileContent').innerHTML=`
+    <div class="vs-header">
+      <div class="vs-player">
+        <div class="vs-av me" style="background:${CU.color||'#7b61ff'}">${CU.avatar}</div>
+        <div class="vs-name">${CU.name}</div>
+        <span class="tier-badge ${myTier.cls}">${myTier.icon} ${myTier.label}</span>
+      </div>
+      <div class="vs-divider">VS</div>
+      <div class="vs-player">
+        <div class="vs-av them" style="background:${friend.color||'#00d2b4'}">${friend.avatar}</div>
+        <div class="vs-name">${friend.name}</div>
+        <span class="tier-badge ${theirTier.cls}">${theirTier.icon} ${theirTier.label}</span>
+      </div>
+    </div>
+    <div class="vs-winner-banner">${winnerBanner}</div>
+    <div class="vs-stat-grid">
+      <div class="vs-stat"><div class="vs-stat-label">✅ Completed</div><div class="vs-stat-vals">${c1.a}<span class="vs-sep">vs</span>${c1.b}</div></div>
+      <div class="vs-stat"><div class="vs-stat-label">📚 Library</div><div class="vs-stat-vals">${c2.a}<span class="vs-sep">vs</span>${c2.b}</div></div>
+      <div class="vs-stat"><div class="vs-stat-label">⏱ Hours</div><div class="vs-stat-vals">${c3.a}<span class="vs-sep">vs</span>${c3.b}</div></div>
+      <div class="vs-stat"><div class="vs-stat-label">🧠 Quiz XP</div><div class="vs-stat-vals">${c4.a}<span class="vs-sep">vs</span>${c4.b}</div></div>
+      <div class="vs-stat" style="grid-column:span 2"><div class="vs-stat-label">⭐ Total XP</div><div class="vs-stat-vals">${c5.a}<span class="vs-sep">vs</span>${c5.b}</div></div>
+    </div>
+    ${libHtml}`;
+  document.getElementById('friendProfileOverlay').classList.add('open');
+}
+function closeFriendProfile(){document.getElementById('friendProfileOverlay').classList.remove('open');}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// CHAT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function chatKey(a,b){return 'bhq_chat_'+[a,b].sort().join('_');}
+function getChat(partnerId){return lsGet(chatKey(CU.id,partnerId),[]);}
+function saveChat(partnerId,msgs){lsSet(chatKey(CU.id,partnerId),msgs);}
+
+function openChat(partnerId,partnerName,partnerAv,partnerColor){
+  if(!CU){toast('Sign in to chat','🔐');return;}
+  chatPartnerId=partnerId;
+  const avEl=document.getElementById('chatPartnerAv');
+  if(avEl){avEl.textContent=partnerAv;avEl.style.background=partnerColor;}
+  const nameEl=document.getElementById('chatPartnerName');
+  if(nameEl)nameEl.textContent=partnerName;
+  // Mark messages as read
+  const msgs=getChat(partnerId);
+  msgs.forEach(m=>{if(m.from!==CU.id)m.read=true;});
+  saveChat(partnerId,msgs);
+  renderChatMessages();
+  document.getElementById('chatOverlay').classList.add('open');
+  document.getElementById('chatInput')?.focus();
+  startChatPoll();
+  // Refresh friends list to clear badge
+  setTimeout(()=>renderFriendsPage(),100);
+}
+function closeChat(){
+  document.getElementById('chatOverlay').classList.remove('open');
+  chatPartnerId=null;
+  stopChatPoll();
+}
+
+function renderChatMessages(){
+  if(!chatPartnerId||!CU)return;
+  const msgs=getChat(chatPartnerId);
+  const box=document.getElementById('chatMessages');
+  if(!box)return;
+  if(!msgs.length){box.innerHTML='<div class="chat-empty">Say hello! 👋</div>';return;}
+  const timeStr=t=>{const d=new Date(t);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');};
+  let html='';let lastDay='';
+  msgs.forEach(m=>{
+    const day=new Date(m.time).toLocaleDateString();
+    if(day!==lastDay){html+=`<div class="chat-day-sep">${day}</div>`;lastDay=day;}
+    const isMe=m.from===CU.id;
+    html+=`<div><div class="chat-bubble ${isMe?'me':'them'}">${escHtml(m.msg)}</div><div class="chat-bubble-time">${timeStr(m.time)}</div></div>`;
+  });
+  box.innerHTML=html;
+  box.scrollTop=box.scrollHeight;
+}
+
+function sendChatMsg(){
+  const input=document.getElementById('chatInput');
+  const msg=input?.value.trim();
+  if(!msg||!chatPartnerId||!CU)return;
+  const msgs=getChat(chatPartnerId);
+  msgs.push({from:CU.id,msg,time:Date.now(),read:false});
+  saveChat(chatPartnerId,msgs);
+  input.value='';
+  renderChatMessages();
+  // Notify partner
+  const theirPrefs=lsGet('bhq_notif_prefs_'+chatPartnerId,{chat:true});
+  if(theirPrefs.chat!==false){
+    const theirNotifs=lsGet('bhq_notifs_'+chatPartnerId,[]);
+    theirNotifs.unshift({icon:'💬',msg:`${CU.name}: ${msg.length>40?msg.slice(0,40)+'…':msg}`,type:'chat',time:Date.now(),read:false});
+    lsSet('bhq_notifs_'+chatPartnerId,theirNotifs);
+  }
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function startChatPoll(){
+  stopChatPoll();
+  chatPollTimer=setInterval(()=>{if(chatPartnerId&&CU)renderChatMessages();},2500);
+}
+function stopChatPoll(){if(chatPollTimer){clearInterval(chatPollTimer);chatPollTimer=null;}}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // KEYBOARD + CLOSE LISTENERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();closeDetail();closeAuth();closeHelp();}});
-['addOverlay','detailOverlay','authOverlay','helpOverlay'].forEach(id=>{
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();closeDetail();closeAuth();closeHelp();closeNotifSettings();closeFriendProfile();closeChat();}});
+['addOverlay','detailOverlay','authOverlay','helpOverlay','notifSettingsOverlay','friendProfileOverlay','chatOverlay'].forEach(id=>{
   const el=document.getElementById(id);
   if(el)el.addEventListener('click',e=>{if(e.target===e.currentTarget)el.classList.remove('open');});
 });
@@ -2052,6 +3151,12 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();clo
   renderAllAuthAreas();
   loadGames();
   render();
+  // Notifications + friends bootstrap
+  renderNotifBadge();
+  renderNotifDropdown();
+  updateFriendsBadge();
+  startFriendPagePoll();
+  setTimeout(()=>{if(CU)scheduleNotifChecks();},2000);
 })();
 </script>
 </body>
