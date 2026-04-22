@@ -864,7 +864,98 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
   display:flex;align-items:center;justify-content:center;
   border:2px solid var(--bg1);
 }
-</style>
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PROFILE MODAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.profile-modal{max-width:480px}
+.profile-hero{
+  display:flex;align-items:center;gap:20px;
+  padding:22px 24px 18px;
+  background:linear-gradient(135deg,rgba(123,97,255,.08),rgba(0,210,180,.05));
+  border-bottom:1px solid var(--border);margin-bottom:20px;
+}
+.profile-av-big{
+  width:72px;height:72px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;font-weight:800;flex-shrink:0;
+  border:3px solid rgba(123,97,255,.4);
+  box-shadow:0 0 24px rgba(123,97,255,.25);
+  cursor:pointer;position:relative;transition:transform .2s;
+}
+.profile-av-big:hover{transform:scale(1.06)}
+.profile-av-edit-hint{
+  position:absolute;bottom:-2px;right:-2px;
+  width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(135deg,#7b61ff,#ff3d7f);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;border:2px solid var(--bg1);
+}
+.profile-hero-info{flex:1;min-width:0}
+.profile-displayname{font-size:20px;font-weight:800;color:var(--text1);line-height:1.2}
+.profile-gamertag{font-size:13px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:3px}
+.profile-uid-row{
+  display:flex;align-items:center;gap:8px;margin-top:7px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;padding:5px 10px;
+}
+.profile-uid-label{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.profile-uid-val{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#a89ffc;flex:1}
+.profile-uid-copy{background:none;border:none;cursor:pointer;font-size:13px;color:var(--text3);padding:2px 4px;border-radius:5px;transition:all .15s}
+.profile-uid-copy:hover{color:var(--text1);background:var(--bg3)}
+
+/* Avatar picker grid */
+.av-picker-section{margin-bottom:18px}
+.av-picker-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.av-emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;margin-bottom:14px}
+.av-emoji-opt{
+  width:100%;aspect-ratio:1;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;cursor:pointer;
+  background:var(--bg2);border:2px solid transparent;
+  transition:all .15s;
+}
+.av-emoji-opt:hover{background:var(--bg3);transform:scale(1.1)}
+.av-emoji-opt.sel{border-color:rgba(123,97,255,.7);background:rgba(123,97,255,.15);box-shadow:0 0 12px rgba(123,97,255,.2)}
+.av-color-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:7px}
+.av-color-opt{
+  width:100%;aspect-ratio:1;border-radius:10px;cursor:pointer;
+  border:2px solid transparent;transition:all .15s;
+}
+.av-color-opt:hover{transform:scale(1.12)}
+.av-color-opt.sel{border-color:#fff;box-shadow:0 0 10px rgba(255,255,255,.3)}
+
+/* Profile form fields */
+.profile-field{margin-bottom:14px}
+.profile-field-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.profile-input{
+  width:100%;padding:10px 14px;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:12px;
+  color:var(--text1);font-size:14px;font-family:'Outfit',sans-serif;
+  outline:none;transition:border-color .2s;
+}
+.profile-input:focus{border-color:rgba(123,97,255,.45)}
+.profile-input::placeholder{color:var(--text3)}
+.profile-stats-row{
+  display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;
+}
+.ps-chip{
+  flex:1;min-width:70px;padding:10px 12px;
+  background:var(--bg2);border:1px solid var(--border);border-radius:12px;text-align:center;
+}
+.ps-chip-n{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--text1);line-height:1}
+.ps-chip-l{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin-top:3px;font-family:'JetBrains Mono',monospace}
+
+/* Friend search with UID hint */
+.uid-hint-box{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:rgba(123,97,255,.07);border:1px solid rgba(123,97,255,.18);
+  border-radius:11px;margin-bottom:12px;
+}
+.uid-hint-text{font-size:11.5px;color:var(--text2);line-height:1.4;flex:1}
+.uid-hint-text strong{color:#a89ffc;font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+.uid-copy-btn{padding:5px 11px;background:rgba(123,97,255,.15);border:1px solid rgba(123,97,255,.25);border-radius:8px;color:#a89ffc;font-size:11px;font-weight:700;cursor:pointer;font-family:'JetBrains Mono',monospace;white-space:nowrap;transition:all .2s}
+.uid-copy-btn:hover{background:rgba(123,97,255,.25)}</style>
 </head>
 <body>
 
@@ -1171,6 +1262,14 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
   </div>
 </div>
 
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profileOverlay">
+  <div class="modal profile-modal">
+    <div class="modal-hdr"><div class="modal-title">👤 My Profile</div><button class="modal-close" onclick="closeProfile()">✕</button></div>
+    <div id="profileContent"></div>
+  </div>
+</div>
+
 <!-- NOTIFICATION SETTINGS MODAL -->
 <div class="modal-overlay" id="notifSettingsOverlay">
   <div class="modal" style="max-width:440px">
@@ -1264,8 +1363,9 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
             <div class="fp-title">➕ Add Friend</div>
           </div>
           <div class="fp-body">
+            <div id="myUidHint"></div>
             <div class="friend-search-wrap">
-              <input type="text" class="friend-search-input" id="friendSearchInput" placeholder="Enter username or display name…" onkeydown="if(event.key==='Enter')sendFriendRequest()">
+              <input type="text" class="friend-search-input" id="friendSearchInput" placeholder="Enter BHQ-XXXXXX or gamertag…" onkeydown="if(event.key==='Enter')sendFriendRequest()">
               <button class="btn-add-friend" onclick="sendFriendRequest()">Send Request</button>
             </div>
             <div id="friendSearchResult" style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;min-height:16px"></div>
@@ -1746,17 +1846,21 @@ async function handleSession(session){
 }
 
 function loginSuccess(user){
-  CU=user;closeAuth();loadGames();renderAllAuthAreas();render();
-  toast(`Welcome, ${user.name}!`,'🎉');
-  // Bootstrap social features
+  CU=user;closeAuth();loadGames();
+  // Bootstrap profile — generates UID + registers in global registry
+  const p=getMyProfile();
+  // Sync avatar/color from profile to CU
+  CU.avatar=p.avatarEmoji||user.name[0].toUpperCase();
+  CU.color=p.avatarColor||user.color||'#7b61ff';
+  renderAllAuthAreas();render();
+  toast(`Welcome, ${p.displayName||user.name}!`,'🎉');
   renderNotifBadge();
   renderNotifDropdown();
   updateFriendsBadge();
   startFriendPagePoll();
   setTimeout(()=>scheduleNotifChecks(),1500);
-  // Track last quiz time for streak notifications
   const qmeta=lsGet('bhq_qmeta_'+user.id,{});
-  if(!qmeta.lastQuizTime)qmeta.lastQuizTime=Date.now()-86400000*4; // seed as "4 days ago" to test streak alert
+  if(!qmeta.lastQuizTime)qmeta.lastQuizTime=Date.now()-86400000*4;
   lsSet('bhq_qmeta_'+user.id,qmeta);
 }
 
@@ -1784,7 +1888,28 @@ function renderAllAuthAreas(){
   ['authArea','authArea2','authArea3','authArea4'].forEach(id=>{
     const a=document.getElementById(id);if(!a)return;
     if(CU){
-      a.innerHTML=`<div class="ua-wrap"><div class="user-avatar" onclick="toggleUA(event)" style="background:${CU.color||'#7b61ff'}">${CU.avatar}</div><div class="user-menu" id="uM_${id}"><div class="um-info"><div class="um-name">${CU.name}</div><div class="um-email">${CU.email}</div></div><div class="um-item" onclick="goPage('rankings')">🏆 Rankings</div><div class="um-item" onclick="goPage('quiz')">🧠 Quiz</div><div class="um-item danger" onclick="logout()">🚪 Sign Out</div></div></div>`;
+      const p=getMyProfile();
+      const uid=p?.uid||'—';
+      const gtag=p?.gamertag?('@'+p.gamertag):'';
+      a.innerHTML=`<div class="ua-wrap">
+        <div class="user-avatar" onclick="toggleUA(event)" style="background:${CU.color||'#7b61ff'};font-size:17px">${CU.avatar}</div>
+        <div class="user-menu" id="uM_${id}">
+          <div class="um-info">
+            <div class="um-name">${CU.name}</div>
+            <div class="um-email" style="color:var(--text3)">${gtag}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px;background:var(--bg2);border-radius:7px;padding:4px 8px;cursor:pointer" onclick="copyUID('${uid}');event.stopPropagation()" title="Copy BHQ ID">
+              <span style="font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:.8px">UID</span>
+              <span style="font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:#a89ffc;flex:1">${uid}</span>
+              <span style="font-size:11px">📋</span>
+            </div>
+          </div>
+          <div class="um-item" onclick="openProfile()">🎨 Edit Profile</div>
+          <div class="um-item" onclick="goPage('rankings')">🏆 Rankings</div>
+          <div class="um-item" onclick="goPage('quiz')">🧠 Quiz</div>
+          <div class="um-item" onclick="goPage('friends')">👥 Friends</div>
+          <div class="um-item danger" onclick="logout()">🚪 Sign Out</div>
+        </div>
+      </div>`;
     }else{
       a.innerHTML=`<button class="btn-nav" onclick="openAuth('in')">🔐 Sign In</button>`;
     }
@@ -2595,8 +2720,193 @@ function render(){
 }
 
 // ╔══════════════════════════════════════════════════════════════╗
-// ║  NOTIFICATIONS SYSTEM                                        ║
+// ║  PROFILE SYSTEM                                              ║
 // ╚══════════════════════════════════════════════════════════════╝
+
+const AVATAR_EMOJIS=['🎮','👾','🕹️','🏆','⚔️','🛡️','🔥','💎','👑','🌟','🎯','🧠','🦊','🐉','🤖','💀','🎲','🚀','⚡','🌈','🐺','🦁','🐻','🦅','🐯','🌙','☄️','🏴‍☠️'];
+const AVATAR_COLORS=['#7b61ff','#ff3d7f','#00d2b4','#ff6b35','#38bdf8','#a3e635','#f59e0b','#e11d48','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16','#eab308'];
+
+// Generate a unique BHQ ID — called once on first login
+function genBhqId(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let id='BHQ-';
+  for(let i=0;i<6;i++)id+=chars[Math.floor(Math.random()*chars.length)];
+  return id;
+}
+
+// Get or create profile for current user
+function getMyProfile(){
+  if(!CU)return null;
+  const key='bhq_profile_'+CU.id;
+  let p=lsGet(key,null);
+  if(!p){
+    // First time — bootstrap profile
+    p={
+      uid:genBhqId(),
+      gamertag:CU.name.toLowerCase().replace(/\s+/g,'_'),
+      displayName:CU.name,
+      avatarEmoji:AVATAR_EMOJIS[Math.floor(Math.random()*8)],
+      avatarColor:CU.color||AVATAR_COLORS[0],
+      bio:'',
+      created:Date.now()
+    };
+    lsSet(key,p);
+    // Register in global registry
+    registerInRegistry(p);
+  }
+  return p;
+}
+
+function saveMyProfile(p){
+  if(!CU)return;
+  lsSet('bhq_profile_'+CU.id,p);
+  // Sync to registry so others can find us
+  registerInRegistry(p);
+  // Sync avatar/color to CU so it reflects everywhere
+  CU.avatar=p.avatarEmoji;
+  CU.color=p.avatarColor;
+  CU.name=p.displayName;
+  // Sync to leaderboard entry
+  const lb=lsGet('bhq_lb',{});
+  if(lb[CU.id]){lb[CU.id].name=p.displayName;lb[CU.id].avatar=p.avatarEmoji;lb[CU.id].color=p.avatarColor;lsSet('bhq_lb',lb);}
+}
+
+// Global registry: bhq_registry = { uid: {id,uid,gamertag,displayName,avatarEmoji,avatarColor}, ... }
+// Also indexed by gamertag for search
+function registerInRegistry(p){
+  if(!CU)return;
+  const reg=lsGet('bhq_registry',{});
+  reg[CU.id]={id:CU.id,uid:p.uid,gamertag:p.gamertag.toLowerCase(),displayName:p.displayName,avatarEmoji:p.avatarEmoji,avatarColor:p.avatarColor};
+  lsSet('bhq_registry',reg);
+}
+
+function findUserByQuery(query){
+  const q=query.trim().toLowerCase();
+  const reg=lsGet('bhq_registry',{});
+  // Search by BHQ UID (case-insensitive), gamertag, or display name
+  return Object.values(reg).find(u=>
+    u.uid?.toLowerCase()===q ||
+    u.gamertag?.toLowerCase()===q ||
+    u.displayName?.toLowerCase()===q
+  )||null;
+}
+
+// Profile modal state
+let profileAvatarEmoji='🎮';
+let profileAvatarColor='#7b61ff';
+
+function openProfile(){
+  if(!CU){openAuth('in');return;}
+  const p=getMyProfile();
+  profileAvatarEmoji=p.avatarEmoji;
+  profileAvatarColor=p.avatarColor;
+  const lb=lsGet('bhq_lb',{});
+  const stats=lb[CU.id]||{};
+  const xp=calcXP(stats);
+  const tier=getTier(xp);
+
+  document.getElementById('profileContent').innerHTML=`
+    <div class="profile-hero">
+      <div class="profile-av-big" id="profileAvPreview" style="background:${p.avatarColor}" onclick="document.getElementById('avPickerSection').scrollIntoView({behavior:'smooth'})">
+        ${p.avatarEmoji}
+        <div class="profile-av-edit-hint">✏️</div>
+      </div>
+      <div class="profile-hero-info">
+        <div class="profile-displayname">${p.displayName}</div>
+        <div class="profile-gamertag">@${p.gamertag}</div>
+        <div class="profile-uid-row">
+          <span class="profile-uid-label">BHQ ID</span>
+          <span class="profile-uid-val" id="uidDisplay">${p.uid}</span>
+          <button class="profile-uid-copy" onclick="copyUID('${p.uid}')" title="Copy ID">📋</button>
+        </div>
+        <span class="tier-badge ${tier.cls}" style="margin-top:7px;display:inline-flex">${tier.icon} ${tier.label} · ${xp.toLocaleString()} XP</span>
+      </div>
+    </div>
+
+    <div style="padding:0 20px 20px">
+      <div class="profile-stats-row">
+        <div class="ps-chip"><div class="ps-chip-n" style="color:#ff8c5a">${stats.completed||0}</div><div class="ps-chip-l">✅ Done</div></div>
+        <div class="ps-chip"><div class="ps-chip-n" style="color:#00d2b4">${stats.playing||0}</div><div class="ps-chip-l">▶ Playing</div></div>
+        <div class="ps-chip"><div class="ps-chip-n" style="color:#a89ffc">${stats.total||0}</div><div class="ps-chip-l">📚 Total</div></div>
+        <div class="ps-chip"><div class="ps-chip-n" style="color:#f59e0b">${(stats.quizXP||0).toLocaleString()}</div><div class="ps-chip-l">🧠 Quiz XP</div></div>
+      </div>
+
+      <div class="profile-field">
+        <div class="profile-field-label">Display Name</div>
+        <input type="text" class="profile-input" id="pfDisplayName" value="${escHtml2(p.displayName)}" maxlength="24" placeholder="Your display name">
+      </div>
+      <div class="profile-field">
+        <div class="profile-field-label">Gamertag <span style="color:var(--text3);font-size:9px">(used for friend search)</span></div>
+        <input type="text" class="profile-input" id="pfGamertag" value="${escHtml2(p.gamertag)}" maxlength="20" placeholder="your_gamertag" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')">
+      </div>
+
+      <div id="avPickerSection" class="av-picker-section" style="margin-top:4px">
+        <div class="av-picker-label">Choose Avatar</div>
+        <div class="av-emoji-grid" id="avEmojiGrid">
+          ${AVATAR_EMOJIS.map(e=>`<div class="av-emoji-opt${e===p.avatarEmoji?' sel':''}" onclick="pickAvEmoji('${e}',this)">${e}</div>`).join('')}
+        </div>
+        <div class="av-picker-label" style="margin-top:10px">Avatar Color</div>
+        <div class="av-color-grid" id="avColorGrid">
+          ${AVATAR_COLORS.map(c=>`<div class="av-color-opt${c===p.avatarColor?' sel':''}" style="background:${c}" onclick="pickAvColor('${c}',this)"></div>`).join('')}
+        </div>
+      </div>
+
+      <button class="btn-submit" style="margin-top:18px" onclick="saveProfileFromModal()">💾 Save Profile</button>
+    </div>`;
+  document.getElementById('profileOverlay').classList.add('open');
+}
+function closeProfile(){document.getElementById('profileOverlay').classList.remove('open');}
+
+function escHtml2(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function pickAvEmoji(emoji,el){
+  profileAvatarEmoji=emoji;
+  document.querySelectorAll('.av-emoji-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  const prev=document.getElementById('profileAvPreview');
+  if(prev)prev.textContent=emoji+`<div class="profile-av-edit-hint">✏️</div>`;
+  if(prev){prev.innerHTML=emoji+`<div class="profile-av-edit-hint" style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#7b61ff,#ff3d7f);display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid var(--bg1)">✏️</div>`;}
+}
+
+function pickAvColor(color,el){
+  profileAvatarColor=color;
+  document.querySelectorAll('.av-color-opt').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  const prev=document.getElementById('profileAvPreview');
+  if(prev)prev.style.background=color;
+}
+
+function saveProfileFromModal(){
+  const displayName=document.getElementById('pfDisplayName')?.value.trim();
+  const gamertag=document.getElementById('pfGamertag')?.value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
+  if(!displayName){toast('Display name cannot be empty','⚠️');return;}
+  if(!gamertag){toast('Gamertag cannot be empty','⚠️');return;}
+  // Check gamertag uniqueness (skip own entry)
+  const reg=lsGet('bhq_registry',{});
+  const taken=Object.entries(reg).find(([id,u])=>id!==CU.id&&u.gamertag===gamertag);
+  if(taken){toast('That gamertag is taken — try another!','⚠️');return;}
+  const p=getMyProfile();
+  p.displayName=displayName;
+  p.gamertag=gamertag;
+  p.avatarEmoji=profileAvatarEmoji;
+  p.avatarColor=profileAvatarColor;
+  saveMyProfile(p);
+  renderAllAuthAreas();
+  render();
+  closeProfile();
+  toast('Profile saved! 🎮','✅');
+}
+
+function copyUID(uid){
+  navigator.clipboard?.writeText(uid).then(()=>toast(`Copied ${uid} to clipboard`,'📋')).catch(()=>{
+    // Fallback
+    const el=document.createElement('input');el.value=uid;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);
+    toast(`Copied ${uid}`,'📋');
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NOTIFICATIONS SYSTEM
 let notifDropOpen=false;
 
 function getNotifPrefs(){
@@ -2753,50 +3063,74 @@ function getFriendData(){
 }
 function saveFriendData(data){if(!CU)return;lsSet('bhq_fr_'+CU.id,data);}
 
-// Get all known users from leaderboard + local users
+// Get all known users — from global registry (primary) + leaderboard fallback
 function getAllKnownUsers(){
+  const reg=lsGet('bhq_registry',{});
   const lb=lsGet('bhq_lb',{});
-  const localUsers=lsGet('bhq_users',{});
   const all={};
-  Object.values(lb).forEach(p=>{if(p.id&&p.name)all[p.id]={id:p.id,name:p.name,avatar:p.avatar,color:p.color};});
-  Object.entries(localUsers).forEach(([email,u])=>{if(!all[email])all[email]={id:email,name:u.name,avatar:u.name[0].toUpperCase(),color:u.color};});
+  // Registry is the source of truth (has UID + gamertag)
+  Object.values(reg).forEach(u=>{
+    all[u.id]={id:u.id,uid:u.uid,gamertag:u.gamertag,name:u.displayName,avatar:u.avatarEmoji||u.displayName?.[0]||'?',color:u.avatarColor||'#7b61ff'};
+  });
+  // Fallback: leaderboard entries not in registry yet
+  Object.values(lb).forEach(p=>{
+    if(p.id&&p.name&&!all[p.id])all[p.id]={id:p.id,name:p.name,avatar:p.avatar,color:p.color};
+  });
   return Object.values(all);
 }
 
 function sendFriendRequest(){
   if(!CU){openAuth('in');return;}
-  const query=document.getElementById('friendSearchInput')?.value.trim().toLowerCase();
-  if(!query){toast('Enter a username to search','⚠️');return;}
-  const allUsers=getAllKnownUsers();
-  const found=allUsers.find(u=>u.name.toLowerCase()===query||u.id.toLowerCase()===query);
+  const query=document.getElementById('friendSearchInput')?.value.trim();
+  if(!query){toast('Enter a BHQ ID or gamertag to search','⚠️');return;}
   const res=document.getElementById('friendSearchResult');
+
+  // Try registry search first (by BHQ UID or gamertag)
+  let found=findUserByQuery(query);
+
+  // Fallback to full user list search
   if(!found){
-    if(res)res.textContent='❌ User not found. They need to be registered on BacklogHQ.';
+    const allUsers=getAllKnownUsers();
+    found=allUsers.find(u=>
+      u.uid?.toLowerCase()===query.toLowerCase()||
+      u.gamertag?.toLowerCase()===query.toLowerCase()||
+      u.name?.toLowerCase()===query.toLowerCase()
+    )||null;
+  }
+
+  if(!found){
+    if(res)res.innerHTML='❌ User not found. Ask them to share their <strong style="color:#a89ffc">BHQ ID</strong> (in their profile menu).';
     return;
   }
   if(found.id===CU.id){if(res)res.textContent='❌ That\'s you!';return;}
   const fd=getFriendData();
   if(fd.friends.find(f=>f.id===found.id)){if(res)res.textContent='✓ Already friends!';return;}
   if(fd.sent.find(s=>s.id===found.id)){if(res)res.textContent='⏳ Request already sent.';return;}
+  if(fd.received.find(r=>r.id===found.id)){
+    // They already sent us a request — auto-accept!
+    acceptFriendRequest(found.id);
+    if(res)res.textContent=`✅ You're now friends with ${found.name||found.displayName}! (They had already sent you a request)`;
+    return;
+  }
   // Add to my sent
-  fd.sent.push({id:found.id,name:found.name,avatar:found.avatar,color:found.color,time:Date.now()});
+  fd.sent.push({id:found.id,name:found.name||found.displayName,avatar:found.avatar||'🎮',color:found.color||'#7b61ff',time:Date.now()});
   saveFriendData(fd);
   // Add to their received
+  const myProfile=getMyProfile();
   const theirFD=lsGet('bhq_fr_'+found.id,{friends:[],sent:[],received:[]});
   if(!theirFD.received.find(r=>r.id===CU.id)){
-    theirFD.received.push({id:CU.id,name:CU.name,avatar:CU.avatar,color:CU.color,time:Date.now()});
+    theirFD.received.push({id:CU.id,name:myProfile.displayName,avatar:myProfile.avatarEmoji,color:myProfile.avatarColor,time:Date.now()});
     lsSet('bhq_fr_'+found.id,theirFD);
-    // Notify them
     const theirNotifs=lsGet('bhq_notifs_'+found.id,[]);
     const theirPrefs=lsGet('bhq_notif_prefs_'+found.id,{friend:true});
     if(theirPrefs.friend!==false){
-      theirNotifs.unshift({icon:'👥',msg:`${CU.name} sent you a friend request!`,type:'friend',time:Date.now(),read:false});
+      theirNotifs.unshift({icon:'👥',msg:`${myProfile.displayName} (@${myProfile.gamertag}) sent you a friend request!`,type:'friend',time:Date.now(),read:false});
       lsSet('bhq_notifs_'+found.id,theirNotifs);
     }
   }
-  if(res)res.textContent=`✅ Friend request sent to ${found.name}!`;
+  if(res)res.innerHTML=`✅ Friend request sent to <strong>${found.name||found.displayName}</strong>!`;
   document.getElementById('friendSearchInput').value='';
-  toast(`Request sent to ${found.name}!`,'📤');
+  toast(`Request sent to ${found.name||found.displayName}!`,'📤');
   renderFriendsPage();
 }
 
@@ -2810,7 +3144,10 @@ function acceptFriendRequest(fromId){
   // Update their sent → friends
   const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
   theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
-  if(!theirFD.friends.find(f=>f.id===CU.id))theirFD.friends.push({id:CU.id,name:CU.name,avatar:CU.avatar,color:CU.color});
+  if(!theirFD.friends.find(f=>f.id===CU.id)){
+    const myP=getMyProfile();
+    theirFD.friends.push({id:CU.id,name:myP.displayName,avatar:myP.avatarEmoji,color:myP.avatarColor});
+  }
   lsSet('bhq_fr_'+fromId,theirFD);
   // Notify them
   const theirNotifs=lsGet('bhq_notifs_'+fromId,[]);
@@ -2859,6 +3196,15 @@ function updateFriendsBadge(){
 
 function renderFriendsPage(){
   if(!CU)return;
+  // Show UID hint
+  const myUidHint=document.getElementById('myUidHint');
+  if(myUidHint){
+    const p=getMyProfile();
+    myUidHint.innerHTML=`<div class="uid-hint-box">
+      <div class="uid-hint-text">Share your BHQ ID with friends so they can find you:<br><strong>${p.uid}</strong> · <span style="color:var(--text3)">@${p.gamertag}</span></div>
+      <button class="uid-copy-btn" onclick="copyUID('${p.uid}')">📋 Copy ID</button>
+    </div>`;
+  }
   const fd=getFriendData();
   // Friends count
   const fc=document.getElementById('friendsCount');if(fc)fc.textContent=fd.friends.length;
@@ -3114,8 +3460,8 @@ function stopChatPoll(){if(chatPollTimer){clearInterval(chatPollTimer);chatPollT
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // KEYBOARD + CLOSE LISTENERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();closeDetail();closeAuth();closeHelp();closeNotifSettings();closeFriendProfile();closeChat();}});
-['addOverlay','detailOverlay','authOverlay','helpOverlay','notifSettingsOverlay','friendProfileOverlay','chatOverlay'].forEach(id=>{
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();closeDetail();closeAuth();closeHelp();closeNotifSettings();closeFriendProfile();closeChat();closeProfile();}});
+['addOverlay','detailOverlay','authOverlay','helpOverlay','notifSettingsOverlay','friendProfileOverlay','chatOverlay','profileOverlay'].forEach(id=>{
   const el=document.getElementById(id);
   if(el)el.addEventListener('click',e=>{if(e.target===e.currentTarget)el.classList.remove('open');});
 });
