@@ -672,6 +672,123 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 .unlock-toast-sub{font-size:13px;color:var(--text2)}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TIER UPGRADE CELEBRATION OVERLAY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#tierUpOverlay{
+  position:fixed;inset:0;z-index:2000;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;
+}
+#tierUpOverlay.active{opacity:1;pointer-events:all;}
+#tierUpCanvas{position:absolute;inset:0;width:100%;height:100%;}
+#tierUpCard{
+  position:relative;z-index:1;
+  text-align:center;padding:44px 52px;
+  background:var(--bg1);
+  border-radius:28px;
+  transform:scale(0) rotate(-8deg);
+  transition:none;
+  max-width:380px;width:90%;
+}
+#tierUpOverlay.active #tierUpCard{
+  animation:tierCardPop .7s cubic-bezier(.34,1.56,.64,1) .2s both;
+}
+@keyframes tierCardPop{
+  0%{transform:scale(0) rotate(-8deg);opacity:0}
+  60%{transform:scale(1.06) rotate(1deg);opacity:1}
+  100%{transform:scale(1) rotate(0deg);opacity:1}
+}
+#tierUpOverlay.leaving #tierUpCard{
+  animation:tierCardLeave .45s ease forwards;
+}
+@keyframes tierCardLeave{
+  0%{transform:scale(1);opacity:1}
+  100%{transform:scale(.85) translateY(-20px);opacity:0}
+}
+.tier-up-pre{font-size:11px;letter-spacing:3px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;color:var(--text3);margin-bottom:12px}
+.tier-up-icon{font-size:72px;line-height:1;margin-bottom:12px;animation:tierIconBounce 1.2s cubic-bezier(.34,1.56,.64,1) .6s both}
+@keyframes tierIconBounce{0%{transform:scale(0)}60%{transform:scale(1.22)}100%{transform:scale(1)}}
+.tier-up-name{font-size:34px;font-weight:900;letter-spacing:-.5px;margin-bottom:6px}
+.tier-up-xp{font-size:13px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-bottom:22px}
+.tier-up-old{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:100px;font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;opacity:.55;margin-bottom:8px}
+.tier-up-arrow{font-size:22px;color:var(--text3);margin:2px 0 8px}
+.tier-up-new-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 20px;border-radius:100px;font-size:15px;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:.5px;animation:badgePulse 1.8s ease-in-out infinite .9s}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 8px rgba(123,97,255,.12)}}
+.tier-up-dismiss{margin-top:22px;padding:10px 28px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:100px;color:#fff;font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:opacity .2s;pointer-events:all}
+.tier-up-dismiss:hover{opacity:.87}
+#tierUpBg{position:absolute;inset:0;background:rgba(8,9,16,.88);backdrop-filter:blur(10px);opacity:0;transition:opacity .35s}
+#tierUpOverlay.active #tierUpBg{opacity:1}
+#tierUpOverlay.leaving #tierUpBg{opacity:0}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   COVER LIGHTBOX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#coverLightbox{
+  position:fixed;inset:0;z-index:1800;
+  background:rgba(4,5,12,.96);
+  display:none;align-items:center;justify-content:center;
+  cursor:zoom-out;
+}
+#coverLightbox.open{display:flex;animation:lbIn .2s ease}
+@keyframes lbIn{from{opacity:0}to{opacity:1}}
+#coverLightbox img{
+  max-width:min(520px,90vw);max-height:88vh;
+  border-radius:16px;
+  object-fit:contain;
+  box-shadow:0 40px 120px rgba(0,0,0,.9);
+  cursor:zoom-out;
+  animation:lbImgIn .25s cubic-bezier(.34,1.4,.64,1)
+}
+@keyframes lbImgIn{from{transform:scale(.88)}to{transform:scale(1)}}
+#coverLightboxClose{
+  position:absolute;top:20px;right:20px;
+  width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  color:#fff;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background .2s
+}
+#coverLightboxClose:hover{background:rgba(255,61,127,.3)}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DETAIL COVER — HOVER ZOOM + GALLERY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.d-cover{cursor:zoom-in;}
+.d-cover img{transition:transform .4s cubic-bezier(.25,.46,.45,.94)}
+.d-cover:hover img{transform:scale(1.04)}
+.d-cover-zoom-hint{
+  position:absolute;bottom:8px;right:10px;
+  font-size:9px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;
+  color:rgba(255,255,255,.65);background:rgba(0,0,0,.45);
+  padding:3px 8px;border-radius:100px;
+  pointer-events:none;opacity:0;transition:opacity .2s;
+}
+.d-cover:hover .d-cover-zoom-hint{opacity:1}
+
+/* Screenshot gallery */
+.d-gallery{display:flex;gap:8px;margin-top:12px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.d-gallery::-webkit-scrollbar{display:none}
+.d-gthumb{
+  flex-shrink:0;width:110px;height:66px;border-radius:9px;
+  object-fit:cover;cursor:zoom-in;
+  border:2px solid transparent;transition:all .2s;
+  opacity:.75;
+}
+.d-gthumb:hover{opacity:1;border-color:rgba(123,97,255,.55);transform:translateY(-2px)}
+.d-gthumb.active{opacity:1;border-color:#7b61ff}
+.d-gallery-loading{
+  display:flex;align-items:center;gap:7px;
+  font-size:10.5px;font-family:'JetBrains Mono',monospace;
+  color:var(--text3);padding:6px 0;
+}
+.d-gallery-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--text3);
+  animation:gdot .8s ease-in-out infinite;
+}
+.d-gallery-dot:nth-child(2){animation-delay:.15s}
+.d-gallery-dot:nth-child(3){animation-delay:.3s}
+@keyframes gdot{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    REAL-TIME RANKINGS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .rank-live-badge{
@@ -1185,7 +1302,8 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 <div class="modal-overlay" id="detailOverlay">
   <div class="modal" style="max-width:590px">
     <div class="modal-hdr"><div class="modal-title">Game Details</div><button class="modal-close" onclick="closeDetail()">✕</button></div>
-    <div class="d-cover"><div class="d-cover-ph" id="dCoverPh">🎮</div><img id="dCoverImg" style="display:none" alt=""></div>
+    <div class="d-cover" id="dCoverWrap" onclick="openCoverLightbox()"><div class="d-cover-ph" id="dCoverPh">🎮</div><img id="dCoverImg" style="display:none" alt=""><div class="d-cover-zoom-hint">🔍 click to expand</div></div>
+    <div id="dGallery"></div>
     <div class="d-title" id="dTitle"></div>
     <div class="d-badges" id="dBadges"></div>
     <div class="d-stars"><span class="d-stars-lbl">Rating</span><div id="dStars"></div></div>
@@ -1406,6 +1524,29 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- TIER UPGRADE CELEBRATION -->
+<div id="tierUpOverlay">
+  <div id="tierUpBg" onclick="closeTierUp()"></div>
+  <canvas id="tierUpCanvas"></canvas>
+  <div id="tierUpCard">
+    <div class="tier-up-pre">⚡ Tier Up!</div>
+    <div class="tier-up-icon" id="tuIcon">🎮</div>
+    <div class="tier-up-name" id="tuName">Gamer</div>
+    <div class="tier-up-xp" id="tuXP">100 XP reached</div>
+    <div class="tier-up-old tier-badge" id="tuOldBadge"></div>
+    <div class="tier-up-arrow">↓</div>
+    <div class="tier-up-new-badge tier-badge" id="tuNewBadge"></div>
+    <button class="tier-up-dismiss" onclick="closeTierUp()">🎉 Let's Go!</button>
+  </div>
+</div>
+
+<!-- COVER LIGHTBOX -->
+<div id="coverLightbox" onclick="closeCoverLightbox()">
+  <div id="coverLightboxClose" onclick="closeCoverLightbox()">✕</div>
+  <img id="coverLightboxImg" src="" alt="">
+</div>
+
 <div class="unlock-toast" id="unlockToast">
   <div class="unlock-toast-icon" id="unlockIcon">🥈</div>
   <div class="unlock-toast-title" id="unlockTitle">Level Unlocked!</div>
@@ -2019,6 +2160,11 @@ function loadGames(){
 }
 function saveGames(){
   if(!CU)return;
+  // Snapshot tier before saving
+  const lbBefore=lsGet('bhq_lb',{});
+  const xpBefore=lbBefore[CU.id]?calcXP(lbBefore[CU.id]):-1;
+  const tierBefore=xpBefore>=0?getTier(xpBefore):null;
+
   lsSet('bhq_g_'+CU.id,games);
   const lb=lsGet('bhq_lb',{});
   const existing=lb[CU.id]||{};
@@ -2031,6 +2177,13 @@ function saveGames(){
   };
   lsSet('bhq_lb',lb);
   broadcastRankUpdate();
+
+  // Check tier upgrade from game tracking XP
+  const xpAfter=calcXP(lb[CU.id]);
+  const tierAfter=getTier(xpAfter);
+  if(tierBefore&&tierAfter.label!==tierBefore.label){
+    setTimeout(()=>showTierUpCelebration(tierBefore,tierAfter,xpAfter),600);
+  }
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2361,16 +2514,193 @@ function awardQuizXP(xp){
   if(!CU||!xp)return;
   const lb=lsGet('bhq_lb',{});
   if(!lb[CU.id]){
-    // Create entry for user even if no library yet
     lb[CU.id]={id:CU.id,name:CU.name,avatar:CU.avatar,color:CU.color,completed:0,playing:0,total:0,hours:0,quizXP:0};
   }
+  // Capture tier BEFORE awarding
+  const oldXP=calcXP(lb[CU.id]);
+  const oldTier=getTier(oldXP);
+
   lb[CU.id].quizXP=(lb[CU.id].quizXP||0)+xp;
   lsSet('bhq_lb',lb);
   broadcastRankUpdate();
+
+  // Check if tier changed
+  const newXP=calcXP(lb[CU.id]);
+  const newTier=getTier(newXP);
+  if(newTier.label!==oldTier.label){
+    setTimeout(()=>showTierUpCelebration(oldTier,newTier,newXP),800);
+  }
+
   // Track last quiz time for streak notifications
   const qmeta2=lsGet('bhq_qmeta_'+CU.id,{});
   qmeta2.lastQuizTime=Date.now();
   lsSet('bhq_qmeta_'+CU.id,qmeta2);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// TIER UPGRADE CELEBRATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const TIER_COLORS={
+  Recruit:'#94a3b8',Gamer:'#00d2b4',Regular:'#a89ffc',
+  Veteran:'#38bdf8',Hardcore:'#ff8c5a',Elite:'#fbbf24',
+  Legend:'#ff7eb6',Prestige:'#f59e0b'
+};
+const TIER_CLS={
+  Recruit:'t-recruit',Gamer:'t-gamer',Regular:'t-regular',Veteran:'t-veteran',
+  Hardcore:'t-hardcore',Elite:'t-elite',Legend:'t-legend',Prestige:'t-prestige'
+};
+
+let _tuDismissTimer=null;
+function showTierUpCelebration(oldTier,newTier,newXP){
+  const overlay=document.getElementById('tierUpOverlay');
+  if(!overlay)return;
+  document.getElementById('tuIcon').textContent=newTier.icon;
+  document.getElementById('tuName').textContent=newTier.label;
+  document.getElementById('tuXP').textContent=newXP.toLocaleString()+' XP total';
+  const oldBadge=document.getElementById('tuOldBadge');
+  oldBadge.className='tier-up-old tier-badge '+TIER_CLS[oldTier.label];
+  oldBadge.textContent=oldTier.icon+' '+oldTier.label;
+  const newBadge=document.getElementById('tuNewBadge');
+  newBadge.className='tier-up-new-badge tier-badge '+TIER_CLS[newTier.label];
+  newBadge.style.background='';newBadge.style.color='';newBadge.style.border='';
+  newBadge.textContent=newTier.icon+' '+newTier.label;
+  // name gradient based on tier colour
+  const col=TIER_COLORS[newTier.label]||'#7b61ff';
+  document.getElementById('tuName').style.background=`linear-gradient(135deg,${col},#7b61ff)`;
+  document.getElementById('tuName').style.webkitBackgroundClip='text';
+  document.getElementById('tuName').style.webkitTextFillColor='transparent';
+  document.getElementById('tuName').style.backgroundClip='text';
+
+  overlay.classList.remove('leaving');
+  overlay.classList.add('active');
+  launchConfetti(col);
+  if(_tuDismissTimer)clearTimeout(_tuDismissTimer);
+  _tuDismissTimer=setTimeout(()=>closeTierUp(),7000);
+}
+
+function closeTierUp(){
+  const overlay=document.getElementById('tierUpOverlay');
+  if(!overlay)return;
+  overlay.classList.add('leaving');
+  setTimeout(()=>{overlay.classList.remove('active','leaving');},450);
+  if(_tuDismissTimer){clearTimeout(_tuDismissTimer);_tuDismissTimer=null;}
+}
+
+function launchConfetti(accentColor){
+  const canvas=document.getElementById('tierUpCanvas');
+  if(!canvas)return;
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d');
+  const particles=[];
+  const colors=[accentColor,'#7b61ff','#ff3d7f','#00d2b4','#f59e0b','#ffffff'];
+  for(let i=0;i<120;i++){
+    const angle=Math.random()*Math.PI*2;
+    const speed=3+Math.random()*7;
+    particles.push({
+      x:canvas.width/2,y:canvas.height/2,
+      vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-4,
+      ax:0,ay:.18,
+      size:4+Math.random()*6,
+      color:colors[Math.floor(Math.random()*colors.length)],
+      rotation:Math.random()*Math.PI*2,
+      rotSpeed:(Math.random()-.5)*.15,
+      life:1,decay:.008+Math.random()*.008,
+      shape:Math.random()>.5?'rect':'circle'
+    });
+  }
+  let frame;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive=false;
+    particles.forEach(p=>{
+      if(p.life<=0)return;
+      alive=true;
+      p.vx+=p.ax;p.vy+=p.ay;
+      p.x+=p.vx;p.y+=p.vy;
+      p.rotation+=p.rotSpeed;
+      p.life-=p.decay;
+      ctx.globalAlpha=Math.max(0,p.life);
+      ctx.fillStyle=p.color;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rotation);
+      if(p.shape==='rect'){ctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);}
+      else{ctx.beginPath();ctx.arc(0,0,p.size/2,0,Math.PI*2);ctx.fill();}
+      ctx.restore();
+    });
+    ctx.globalAlpha=1;
+    if(alive)frame=requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  if(frame)cancelAnimationFrame(frame);
+  draw();
+}
+
+// saveGames override is handled inline above
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// COVER LIGHTBOX
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openCoverLightbox(src){
+  const imgSrc=src||document.getElementById('dCoverImg')?.src;
+  if(!imgSrc||document.getElementById('dCoverImg')?.style.display==='none')return;
+  const lb=document.getElementById('coverLightbox');
+  const img=document.getElementById('coverLightboxImg');
+  img.src=imgSrc;
+  lb.classList.add('open');
+}
+function closeCoverLightbox(){
+  document.getElementById('coverLightbox').classList.remove('open');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// GAME SCREENSHOT GALLERY
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function loadGameGallery(game){
+  const galEl=document.getElementById('dGallery');
+  if(!galEl)return;
+  if(!game.cover){galEl.innerHTML='';return;}
+  galEl.innerHTML=`<div class="d-gallery-loading"><div class="d-gallery-dot"></div><div class="d-gallery-dot"></div><div class="d-gallery-dot"></div><span style="margin-left:4px">Loading screenshots…</span></div>`;
+
+  const shots=[];
+  // Always include the main cover as first thumb
+  shots.push(game.cover);
+
+  try{
+    if(RAWG_ENABLED){
+      // Use RAWG screenshots endpoint
+      const slug=game.rawgSlug||(game.title.toLowerCase().replace(/[^a-z0-9]+/g,'-'));
+      const d=await rawgFetch(`/games/${encodeURIComponent(slug)}/screenshots?page_size=6`);
+      (d.results||[]).forEach(s=>{if(s.image&&!shots.includes(s.image))shots.push(s.image);});
+    }
+    // Fallback: try Wikipedia additional images
+    if(shots.length<3){
+      const r=await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(game.title+' video game')}&prop=images&format=json&origin=*&imlimit=8`);
+      const d=await r.json();
+      const page=Object.values(d.query.pages)[0];
+      const imgs=(page?.images||[]).filter(i=>/\.(jpg|jpeg|png)/i.test(i.title)&&!/logo|icon|seal|flag/i.test(i.title));
+      for(const im of imgs.slice(0,5)){
+        if(shots.length>=7)break;
+        try{
+          const r2=await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(im.title)}&prop=imageinfo&iiprop=url&format=json&origin=*`);
+          const d2=await r2.json();
+          const url=Object.values(d2.query.pages)[0]?.imageinfo?.[0]?.url;
+          if(url&&!shots.includes(url))shots.push(url);
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+
+  if(shots.length<=1){galEl.innerHTML='';return;}
+
+  galEl.innerHTML=`<div class="d-gallery">${shots.map((src,i)=>`<img class="d-gthumb${i===0?' active':''}" src="${src}" loading="lazy" onclick="switchGalleryThumb(this,'${src.replace(/'/g,"\\'")}')" onerror="this.style.display='none'">`).join('')}</div>`;
+}
+
+function switchGalleryThumb(el,src){
+  document.querySelectorAll('.d-gthumb').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const img=document.getElementById('dCoverImg');
+  if(img){img.src=src;img.style.display='block';}
+  const ph=document.getElementById('dCoverPh');
+  if(ph)ph.style.display='none';
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2886,6 +3216,9 @@ function openDetail(id){
   const g=games.find(g=>g.id===id);if(!g)return;detailId=id;
   const ph=document.getElementById('dCoverPh'),img=document.getElementById('dCoverImg');
   if(g.cover){img.src=g.cover;img.style.display='block';ph.style.display='none';}else{img.style.display='none';ph.style.display='flex';ph.textContent=GI[g.genre]||'🎮';}
+  // Gallery: reset to loading then fetch
+  const galEl=document.getElementById('dGallery');
+  if(galEl)galEl.innerHTML='';
   document.getElementById('dTitle').textContent=g.title;
   const ac=GC[g.genre]||'#7b61ff',sc=SC[g.status]||'#a89ffc';
   document.getElementById('dBadges').innerHTML=`<span class="d-badge" style="background:${ac}22;color:${ac};border:1px solid ${ac}44">${GI[g.genre]||'🎮'} ${g.genre}</span><span class="d-badge" style="background:${sc}22;color:${sc};border:1px solid ${sc}44">${g.status}</span>${g.platform?`<span class="d-badge" style="background:var(--bg2);color:var(--text2);border:1px solid var(--border)">${g.platform}</span>`:''}${g.year?`<span class="d-badge" style="background:var(--bg2);color:var(--text2);border:1px solid var(--border)">${g.year}</span>`:''}`;
@@ -2895,6 +3228,8 @@ function openDetail(id){
   document.getElementById('dHours').value=g.hours||'';
   document.getElementById('dDev').value=g.dev||'';
   document.getElementById('detailOverlay').classList.add('open');
+  // Load gallery after modal opens
+  setTimeout(()=>loadGameGallery(g),120);
 }
 function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');detailId=null;}
 function setDRating(n){const g=games.find(g=>g.id===detailId);if(!g)return;g.rating=g.rating===n?0:n;document.getElementById('dStars').innerHTML=[1,2,3,4,5].map(i=>`<span class="star${g.rating>=i?' on':''}" onclick="setDRating(${i})" style="font-size:20px;cursor:pointer">${g.rating>=i?'★':'☆'}</span>`).join('');}
@@ -3851,7 +4186,7 @@ function stopChatPoll(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // KEYBOARD + CLOSE LISTENERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();closeDetail();closeAuth();closeHelp();closeNotifSettings();closeFriendProfile();closeChat();closeProfile();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();closeDetail();closeAuth();closeHelp();closeNotifSettings();closeFriendProfile();closeChat();closeProfile();closeCoverLightbox();closeTierUp();}});
 ['addOverlay','detailOverlay','authOverlay','helpOverlay','notifSettingsOverlay','friendProfileOverlay','chatOverlay','profileOverlay'].forEach(id=>{
   const el=document.getElementById(id);
   if(el)el.addEventListener('click',e=>{if(e.target===e.currentTarget)el.classList.remove('open');});
