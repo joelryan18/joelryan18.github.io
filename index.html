@@ -173,6 +173,7 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 .game-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;cursor:pointer;animation:cardIn .35s ease both;transition:transform .25s,border-color .25s,box-shadow .25s}
 .game-card:hover{transform:translateY(-5px);border-color:rgba(123,97,255,.35);box-shadow:0 18px 50px var(--card-shadow),0 0 0 1px rgba(123,97,255,.08)}
 @keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
 .card-cover{position:relative;height:152px;overflow:hidden;background:var(--bg3)}
 .card-cover img{width:100%;height:100%;object-fit:cover;transition:transform .4s;display:block}
 .game-card:hover .card-cover img{transform:scale(1.07)}
@@ -1568,6 +1569,76 @@ const seen=new Set();
 const GAMES=DB.filter(g=>{if(seen.has(g.title))return false;seen.add(g.title);return true;});
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RAWG.io GAME DATABASE API
+// Get a free API key at: https://rawg.io/apidocs
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const RAWG_KEY='192c0554f1c4451c945125202fea3af7'; // ← Paste your free RAWG key here
+const RAWG_BASE='https://api.rawg.io/api';
+const RAWG_ENABLED=RAWG_KEY!=='YOUR_RAWG_API_KEY';
+
+// RAWG genre slug → StackLog genre
+const RAWG_GENRE_MAP={
+  'action':'Action','role-playing-games-rpg':'RPG','shooter':'FPS','strategy':'Strategy',
+  'indie':'Indie','sports':'Sports','puzzle':'Puzzle','adventure':'Adventure',
+  'racing':'Racing','fighting':'Fighting','simulation':'Simulation',
+  'massively-multiplayer':'MMO','arcade':'Action','platformer':'Action',
+  'action-adventure':'Action','rpg':'RPG','casual':'Indie',
+  'card':'Puzzle','board-games':'Strategy','family':'Indie','horror':'Horror',
+};
+// StackLog genre → RAWG slug (for filtering browse)
+const GENRE_TO_RAWG={
+  'Action':'action','RPG':'role-playing-games-rpg','FPS':'shooter',
+  'Strategy':'strategy','Indie':'indie','Sports':'sports','Puzzle':'puzzle',
+  'Adventure':'adventure','Racing':'racing','Fighting':'fighting',
+  'Simulation':'simulation','MMO':'massively-multiplayer','Horror':'horror',
+};
+function mapRawgGenre(genres){
+  if(!genres||!genres.length)return'Action';
+  for(const g of genres){const m=RAWG_GENRE_MAP[g.slug];if(m)return m;}
+  return'Action';
+}
+function mapRawgPlatform(platforms){
+  if(!platforms||!platforms.length)return'PC';
+  const ns=platforms.map(p=>p.platform?.name||'');
+  if(ns.some(n=>n.includes('PC')||n.includes('Windows')))return'PC';
+  if(ns.some(n=>n.includes('PlayStation 5')))return'PS5';
+  if(ns.some(n=>n.includes('PlayStation 4')))return'PS4';
+  if(ns.some(n=>n.includes('Xbox')))return'Xbox';
+  if(ns.some(n=>n.includes('Switch')))return'Switch';
+  if(ns.some(n=>n.includes('iOS')||n.includes('Android')||n.includes('mobile','i')))return'Mobile';
+  return'PC';
+}
+function rawgToGame(r){
+  return{
+    title:r.name,
+    genre:mapRawgGenre(r.genres),
+    platform:mapRawgPlatform(r.platforms),
+    year:r.released?r.released.slice(0,4):'',
+    dev:r.developers&&r.developers.length?r.developers[0].name:'',
+    cover:r.background_image||'',
+    rawgId:r.id,
+    metacritic:r.metacritic||0,
+  };
+}
+async function rawgFetch(path){
+  const sep=path.includes('?')?'&':'?';
+  const r=await fetch(`${RAWG_BASE}${path}${sep}key=${RAWG_KEY}`);
+  if(!r.ok)throw new Error('RAWG '+r.status);
+  return r.json();
+}
+
+// Browse state
+let rawgBrowseResults=[];   // current page game objects
+let rawgBrowsePage=1;
+let rawgBrowseCount=0;
+let rawgBrowseLoading=false;
+let rawgBrowseGenre='';     // current RAWG genre slug filter
+let rawgBrowseSearch='';    // current search query in browse
+let rawgSearchTimer2=null;
+// Cache RAWG game objects by title so addFromBrowse can look them up
+const rawgCache={};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // QUIZ QUESTIONS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const QD={
@@ -2120,16 +2191,167 @@ function setView(v){
   document.getElementById('vtBrowse').classList.toggle('vt-browse',v==='browse');
   const ab=document.getElementById('btnAddGame');if(ab)ab.style.display=v==='browse'?'none':'';
   filterGenre='All';filterStatus='all';searchQuery='';
+  rawgBrowsePage=1;rawgBrowseGenre='';rawgBrowseSearch='';rawgBrowseResults=[];
   const si=document.getElementById('mainSearch');if(si)si.value='';
   const sc=document.getElementById('searchClear');if(sc)sc.style.display='none';
   render();
+  if(v==='browse')loadRawgBrowse();
 }
-function addFromBrowse(dbIdx){
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RAWG BROWSE LOADER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function loadRawgBrowse(page,genreSlug,searchQ){
+  if(typeof page==='undefined')page=rawgBrowsePage;
+  if(typeof genreSlug==='undefined')genreSlug=rawgBrowseGenre;
+  if(typeof searchQ==='undefined')searchQ=rawgBrowseSearch;
+  if(!RAWG_ENABLED){
+    // No key — fall back to static DB, already rendered by render()
+    return;
+  }
+  if(rawgBrowseLoading)return;
+  rawgBrowseLoading=true;
+  renderBrowseLoading();
+  try{
+    let path=`/games?page_size=20&page=${page}&ordering=-metacritic`;
+    if(genreSlug)path+=`&genres=${encodeURIComponent(genreSlug)}`;
+    if(searchQ)path+=`&search=${encodeURIComponent(searchQ)}&search_precise=false`;
+    const d=await rawgFetch(path);
+    rawgBrowseResults=(d.results||[]).map(rawgToGame);
+    rawgBrowseCount=d.count||0;
+    rawgBrowsePage=page;
+    rawgBrowseGenre=genreSlug;
+    rawgBrowseSearch=searchQ;
+    rawgBrowseResults.forEach(g=>{rawgCache[g.title]=g;});
+  }catch(e){
+    rawgBrowseResults=GAMES; // fallback
+    rawgBrowseCount=GAMES.length;
+  }finally{
+    rawgBrowseLoading=false;
+  }
+  renderBrowseGrid();
+}
+
+function renderBrowseLoading(){
+  const grid=document.getElementById('gameGrid');if(!grid)return;
+  grid.innerHTML=Array(8).fill(0).map(()=>`
+    <div class="game-card" style="pointer-events:none;animation:none">
+      <div class="card-cover" style="background:var(--bg3);animation:pulse 1.4s ease-in-out infinite"></div>
+      <div class="card-body">
+        <div style="height:10px;background:var(--bg3);border-radius:6px;width:60%;margin-bottom:10px;animation:pulse 1.4s ease-in-out infinite"></div>
+        <div style="height:16px;background:var(--bg3);border-radius:6px;width:85%;margin-bottom:12px;animation:pulse 1.4s ease-in-out infinite"></div>
+        <div style="height:30px;background:var(--bg3);border-radius:8px;animation:pulse 1.4s ease-in-out infinite"></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderBrowseGrid(){
+  if(libView!=='browse')return;
+  const grid=document.getElementById('gameGrid');if(!grid)return;
+  buildBrowseTabs();
+
+  const src=RAWG_ENABLED?rawgBrowseResults:GAMES;
+  // Apply local genre/search filter (for static DB fallback or already-filtered RAWG results)
+  const fil=src.filter(g=>{
+    const gok=filterGenre==='All'||g.genre===filterGenre;
+    const qok=!searchQuery||g.title.toLowerCase().includes(searchQuery)||(g.genre&&g.genre.toLowerCase().includes(searchQuery))||(g.dev&&g.dev.toLowerCase().includes(searchQuery));
+    return gok&&qok;
+  });
+
+  if(!fil.length){
+    grid.innerHTML=`<div class="empty-wrap"><div class="empty-icon">🕹️</div><div class="empty-text">${rawgBrowseLoading?'Loading…':searchQuery?'No results for "'+searchQuery+'"':'No games found'}</div></div>`;
+    return;
+  }
+
+  grid.innerHTML=fil.map((g,i)=>{
+    const ac=GC[g.genre]||'#7b61ff';
+    const delay=`animation-delay:${Math.min(i*.033,1.4)}s`;
+    const covHtml=g.cover?`<img src="${g.cover}" alt="${g.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:' ';
+    const alreadyAdded=CU&&games.find(x=>x.title===g.title);
+    const key=RAWG_ENABLED?`'${g.title.replace(/'/g,"\\'")}' `:g._dbIdx;
+    const addBtn=CU
+      ?(alreadyAdded
+        ?`<div class="card-in-lib">✓ IN YOUR LIBRARY</div>`
+        :`<button class="card-add-btn" onclick="event.stopPropagation();addFromBrowse(${RAWG_ENABLED?`'${g.title.replace(/'/g,"\\'")}'`:g._dbIdx})">＋ Add to Library</button>`)
+      :`<div style="padding-top:9px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">Sign in to add</div>`;
+    return`<div class="game-card" style="${delay}" onclick="${CU?`addFromBrowse(${RAWG_ENABLED?`'${g.title.replace(/'/g,"\\'")}'`:g._dbIdx})`:`openAuth('in')`}">
+      <div class="card-cover">
+        ${covHtml}
+        <div class="cover-ph"${g.cover?' style="display:none"':''}><div class="cover-ph-icon">${GI[g.genre]||'🎮'}</div><div class="cover-ph-label">No Cover</div></div>
+        ${g.metacritic?`<div class="s-ribbon" style="background:rgba(0,210,180,.18);color:#00d2b4;border:1px solid rgba(0,210,180,.35)">⭐${g.metacritic}</div>`:''}
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <div class="genre-chip"><div class="g-dot" style="background:${ac}"></div>${g.genre}${g.platform?` · ${g.platform}`:''}</div>
+          ${g.year?`<span style="font-size:9.5px;color:var(--text3);font-family:'JetBrains Mono',monospace">${g.year}</span>`:''}
+        </div>
+        <div class="card-title">${g.title}</div>
+        ${addBtn}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Add RAWG pagination controls if enabled
+  if(RAWG_ENABLED&&rawgBrowseCount>20){
+    const totalPages=Math.ceil(rawgBrowseCount/20);
+    const showPages=Math.min(totalPages,999); // RAWG caps at some point
+    grid.innerHTML+=`<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;padding:22px 0;flex-wrap:wrap">
+      <button class="btn-nav" onclick="loadRawgBrowse(${rawgBrowsePage-1},'${rawgBrowseGenre}','${rawgBrowseSearch.replace(/'/g,"\\'")}');window.scrollTo(0,0)" ${rawgBrowsePage<=1?'disabled style="opacity:.4;cursor:not-allowed"':''}>← Prev</button>
+      <span style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text3)">Page ${rawgBrowsePage} · ${rawgBrowseCount.toLocaleString()} games</span>
+      <button class="btn-nav" onclick="loadRawgBrowse(${rawgBrowsePage+1},'${rawgBrowseGenre}','${rawgBrowseSearch.replace(/'/g,"\\'")}');window.scrollTo(0,0)">Next →</button>
+    </div>`;
+  }
+}
+
+function buildBrowseTabs(){
+  // Genre bar — for RAWG, use our known genre list + map to RAWG slugs when filtering
+  const genres=['All',...Object.keys(GI).filter(g=>g!=='All')];
+  document.getElementById('genreBar').innerHTML=genres.map(g=>`<button class="gtab${g===filterGenre?' active':''}" onclick="browseSetGenre('${g.replace(/'/g,"\\'")}',this)">${GI[g]||'🎮'} ${g}</button>`).join('');
+  // Status bar empty in browse
+  document.getElementById('statusBar').innerHTML='';
+  // Show RAWG badge
+  const topBar=document.getElementById('topBar');
+  if(topBar&&!topBar.querySelector('.rawg-badge')){
+    const badge=document.createElement('div');
+    badge.className='rawg-badge';
+    badge.innerHTML=RAWG_ENABLED
+      ?`<span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#00d2b4;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.25);border-radius:100px;padding:4px 11px">⚡ RAWG · ${rawgBrowseCount>0?rawgBrowseCount.toLocaleString()+' games':'Live Database'}</span>`
+      :`<span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:4px 11px" title="Add a RAWG API key to unlock 900k+ games">📦 ${GAMES.length} cached games · <a href="https://rawg.io/apidocs" target="_blank" style="color:#a89ffc;text-decoration:none">Add RAWG key</a> for 900k+</span>`;
+    topBar.prepend(badge);
+  }else if(topBar){
+    const badge=topBar.querySelector('.rawg-badge');
+    if(badge)badge.innerHTML=RAWG_ENABLED
+      ?`<span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#00d2b4;background:rgba(0,210,180,.1);border:1px solid rgba(0,210,180,.25);border-radius:100px;padding:4px 11px">⚡ RAWG · ${rawgBrowseCount>0?rawgBrowseCount.toLocaleString()+' games':'Live Database'}</span>`
+      :`<span style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text3);background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:4px 11px" title="Add a RAWG API key to unlock 900k+ games">📦 ${GAMES.length} cached games · <a href="https://rawg.io/apidocs" target="_blank" style="color:#a89ffc;text-decoration:none">Add RAWG key</a> for 900k+</span>`;
+  }
+}
+
+function browseSetGenre(g,el){
+  filterGenre=g;
+  document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(RAWG_ENABLED){
+    rawgBrowsePage=1;
+    const slug=g==='All'?'':GENRE_TO_RAWG[g]||'';
+    loadRawgBrowse(1,slug,rawgBrowseSearch);
+  }else{
+    render();
+  }
+}
+function addFromBrowse(titleOrIdx){
   if(!CU){openAuth('in');toast('Sign in to add games','🔐');return;}
-  const g=GAMES[dbIdx];if(!g)return;
+  let g;
+  if(typeof titleOrIdx==='number'){
+    // Legacy static DB index
+    g=GAMES[titleOrIdx];
+  }else{
+    // RAWG — look up by title in cache
+    g=rawgCache[titleOrIdx];
+  }
+  if(!g)return;
   if(games.find(x=>x.title===g.title)){toast('Already in library','✓');return;}
   games.push({id:nid++,...g,status:'backlog',rating:0,added:new Date().toISOString().slice(0,10),notes:'',hours:0});
-  saveGames();render();toast(`${g.title} added!`,'🎮');
+  saveGames();renderBrowseGrid();render();toast(`${g.title} added!`,'🎮');
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2560,30 +2782,77 @@ function openAddModal(){
 function closeAddModal(){document.getElementById('addOverlay').classList.remove('open')}
 
 function onTitleInput(inp){
-  clearTimeout(titleTimer);pendingCover='';
+  clearTimeout(titleTimer);clearTimeout(rawgSearchTimer2);pendingCover='';
   const val=inp.value.trim();
   const sr=document.getElementById('addSR'),prev=document.getElementById('iconPrev'),load=document.getElementById('iconLoad');
   if(!val){sr.innerHTML='';sr.classList.remove('open');prev.style.display='none';load.style.display='none';return;}
-  const hits=GAMES.filter(g=>g.title.toLowerCase().includes(val.toLowerCase())).slice(0,8);
-  if(hits.length){
+
+  if(RAWG_ENABLED){
+    // Show searching indicator immediately
     sr.classList.add('open');
-    sr.innerHTML=hits.map(g=>`<div class="sr-item" onclick='fillGame(${JSON.stringify(g).replace(/'/g,"&#39;")})'>
-      <div class="sr-thumb">${g.cover?`<img src="${g.cover}" onerror="this.parentNode.innerHTML='${GI[g.genre]||'🎮'}'">`:GI[g.genre]||'🎮'}</div>
-      <div class="sr-info"><div class="sr-title">${g.title}</div><div class="sr-meta">${g.genre} · ${g.platform} · ${g.year}</div></div>
-    </div>`).join('');
-  }else{sr.classList.remove('open');sr.innerHTML='';}
+    sr.innerHTML=`<div class="sr-item" style="color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:11px;padding:12px 14px;gap:8px">🔍 Searching 900k+ games…</div>`;
+    rawgSearchTimer2=setTimeout(async()=>{
+      try{
+        const d=await rawgFetch(`/games?search=${encodeURIComponent(val)}&page_size=8&search_precise=false`);
+        const hits=(d.results||[]);
+        if(!hits.length){sr.classList.remove('open');sr.innerHTML='';return;}
+        sr.classList.add('open');
+        sr.innerHTML=hits.map(r=>{
+          const g=rawgToGame(r);
+          const safe=JSON.stringify(g).replace(/'/g,"&#39;");
+          return`<div class="sr-item" onclick='fillGame(${safe})'>
+            <div class="sr-thumb">${g.cover?`<img src="${g.cover}" loading="lazy" onerror="this.parentNode.innerHTML='${GI[g.genre]||'🎮'}'">`:GI[g.genre]||'🎮'}</div>
+            <div class="sr-info">
+              <div class="sr-title">${g.title}</div>
+              <div class="sr-meta">${g.genre} · ${g.platform||'PC'} · ${g.year||'—'}${r.metacritic?` · ⭐${r.metacritic}`:''}</div>
+            </div>
+          </div>`;
+        }).join('');
+      }catch(e){
+        // Fallback to local DB if RAWG fails
+        const hits=GAMES.filter(g=>g.title.toLowerCase().includes(val.toLowerCase())).slice(0,8);
+        if(hits.length){
+          sr.classList.add('open');
+          sr.innerHTML=hits.map(g=>`<div class="sr-item" onclick='fillGame(${JSON.stringify(g).replace(/'/g,"&#39;")})'>
+            <div class="sr-thumb">${g.cover?`<img src="${g.cover}" onerror="this.parentNode.innerHTML='${GI[g.genre]||'🎮'}'">`:GI[g.genre]||'🎮'}</div>
+            <div class="sr-info"><div class="sr-title">${g.title}</div><div class="sr-meta">${g.genre} · ${g.platform} · ${g.year}</div></div>
+          </div>`).join('');
+        }else{sr.classList.remove('open');sr.innerHTML='';}
+      }
+    },380);
+  }else{
+    // No RAWG key — use local DB
+    const hits=GAMES.filter(g=>g.title.toLowerCase().includes(val.toLowerCase())).slice(0,8);
+    if(hits.length){
+      sr.classList.add('open');
+      sr.innerHTML=hits.map(g=>`<div class="sr-item" onclick='fillGame(${JSON.stringify(g).replace(/'/g,"&#39;")})'>
+        <div class="sr-thumb">${g.cover?`<img src="${g.cover}" onerror="this.parentNode.innerHTML='${GI[g.genre]||'🎮'}'">`:GI[g.genre]||'🎮'}</div>
+        <div class="sr-info"><div class="sr-title">${g.title}</div><div class="sr-meta">${g.genre} · ${g.platform} · ${g.year}</div></div>
+      </div>`).join('');
+    }else{sr.classList.remove('open');sr.innerHTML='';}
+  }
+
   titleTimer=setTimeout(async()=>{
     load.style.display='block';
     const cover=await fetchCover(val);
     load.style.display='none';
     if(cover){prev.src=cover;prev.style.display='block';pendingCover=cover;}
     else prev.style.display='none';
-  },700);
+  },800);
 }
 
 async function fetchCover(title){
+  // 1) Check local static DB
   const db=GAMES.find(g=>g.title.toLowerCase()===title.toLowerCase());
   if(db&&db.cover)return db.cover;
+  // 2) Try RAWG search
+  if(RAWG_ENABLED){
+    try{
+      const d=await rawgFetch(`/games?search=${encodeURIComponent(title)}&page_size=1&search_precise=true`);
+      if(d.results&&d.results[0]&&d.results[0].background_image)return d.results[0].background_image;
+    }catch(e){}
+  }
+  // 3) Wikipedia fallback
   try{
     const r=await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title+' video game')}&prop=pageimages&format=json&pithumbsize=400&origin=*`);
     const d=await r.json();const p=Object.values(d.query.pages)[0];
@@ -2635,8 +2904,23 @@ function deleteDetail(){if(!confirm('Remove this game?'))return;games=games.filt
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // RENDER
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function onSearch(inp){searchQuery=inp.value.trim().toLowerCase();document.getElementById('searchClear').style.display=searchQuery?'block':'none';render();}
-function clearSearch(){document.getElementById('mainSearch').value='';searchQuery='';document.getElementById('searchClear').style.display='none';render();}
+function onSearch(inp){
+  searchQuery=inp.value.trim().toLowerCase();
+  document.getElementById('searchClear').style.display=searchQuery?'block':'none';
+  if(libView==='browse'&&RAWG_ENABLED){
+    clearTimeout(rawgSearchTimer2);
+    rawgBrowseSearch=inp.value.trim();
+    rawgSearchTimer2=setTimeout(()=>loadRawgBrowse(1,rawgBrowseGenre,rawgBrowseSearch),500);
+  }else{
+    render();
+  }
+}
+function clearSearch(){
+  document.getElementById('mainSearch').value='';searchQuery='';
+  document.getElementById('searchClear').style.display='none';
+  if(libView==='browse'&&RAWG_ENABLED){rawgBrowseSearch='';loadRawgBrowse(1,rawgBrowseGenre,'');}
+  else render();
+}
 function setGenre(g,el){filterGenre=g;document.querySelectorAll('.gtab').forEach(t=>t.classList.remove('active'));el.classList.add('active');render();}
 function setStatus(s,el){filterStatus=s;document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active','active-all','active-playing','active-backlog','active-completed','active-dropped'));el.classList.add(SM[s].c);render();}
 function setRating(id,r){const g=games.find(g=>g.id===id);if(g){g.rating=g.rating===r?0:r;saveGames();render();}}
@@ -2644,26 +2928,38 @@ function setCardStatus(id,s){const g=games.find(g=>g.id===id);if(g){g.status=s;s
 function delCard(id){if(!confirm('Remove?'))return;games=games.filter(g=>g.id!==id);saveGames();render();toast('Removed','🗑');}
 
 function buildTabs(){
-  const isBrowse=libView==='browse';
-  const src=isBrowse?GAMES:(CU?games:GAMES);
+  if(libView==='browse'){buildBrowseTabs();return;}
+  const src=CU?games:GAMES;
   const genres=['All',...[...new Set(src.map(g=>g.genre))].sort()];
   document.getElementById('genreBar').innerHTML=genres.map(g=>`<button class="gtab${g===filterGenre?' active':''}" onclick="setGenre('${g.replace(/'/g,"\\'")}',this)">${GI[g]||'🎮'} ${g}</button>`).join('');
-  if(isBrowse){
-    document.getElementById('statusBar').innerHTML='';
-  } else {
-    const cnt={playing:0,backlog:0,completed:0,dropped:0};
-    src.forEach(g=>{if(cnt[g.status]!==undefined)cnt[g.status]++;});
-    document.getElementById('statusBar').innerHTML=Object.entries(SM).map(([k,v])=>`<button class="stab${filterStatus===k?' '+v.c:''}" onclick="setStatus('${k}',this)">${v.l}${k!=='all'?` <span style="opacity:.4;font-size:10px">(${cnt[k]||0})</span>`:''}</button>`).join('');
-  }
+  const cnt={playing:0,backlog:0,completed:0,dropped:0};
+  src.forEach(g=>{if(cnt[g.status]!==undefined)cnt[g.status]++;});
+  document.getElementById('statusBar').innerHTML=Object.entries(SM).map(([k,v])=>`<button class="stab${filterStatus===k?' '+v.c:''}" onclick="setStatus('${k}',this)">${v.l}${k!=='all'?` <span style="opacity:.4;font-size:10px">(${cnt[k]||0})</span>`:''}</button>`).join('');
+  // Remove any lingering rawg-badge
+  const b=document.getElementById('topBar')?.querySelector('.rawg-badge');if(b)b.remove();
 }
 
 function render(){
   buildTabs();
-  const isBrowse=libView==='browse';
-  const raw=isBrowse?GAMES.map((g,i)=>({...g,_dbIdx:i})):(CU?games:GAMES.map((g,i)=>({id:i+1,...g,status:'backlog',rating:0,added:'',notes:'',hours:0})));
+  // Browse mode is handled entirely by renderBrowseGrid / loadRawgBrowse
+  if(libView==='browse'){
+    // If we have no results yet, renderBrowseGrid will show static DB as fallback
+    if(!RAWG_ENABLED&&rawgBrowseResults.length===0){
+      rawgBrowseResults=GAMES.map((g,i)=>({...g,_dbIdx:i}));
+    }
+    renderBrowseGrid();
+    // Header stats
+    const uLib=CU?games:[];
+    const uSt={playing:0,backlog:0,completed:0};
+    uLib.forEach(g=>{if(uSt[g.status]!==undefined)uSt[g.status]++;});
+    document.getElementById('hdrStats').innerHTML=`<div class="hstat"><span class="hstat-n" style="color:#c4bfff">${uLib.length}</span><span class="hstat-l">Total</span></div><div class="hstat"><span class="hstat-n" style="color:#00d2b4">${uSt.playing}</span><span class="hstat-l">Playing</span></div><div class="hstat"><span class="hstat-n" style="color:#ff8c5a">${uSt.completed}</span><span class="hstat-l">Done</span></div>`;
+    return;
+  }
+
+  const raw=CU?games:GAMES.map((g,i)=>({id:i+1,...g,status:'backlog',rating:0,added:'',notes:'',hours:0}));
   const fil=raw.filter(g=>{
     const gok=filterGenre==='All'||g.genre===filterGenre;
-    const sok=isBrowse||filterStatus==='all'||g.status===filterStatus;
+    const sok=filterStatus==='all'||g.status===filterStatus;
     const qok=!searchQuery||g.title.toLowerCase().includes(searchQuery)||(g.genre&&g.genre.toLowerCase().includes(searchQuery))||(g.dev&&g.dev.toLowerCase().includes(searchQuery))||(g.platform&&g.platform.toLowerCase().includes(searchQuery));
     return gok&&sok&&qok;
   });
@@ -2674,7 +2970,7 @@ function render(){
   document.getElementById('hdrStats').innerHTML=`<div class="hstat"><span class="hstat-n" style="color:#c4bfff">${uLib.length}</span><span class="hstat-l">Total</span></div><div class="hstat"><span class="hstat-n" style="color:#00d2b4">${uSt.playing}</span><span class="hstat-l">Playing</span></div><div class="hstat"><span class="hstat-n" style="color:#ff8c5a">${uSt.completed}</span><span class="hstat-l">Done</span></div>`;
 
   // Empty library for new signed-in users
-  if(!isBrowse&&CU&&games.length===0&&!searchQuery){
+  if(CU&&games.length===0&&!searchQuery){
     document.getElementById('gameGrid').innerHTML=`<div class="lib-zero">
       <div class="lib-zero-glyph">🎮</div>
       <div class="lib-zero-title">Your library is empty</div>
@@ -2692,26 +2988,15 @@ function render(){
     const ac=GC[g.genre]||'#7b61ff';
     const delay=`animation-delay:${Math.min(i*.033,1.4)}s`;
     const covHtml=g.cover?`<img src="${g.cover}" alt="${g.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:' ';
-    const starHtml=(!isBrowse&&CU)?[1,2,3,4,5].map(n=>`<span class="star${g.rating>=n?' on':''}" onclick="event.stopPropagation();setRating(${g.id},${n})">★</span>`).join(''):'';
-    const alreadyAdded=isBrowse&&CU&&games.find(x=>x.title===g.title);
-    let footer;
-    if(isBrowse){
-      footer=CU
-        ?(alreadyAdded
-          ?`<div class="card-in-lib">✓ IN YOUR LIBRARY</div>`
-          :`<button class="card-add-btn" onclick="event.stopPropagation();addFromBrowse(${g._dbIdx})">＋ Add to Library</button>`)
-        :`<div style="padding-top:9px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">Sign in to add</div>`;
-    }else{
-      footer=CU
-        ?`<div class="stars">${starHtml}</div><div class="card-footer"><select class="csel css-${g.status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();setCardStatus(${g.id},this.value)"><option value="playing"${g.status==='playing'?' selected':''}>Playing</option><option value="backlog"${g.status==='backlog'?' selected':''}>Backlog</option><option value="completed"${g.status==='completed'?' selected':''}>Completed</option><option value="dropped"${g.status==='dropped'?' selected':''}>Dropped</option></select><div class="card-actions"><button class="act-btn del" onclick="event.stopPropagation();delCard(${g.id})">✕</button></div></div>`
-        :`<div style="padding-top:9px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">Sign in to track</div>`;
-    }
-    const clickFn=isBrowse?(CU?`addFromBrowse(${g._dbIdx})`:`openAuth('in')`):(CU?`openDetail(${g.id})`:`openAuth('in')`);
-    return`<div class="game-card" style="${delay}" onclick="${clickFn}">
+    const starHtml=CU?[1,2,3,4,5].map(n=>`<span class="star${g.rating>=n?' on':''}" onclick="event.stopPropagation();setRating(${g.id},${n})">★</span>`).join(''):'';
+    const footer=CU
+      ?`<div class="stars">${starHtml}</div><div class="card-footer"><select class="csel css-${g.status}" onclick="event.stopPropagation()" onchange="event.stopPropagation();setCardStatus(${g.id},this.value)"><option value="playing"${g.status==='playing'?' selected':''}>Playing</option><option value="backlog"${g.status==='backlog'?' selected':''}>Backlog</option><option value="completed"${g.status==='completed'?' selected':''}>Completed</option><option value="dropped"${g.status==='dropped'?' selected':''}>Dropped</option></select><div class="card-actions"><button class="act-btn del" onclick="event.stopPropagation();delCard(${g.id})">✕</button></div></div>`
+      :`<div style="padding-top:9px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">Sign in to track</div>`;
+    return`<div class="game-card" style="${delay}" onclick="${CU?`openDetail(${g.id})`:`openAuth('in')`}">
       <div class="card-cover">
         ${covHtml}
         <div class="cover-ph"${g.cover?' style="display:none"':''}><div class="cover-ph-icon">${GI[g.genre]||'🎮'}</div><div class="cover-ph-label">No Cover</div></div>
-        ${!isBrowse?`<div class="s-ribbon r-${g.status}">${g.status}</div>`:''}
+        <div class="s-ribbon r-${g.status}">${g.status}</div>
       </div>
       <div class="card-body">
         <div class="card-meta">
