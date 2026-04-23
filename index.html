@@ -927,6 +927,52 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 .fr-badge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#ff3d7f;color:#fff;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-left:5px;animation:badgePop .3s cubic-bezier(.34,1.56,.64,1)}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   INLINE CHAT PANEL (Friends Page)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.friends-chat-wrap{
+  margin-top:24px;border:1px solid rgba(56,189,248,.22);border-radius:18px;
+  overflow:hidden;display:none;animation:cardIn .3s ease both;
+  background:var(--bg1);
+}
+.friends-chat-wrap.visible{display:flex;flex-direction:column}
+.fchat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 18px;border-bottom:1px solid var(--border);
+  background:linear-gradient(135deg,rgba(56,189,248,.07),rgba(123,97,255,.05));
+}
+.fchat-header-left{display:flex;align-items:center;gap:11px}
+.fchat-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0;border:2px solid rgba(56,189,248,.3)}
+.fchat-name{font-size:14px;font-weight:700;color:var(--text1);line-height:1.2}
+.fchat-online{font-size:10px;color:#00d2b4;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:5px;margin-top:2px}
+.fchat-online-dot{width:6px;height:6px;border-radius:50%;background:#00d2b4;animation:livePulse 1.4s ease-in-out infinite}
+.fchat-close-btn{background:none;border:1px solid var(--border);color:var(--text3);font-size:13px;cursor:pointer;padding:5px 10px;border-radius:9px;transition:all .15s;font-family:'Outfit',sans-serif}
+.fchat-close-btn:hover{color:var(--text1);background:rgba(255,61,127,.1);border-color:rgba(255,61,127,.3);color:#ff7eb6}
+.fchat-messages{
+  height:300px;overflow-y:auto;padding:14px 18px;
+  display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth;
+  background:var(--bg0);
+}
+.fchat-messages::-webkit-scrollbar{width:4px}
+.fchat-messages::-webkit-scrollbar-thumb{background:rgba(123,97,255,.2);border-radius:3px}
+.fchat-input-wrap{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:var(--bg1)}
+.fchat-input{
+  flex:1;padding:9px 15px;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:100px;color:var(--text1);font-size:13.5px;font-family:'Outfit',sans-serif;
+  outline:none;transition:border-color .2s;
+}
+.fchat-input:focus{border-color:rgba(56,189,248,.45)}
+.fchat-input::placeholder{color:var(--text3)}
+.fchat-send{
+  width:38px;height:38px;border-radius:50%;
+  background:linear-gradient(135deg,#38bdf8,#7b61ff);
+  border:none;color:#fff;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .2s,transform .15s;flex-shrink:0;
+}
+.fchat-send:hover{opacity:.85;transform:scale(1.07)}
+.fc-btn.chat.active-chat{background:rgba(56,189,248,.25);border-color:#38bdf8;color:#fff}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    FRIEND PROFILE + VS MODAL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 .vs-header{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:22px;flex-wrap:wrap}
@@ -1520,6 +1566,28 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
         </div>
       </div>
     </div>
+
+    <!-- ── INLINE CHAT PANEL ── -->
+    <div class="friends-chat-wrap" id="inlineChatWrap">
+      <div class="fchat-header">
+        <div class="fchat-header-left">
+          <div class="fchat-av" id="fchatAv">?</div>
+          <div>
+            <div class="fchat-name" id="fchatName">Chat</div>
+            <div class="fchat-online"><span class="fchat-online-dot"></span>online</div>
+          </div>
+        </div>
+        <button class="fchat-close-btn" onclick="closeInlineChat()">✕ Close</button>
+      </div>
+      <div class="fchat-messages" id="fchatMessages">
+        <div class="chat-empty">Select a friend and click 💬 to start chatting!</div>
+      </div>
+      <div class="fchat-input-wrap">
+        <input type="text" class="fchat-input" id="fchatInput" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendInlineChatMsg()" maxlength="300">
+        <button class="fchat-send" onclick="sendInlineChatMsg()">➤</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -3790,6 +3858,11 @@ async function acceptFriendRequest(fromId){
       {user_id:fromId,friend_id:CU.id,friend_name:myP.displayName,friend_avatar:myP.avatarEmoji,friend_color:myP.avatarColor}
     ],{onConflict:'user_id,friend_id'});
     pushNotifForUser(fromId,'🤝',`${myP.displayName} accepted your friend request!`,'friend');
+    // ── Always mirror into localStorage so the friends list shows instantly ──
+    const fd=getFriendDataLS();
+    fd.received=fd.received.filter(r=>r.id!==fromId);
+    if(!fd.friends.find(f=>f.id===fromId))fd.friends.push({id:fromId,name:theirName,avatar:theirAvatar,color:theirColor});
+    saveFriendDataLS(fd);
     toast(`You and ${theirName} are now friends! 🎮`,'🤝');
   }else{
     const fd=getFriendDataLS();
@@ -3924,7 +3997,7 @@ async function renderFriendsPage(){
         </div>
         <div class="fc-actions">
           <button class="fc-btn view" onclick="openFriendProfile('${f.id}')">⚔️ VS</button>
-          <button class="fc-btn chat" onclick="openChat('${f.id}','${safeName}','${f.avatar||f.name[0]}','${f.color||'#7b61ff'}')" style="position:relative">
+          <button class="fc-btn chat${chatPartnerId===f.id?' active-chat':''}" id="fcbtn_${f.id}" onclick="openInlineChat('${f.id}','${safeName}','${f.avatar||f.name[0]}','${f.color||'#7b61ff'}')" style="position:relative">
             💬${unread>0?`<span class="chat-msg-badge">${unread}</span>`:''}
           </button>
           <button class="fc-btn remove" onclick="removeFriend('${f.id}')">✕</button>
@@ -4116,6 +4189,105 @@ function closeChat(){
   document.getElementById('chatOverlay').classList.remove('open');
   chatPartnerId=null;
   stopChatPoll();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INLINE CHAT (Friends Page Panel)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function openInlineChat(partnerId, partnerName, partnerAv, partnerColor){
+  if(!CU){toast('Sign in to chat','🔐');return;}
+  chatPartnerId=partnerId;
+  // Update header
+  const avEl=document.getElementById('fchatAv');
+  if(avEl){avEl.textContent=partnerAv;avEl.style.background=partnerColor;}
+  const nameEl=document.getElementById('fchatName');
+  if(nameEl)nameEl.textContent=partnerName;
+  // Load messages
+  _chatMsgs=[];
+  await loadChatMessages();
+  // Mark incoming as read
+  if(SB_READY&&sb){
+    sb.from('chat_messages').update({read:true}).eq('to_id',CU.id).eq('from_id',partnerId).eq('read',false).then(()=>{});
+  }else{
+    const msgs=lsGet(chatLSKey(CU.id,partnerId),[]);
+    msgs.forEach(m=>{if(m.from!==CU.id)m.read=true;});
+    lsSet(chatLSKey(CU.id,partnerId),msgs);
+  }
+  renderInlineChatMessages();
+  // Show the panel and scroll into view
+  const wrap=document.getElementById('inlineChatWrap');
+  if(wrap){wrap.classList.add('visible');setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'nearest'}),80);}
+  document.getElementById('fchatInput')?.focus();
+  startInlineChatPoll();
+  // Re-render friend list to update active-chat button
+  setTimeout(()=>renderFriendsPage(),100);
+}
+
+function closeInlineChat(){
+  chatPartnerId=null;
+  stopChatPoll();
+  const wrap=document.getElementById('inlineChatWrap');
+  if(wrap)wrap.classList.remove('visible');
+  renderFriendsPage();
+}
+
+function renderInlineChatMessages(){
+  const box=document.getElementById('fchatMessages');
+  if(!box)return;
+  if(!_chatMsgs.length){box.innerHTML='<div class="chat-empty">No messages yet — say hello! 👋</div>';return;}
+  const timeStr=t=>{const d=new Date(t);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');};
+  let html='',lastDay='';
+  _chatMsgs.forEach(m=>{
+    const day=new Date(m.time).toLocaleDateString();
+    if(day!==lastDay){html+=`<div class="chat-day-sep">${day}</div>`;lastDay=day;}
+    const isMe=m.from===CU.id;
+    html+=`<div><div class="chat-bubble ${isMe?'me':'them'}">${escHtml(m.msg)}</div><div class="chat-bubble-time">${timeStr(m.time)}</div></div>`;
+  });
+  box.innerHTML=html;
+  box.scrollTop=box.scrollHeight;
+}
+
+async function sendInlineChatMsg(){
+  const input=document.getElementById('fchatInput');
+  const msg=input?.value.trim();
+  if(!msg||!chatPartnerId||!CU)return;
+  input.value='';
+  if(SB_READY&&sb){
+    const{data,error}=await sb.from('chat_messages').insert({from_id:CU.id,to_id:chatPartnerId,message:msg,read:false}).select().single();
+    if(!error&&data){
+      _chatMsgs.push({from:data.from_id,msg:data.message,time:new Date(data.created_at).getTime(),read:false,id:data.id});
+      renderInlineChatMessages();
+    }
+  }else{
+    const key=chatLSKey(CU.id,chatPartnerId);
+    const msgs=lsGet(key,[]);
+    msgs.push({from:CU.id,msg,time:Date.now(),read:false});
+    lsSet(key,msgs);
+    _chatMsgs=msgs;
+    renderInlineChatMessages();
+    pushNotifForUser(chatPartnerId,'💬',`${CU.name}: ${msg.length>40?msg.slice(0,40)+'…':msg}`,'chat');
+  }
+}
+
+function startInlineChatPoll(){
+  stopChatPoll();
+  if(SB_READY&&sb&&chatPartnerId&&CU){
+    if(chatRealtimeSub){try{sb.removeChannel(chatRealtimeSub);}catch(e){}}
+    chatRealtimeSub=sb.channel('chat-rt-'+[CU.id,chatPartnerId].sort().join('-'))
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages',filter:`to_id=eq.${CU.id}`},async(payload)=>{
+        if(payload.new.from_id===chatPartnerId){
+          _chatMsgs.push({from:payload.new.from_id,msg:payload.new.message,time:new Date(payload.new.created_at).getTime(),read:false,id:payload.new.id});
+          renderInlineChatMessages();
+          sb.from('chat_messages').update({read:true}).eq('id',payload.new.id).then(()=>{});
+          setTimeout(()=>renderFriendsPage(),200);
+        }
+      })
+      .subscribe();
+  }else{
+    chatPollTimer=setInterval(async()=>{
+      if(chatPartnerId&&CU){await loadChatMessages();renderInlineChatMessages();}
+    },2500);
+  }
 }
 
 function renderChatMessages(){
