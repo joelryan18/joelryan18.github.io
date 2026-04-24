@@ -3961,13 +3961,13 @@ async function renderFriendsPage(){
     </div>`;
   }
 
-  // ── Always read localStorage first for instant render ─────────
+  // ── Read localStorage for instant first render ───────────────
   const lsFd=getFriendDataLS();
   let friendsList=lsFd.friends||[];
   let receivedList=lsFd.received||[];
   let sentList=lsFd.sent||[];
 
-  // ── Then try Supabase and MERGE into localStorage ─────────────
+  // ── Supabase is authoritative — always replace, never merge ───
   if(SB_READY&&sb){
     try{
       const[frRes,recRes,sentRes]=await Promise.all([
@@ -3975,22 +3975,15 @@ async function renderFriendsPage(){
         sb.from('friend_requests').select('*').eq('to_id',CU.id).eq('status','pending'),
         sb.from('friend_requests').select('*').eq('from_id',CU.id).eq('status','pending')
       ]);
-      if(!frRes.error){
-        const sbFriends=(frRes.data||[]).map(r=>({id:r.friend_id,name:r.friend_name,avatar:r.friend_avatar,color:r.friend_color}));
-        // Merge: any friend in Supabase not in LS gets added, LS keeps any extras
-        sbFriends.forEach(sf=>{if(!friendsList.find(f=>f.id===sf.id))friendsList.push(sf);});
-        // Save merged result back
-        saveFriendDataLS({friends:friendsList,received:receivedList,sent:sentList});
-      }
-      if(!recRes.error){
-        const sbRec=(recRes.data||[]).map(r=>({id:r.from_id,name:r.from_name,avatar:r.from_avatar,color:r.from_color}));
-        // Replace received with Supabase version (more authoritative)
-        if(sbRec.length||!receivedList.length)receivedList=sbRec;
-      }
-      if(!sentRes.error){
-        const sbSent=(sentRes.data||[]).map(r=>({id:r.to_id,name:r.to_name||r.from_name||'?',avatar:'🎮',color:'#7b61ff'}));
-        if(sbSent.length||!sentList.length)sentList=sbSent;
-      }
+      // Always replace with Supabase data when query succeeds (even if empty)
+      if(!frRes.error)
+        friendsList=(frRes.data||[]).map(r=>({id:r.friend_id,name:r.friend_name,avatar:r.friend_avatar,color:r.friend_color}));
+      if(!recRes.error)
+        receivedList=(recRes.data||[]).map(r=>({id:r.from_id,name:r.from_name,avatar:r.from_avatar,color:r.from_color}));
+      if(!sentRes.error)
+        sentList=(sentRes.data||[]).map(r=>({id:r.to_id,name:r.to_name||r.from_name||'?',avatar:'🎮',color:'#7b61ff'}));
+      // Write authoritative state back to localStorage so offline fallback stays clean
+      saveFriendDataLS({friends:friendsList,received:receivedList,sent:sentList});
     }catch(e){/* use localStorage data already set above */}
   }
 
@@ -4084,10 +4077,18 @@ function startFriendPagePoll(){
         const page=document.getElementById('page-friends');
         if(page&&page.classList.contains('active'))renderFriendsPage();
       })
-      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'friend_requests',filter:`from_id=eq.${CU.id}`},(payload)=>{
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'friend_requests',filter:`from_id=eq.${CU.id}`},async(payload)=>{
         if(payload.new.status==='accepted'){
-          pushNotif('🤝',`${payload.new.from_name||'Someone'} accepted your friend request!`,'friend');
-          renderFriendsPage();updateFriendsBadge();
+          // Look up the acceptor's name from user_registry
+          let acceptorName='Someone';
+          try{
+            const{data}=await sb.from('user_registry').select('display_name').eq('id',payload.new.to_id).maybeSingle();
+            if(data?.display_name)acceptorName=data.display_name;
+          }catch(e){}
+          pushNotif('🤝',`${acceptorName} accepted your friend request!`,'friend');
+          // Re-fetch from Supabase — this clears sent list and adds to friends on sender's side
+          renderFriendsPage();
+          updateFriendsBadge();
         }
       })
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'friends',filter:`user_id=eq.${CU.id}`},()=>{
