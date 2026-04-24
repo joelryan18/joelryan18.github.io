@@ -3839,47 +3839,50 @@ async function sendFriendRequest(){
 async function acceptFriendRequest(fromId){
   const myP=getMyProfile();
 
-  // ── Step 1: get the requester's info ──────────────────────────
+  // ── Step 1: Get requester info from Supabase or localStorage ──
   let theirName='Friend',theirAvatar='🎮',theirColor='#7b61ff';
+  const lsFd=getFriendDataLS();
+  const lsReq=lsFd.received.find(r=>r.id===fromId);
+  if(lsReq){theirName=lsReq.name||theirName;theirAvatar=lsReq.avatar||theirAvatar;theirColor=lsReq.color||theirColor;}
   if(SB_READY&&sb){
     try{
       const{data:req}=await sb.from('friend_requests').select('*').eq('from_id',fromId).eq('to_id',CU.id).maybeSingle();
       if(req){theirName=req.from_name||theirName;theirAvatar=req.from_avatar||theirAvatar;theirColor=req.from_color||theirColor;}
     }catch(e){}
   }
-  // Also check localStorage received list as fallback
-  const lsFd=getFriendDataLS();
-  const lsReq=lsFd.received.find(r=>r.id===fromId);
-  if(lsReq){theirName=lsReq.name||theirName;theirAvatar=lsReq.avatar||theirAvatar;theirColor=lsReq.color||theirColor;}
 
-  // ── Step 2: Update localStorage IMMEDIATELY so UI is instant ──
+  // ── Step 2: Write to Supabase FIRST (so renderFriendsPage reads correct data) ──
+  if(SB_READY&&sb){
+    try{
+      await sb.from('friend_requests').update({status:'accepted'}).eq('from_id',fromId).eq('to_id',CU.id);
+      // Insert both directions — use INSERT ignore-on-conflict so RLS update policy not needed
+      await sb.from('friends').insert([
+        {user_id:CU.id,friend_id:fromId,friend_name:theirName,friend_avatar:theirAvatar,friend_color:theirColor},
+        {user_id:fromId,friend_id:CU.id,friend_name:myP.displayName,friend_avatar:myP.avatarEmoji,friend_color:myP.avatarColor}
+      ]).select();
+    }catch(e){
+      // Ignore duplicate key errors (23505) — means friendship already exists
+      if(!e.code||e.code!=='23505')console.warn('Supabase accept error:',e);
+    }
+    try{pushNotifForUser(fromId,'🤝',`${myP.displayName} accepted your friend request!`,'friend');}catch(e){}
+  }
+
+  // ── Step 3: Update localStorage to match ──────────────────────
   lsFd.received=lsFd.received.filter(r=>r.id!==fromId);
   if(!lsFd.friends.find(f=>f.id===fromId))
     lsFd.friends.push({id:fromId,name:theirName,avatar:theirAvatar,color:theirColor});
   saveFriendDataLS(lsFd);
-  // Also update the sender's localStorage (same-device)
+  // Mirror for same-device sender
   const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
   theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
   if(!theirFD.friends.find(f=>f.id===CU.id))
     theirFD.friends.push({id:CU.id,name:myP.displayName,avatar:myP.avatarEmoji,color:myP.avatarColor});
   lsSet('bhq_fr_'+fromId,theirFD);
 
-  // ── Step 3: Render immediately with localStorage data ─────────
+  // ── Step 4: Now render — Supabase already has correct data ────
   toast(`You and ${theirName} are now friends! 🎮`,'🤝');
   await renderFriendsPage();
   updateFriendsBadge();
-
-  // ── Step 4: Sync to Supabase in background (fire-and-forget) ──
-  if(SB_READY&&sb){
-    try{
-      await sb.from('friend_requests').update({status:'accepted'}).eq('from_id',fromId).eq('to_id',CU.id);
-      await sb.from('friends').upsert([
-        {user_id:CU.id,friend_id:fromId,friend_name:theirName,friend_avatar:theirAvatar,friend_color:theirColor},
-        {user_id:fromId,friend_id:CU.id,friend_name:myP.displayName,friend_avatar:myP.avatarEmoji,friend_color:myP.avatarColor}
-      ],{onConflict:'user_id,friend_id'});
-      pushNotifForUser(fromId,'🤝',`${myP.displayName} accepted your friend request!`,'friend');
-    }catch(e){console.warn('Supabase accept sync failed (localStorage already updated):',e);}
-  }
 }
 
 // ── Reject request ─────────────────────────────────────────────
@@ -3967,7 +3970,7 @@ async function renderFriendsPage(){
   let receivedList=lsFd.received||[];
   let sentList=lsFd.sent||[];
 
-  // ── Supabase is authoritative — always replace, never merge ───
+  // ── Supabase is authoritative — replace localStorage with live data ──
   if(SB_READY&&sb){
     try{
       const[frRes,recRes,sentRes]=await Promise.all([
@@ -3975,16 +3978,22 @@ async function renderFriendsPage(){
         sb.from('friend_requests').select('*').eq('to_id',CU.id).eq('status','pending'),
         sb.from('friend_requests').select('*').eq('from_id',CU.id).eq('status','pending')
       ]);
-      // Always replace with Supabase data when query succeeds (even if empty)
-      if(!frRes.error)
-        friendsList=(frRes.data||[]).map(r=>({id:r.friend_id,name:r.friend_name,avatar:r.friend_avatar,color:r.friend_color}));
-      if(!recRes.error)
-        receivedList=(recRes.data||[]).map(r=>({id:r.from_id,name:r.from_name,avatar:r.from_avatar,color:r.from_color}));
-      if(!sentRes.error)
-        sentList=(sentRes.data||[]).map(r=>({id:r.to_id,name:r.to_name||r.from_name||'?',avatar:'🎮',color:'#7b61ff'}));
-      // Write authoritative state back to localStorage so offline fallback stays clean
+      const sbFriends=!frRes.error?(frRes.data||[]).map(r=>({id:r.friend_id,name:r.friend_name,avatar:r.friend_avatar,color:r.friend_color})):null;
+      const sbReceived=!recRes.error?(recRes.data||[]).map(r=>({id:r.from_id,name:r.from_name,avatar:r.from_avatar,color:r.from_color})):null;
+      const sbSent=!sentRes.error?(sentRes.data||[]).map(r=>({id:r.to_id,name:r.to_name||'?',avatar:'🎮',color:'#7b61ff'})):null;
+
+      // Only replace if Supabase returned data (not null = query failed)
+      // Safety: if Supabase returns empty friends but localStorage has some, keep localStorage
+      // (prevents wipe due to RLS timing right after insert)
+      if(sbFriends!==null){
+        friendsList = sbFriends.length>0 ? sbFriends : (friendsList.length>0 ? friendsList : []);
+      }
+      if(sbReceived!==null) receivedList=sbReceived;
+      if(sbSent!==null) sentList=sbSent;
+
+      // Save clean state back to localStorage
       saveFriendDataLS({friends:friendsList,received:receivedList,sent:sentList});
-    }catch(e){/* use localStorage data already set above */}
+    }catch(e){/* use localStorage data set above */}
   }
 
   const fc=document.getElementById('friendsCount');if(fc)fc.textContent=friendsList.length;
