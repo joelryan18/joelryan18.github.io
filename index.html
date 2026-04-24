@@ -926,51 +926,37 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 /* pending request badge on friends nav */
 .fr-badge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#ff3d7f;color:#fff;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-left:5px;animation:badgePop .3s cubic-bezier(.34,1.56,.64,1)}
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   INLINE CHAT PANEL (Friends Page)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.friends-chat-wrap{
-  margin-top:24px;border:1px solid rgba(56,189,248,.22);border-radius:18px;
-  overflow:hidden;display:none;animation:cardIn .3s ease both;
-  background:var(--bg1);
-}
-.friends-chat-wrap.visible{display:flex;flex-direction:column}
-.fchat-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:13px 18px;border-bottom:1px solid var(--border);
-  background:linear-gradient(135deg,rgba(56,189,248,.07),rgba(123,97,255,.05));
-}
-.fchat-header-left{display:flex;align-items:center;gap:11px}
-.fchat-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0;border:2px solid rgba(56,189,248,.3)}
-.fchat-name{font-size:14px;font-weight:700;color:var(--text1);line-height:1.2}
-.fchat-online{font-size:10px;color:#00d2b4;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:5px;margin-top:2px}
-.fchat-online-dot{width:6px;height:6px;border-radius:50%;background:#00d2b4;animation:livePulse 1.4s ease-in-out infinite}
-.fchat-close-btn{background:none;border:1px solid var(--border);color:var(--text3);font-size:13px;cursor:pointer;padding:5px 10px;border-radius:9px;transition:all .15s;font-family:'Outfit',sans-serif}
-.fchat-close-btn:hover{color:var(--text1);background:rgba(255,61,127,.1);border-color:rgba(255,61,127,.3);color:#ff7eb6}
-.fchat-messages{
-  height:300px;overflow-y:auto;padding:14px 18px;
-  display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth;
-  background:var(--bg0);
-}
+/* ── Inline Chat Panel ───────────────────────────────────────── */
+.friends-chat-wrap{display:none;flex-direction:column;border:1px solid rgba(56,189,248,.25);border-radius:18px;overflow:hidden;background:var(--bg1);margin-top:24px;animation:cardIn .3s ease both}
+.friends-chat-wrap.visible{display:flex}
+.fchat-header{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(123,97,255,.05))}
+.fchat-header-left{display:flex;align-items:center;gap:12px}
+.fchat-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;border:2px solid rgba(56,189,248,.3);background:#7b61ff;transition:background .3s}
+.fchat-name{font-size:14px;font-weight:700;color:var(--text1)}
+.fchat-status{font-size:10.5px;color:#00d2b4;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:5px;margin-top:3px}
+.fchat-online-dot{width:6px;height:6px;border-radius:50%;background:#00d2b4;flex-shrink:0;animation:livePulse 1.4s ease-in-out infinite}
+.fchat-close-btn{background:none;border:1px solid var(--border);color:var(--text3);font-size:12.5px;cursor:pointer;padding:5px 11px;border-radius:9px;transition:all .15s;font-family:'Outfit',sans-serif}
+.fchat-close-btn:hover{color:#ff7eb6;background:rgba(255,61,127,.1);border-color:rgba(255,61,127,.3)}
+.fchat-messages{height:280px;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:9px;scroll-behavior:smooth;background:var(--bg0)}
 .fchat-messages::-webkit-scrollbar{width:4px}
 .fchat-messages::-webkit-scrollbar-thumb{background:rgba(123,97,255,.2);border-radius:3px}
-.fchat-input-wrap{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);background:var(--bg1)}
-.fchat-input{
-  flex:1;padding:9px 15px;background:var(--bg2);border:1px solid var(--border2);
-  border-radius:100px;color:var(--text1);font-size:13.5px;font-family:'Outfit',sans-serif;
-  outline:none;transition:border-color .2s;
-}
-.fchat-input:focus{border-color:rgba(56,189,248,.45)}
+.chat-empty{font-size:13px;color:var(--text3);text-align:center;margin:auto;font-family:'JetBrains Mono',monospace;line-height:1.7}
+.chat-bubble{padding:8px 13px;border-radius:16px;font-size:13.5px;max-width:75%;word-break:break-word;line-height:1.5}
+.chat-bubble.me{background:linear-gradient(135deg,#38bdf8,#7b61ff);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.chat-bubble.them{background:var(--bg2);color:var(--text1);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+.chat-bubble-time{font-size:9.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;padding:0 4px}
+.chat-bubble-time.me-t{text-align:right}
+.chat-day-sep{text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin:6px 0}
+.fchat-input-wrap{display:flex;gap:8px;padding:11px 14px;border-top:1px solid var(--border);background:var(--bg1)}
+.fchat-input{flex:1;padding:9px 15px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;color:var(--text1);font-size:13.5px;font-family:'Outfit',sans-serif;outline:none;transition:border-color .2s}
+.fchat-input:focus{border-color:rgba(56,189,248,.5)}
 .fchat-input::placeholder{color:var(--text3)}
-.fchat-send{
-  width:38px;height:38px;border-radius:50%;
-  background:linear-gradient(135deg,#38bdf8,#7b61ff);
-  border:none;color:#fff;font-size:16px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:opacity .2s,transform .15s;flex-shrink:0;
-}
-.fchat-send:hover{opacity:.85;transform:scale(1.07)}
-.fc-btn.chat.active-chat{background:rgba(56,189,248,.25);border-color:#38bdf8;color:#fff}
+.fchat-input:disabled{opacity:.45;cursor:not-allowed}
+.fchat-send{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#7b61ff);border:none;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s,transform .15s}
+.fchat-send:hover:not(:disabled){opacity:.85;transform:scale(1.08)}
+.fchat-send:disabled{opacity:.35;cursor:not-allowed}
+.fc-btn.chat.active-chat{background:rgba(56,189,248,.2);border-color:#38bdf8;color:#38bdf8}
+.fc-active{border-color:rgba(56,189,248,.4)!important;background:rgba(56,189,248,.04)!important}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    FRIEND PROFILE + VS MODAL
@@ -1567,24 +1553,29 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
       </div>
     </div>
 
-    <!-- ── INLINE CHAT PANEL ── -->
+    <!-- ══════════════════════════════════════════
+         INLINE CHAT PANEL
+    ══════════════════════════════════════════ -->
     <div class="friends-chat-wrap" id="inlineChatWrap">
       <div class="fchat-header">
         <div class="fchat-header-left">
-          <div class="fchat-av" id="fchatAv">?</div>
+          <div class="fchat-av" id="fchatAv">💬</div>
           <div>
-            <div class="fchat-name" id="fchatName">Chat</div>
-            <div class="fchat-online"><span class="fchat-online-dot"></span>online</div>
+            <div class="fchat-name" id="fchatName">Select a friend to chat</div>
+            <div class="fchat-status" id="fchatStatus"><span class="fchat-online-dot"></span> online</div>
           </div>
         </div>
         <button class="fchat-close-btn" onclick="closeInlineChat()">✕ Close</button>
       </div>
       <div class="fchat-messages" id="fchatMessages">
-        <div class="chat-empty">Select a friend and click 💬 to start chatting!</div>
+        <div class="chat-empty">👆 Click 💬 on any friend above to start chatting!</div>
       </div>
       <div class="fchat-input-wrap">
-        <input type="text" class="fchat-input" id="fchatInput" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendInlineChatMsg()" maxlength="300">
-        <button class="fchat-send" onclick="sendInlineChatMsg()">➤</button>
+        <input type="text" class="fchat-input" id="fchatInput"
+          placeholder="Type a message and press Enter…"
+          onkeydown="if(event.key==='Enter')sendInlineChatMsg()"
+          maxlength="300" disabled>
+        <button class="fchat-send" id="fchatSendBtn" onclick="sendInlineChatMsg()" disabled>➤</button>
       </div>
     </div>
 
@@ -3847,39 +3838,48 @@ async function sendFriendRequest(){
 // ── Accept request ─────────────────────────────────────────────
 async function acceptFriendRequest(fromId){
   const myP=getMyProfile();
+
+  // ── Step 1: get the requester's info ──────────────────────────
+  let theirName='Friend',theirAvatar='🎮',theirColor='#7b61ff';
   if(SB_READY&&sb){
-    const{data:req}=await sb.from('friend_requests').select('*').eq('from_id',fromId).eq('to_id',CU.id).maybeSingle();
-    const theirName=req?.from_name||'Friend';
-    const theirAvatar=req?.from_avatar||'🎮';
-    const theirColor=req?.from_color||'#7b61ff';
-    await sb.from('friend_requests').update({status:'accepted'}).eq('from_id',fromId).eq('to_id',CU.id);
-    await sb.from('friends').upsert([
-      {user_id:CU.id,friend_id:fromId,friend_name:theirName,friend_avatar:theirAvatar,friend_color:theirColor},
-      {user_id:fromId,friend_id:CU.id,friend_name:myP.displayName,friend_avatar:myP.avatarEmoji,friend_color:myP.avatarColor}
-    ],{onConflict:'user_id,friend_id'});
-    pushNotifForUser(fromId,'🤝',`${myP.displayName} accepted your friend request!`,'friend');
-    // ── Always mirror into localStorage so the friends list shows instantly ──
-    const fd=getFriendDataLS();
-    fd.received=fd.received.filter(r=>r.id!==fromId);
-    if(!fd.friends.find(f=>f.id===fromId))fd.friends.push({id:fromId,name:theirName,avatar:theirAvatar,color:theirColor});
-    saveFriendDataLS(fd);
-    toast(`You and ${theirName} are now friends! 🎮`,'🤝');
-  }else{
-    const fd=getFriendDataLS();
-    const req=fd.received.find(r=>r.id===fromId);
-    if(!req)return;
-    fd.received=fd.received.filter(r=>r.id!==fromId);
-    if(!fd.friends.find(f=>f.id===fromId))fd.friends.push({id:req.id,name:req.name,avatar:req.avatar,color:req.color});
-    saveFriendDataLS(fd);
-    const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
-    theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
-    if(!theirFD.friends.find(f=>f.id===CU.id))theirFD.friends.push({id:CU.id,name:myP.displayName,avatar:myP.avatarEmoji,color:myP.avatarColor});
-    lsSet('bhq_fr_'+fromId,theirFD);
-    pushNotifForUser(fromId,'🤝',`${myP.displayName} accepted your friend request!`,'friend');
-    toast(`You and ${req.name} are now friends! 🎮`,'🤝');
+    try{
+      const{data:req}=await sb.from('friend_requests').select('*').eq('from_id',fromId).eq('to_id',CU.id).maybeSingle();
+      if(req){theirName=req.from_name||theirName;theirAvatar=req.from_avatar||theirAvatar;theirColor=req.from_color||theirColor;}
+    }catch(e){}
   }
+  // Also check localStorage received list as fallback
+  const lsFd=getFriendDataLS();
+  const lsReq=lsFd.received.find(r=>r.id===fromId);
+  if(lsReq){theirName=lsReq.name||theirName;theirAvatar=lsReq.avatar||theirAvatar;theirColor=lsReq.color||theirColor;}
+
+  // ── Step 2: Update localStorage IMMEDIATELY so UI is instant ──
+  lsFd.received=lsFd.received.filter(r=>r.id!==fromId);
+  if(!lsFd.friends.find(f=>f.id===fromId))
+    lsFd.friends.push({id:fromId,name:theirName,avatar:theirAvatar,color:theirColor});
+  saveFriendDataLS(lsFd);
+  // Also update the sender's localStorage (same-device)
+  const theirFD=lsGet('bhq_fr_'+fromId,{friends:[],sent:[],received:[]});
+  theirFD.sent=theirFD.sent.filter(s=>s.id!==CU.id);
+  if(!theirFD.friends.find(f=>f.id===CU.id))
+    theirFD.friends.push({id:CU.id,name:myP.displayName,avatar:myP.avatarEmoji,color:myP.avatarColor});
+  lsSet('bhq_fr_'+fromId,theirFD);
+
+  // ── Step 3: Render immediately with localStorage data ─────────
+  toast(`You and ${theirName} are now friends! 🎮`,'🤝');
   await renderFriendsPage();
   updateFriendsBadge();
+
+  // ── Step 4: Sync to Supabase in background (fire-and-forget) ──
+  if(SB_READY&&sb){
+    try{
+      await sb.from('friend_requests').update({status:'accepted'}).eq('from_id',fromId).eq('to_id',CU.id);
+      await sb.from('friends').upsert([
+        {user_id:CU.id,friend_id:fromId,friend_name:theirName,friend_avatar:theirAvatar,friend_color:theirColor},
+        {user_id:fromId,friend_id:CU.id,friend_name:myP.displayName,friend_avatar:myP.avatarEmoji,friend_color:myP.avatarColor}
+      ],{onConflict:'user_id,friend_id'});
+      pushNotifForUser(fromId,'🤝',`${myP.displayName} accepted your friend request!`,'friend');
+    }catch(e){console.warn('Supabase accept sync failed (localStorage already updated):',e);}
+  }
 }
 
 // ── Reject request ─────────────────────────────────────────────
@@ -3961,7 +3961,13 @@ async function renderFriendsPage(){
     </div>`;
   }
 
-  let friendsList=[],receivedList=[],sentList=[];
+  // ── Always read localStorage first for instant render ─────────
+  const lsFd=getFriendDataLS();
+  let friendsList=lsFd.friends||[];
+  let receivedList=lsFd.received||[];
+  let sentList=lsFd.sent||[];
+
+  // ── Then try Supabase and MERGE into localStorage ─────────────
   if(SB_READY&&sb){
     try{
       const[frRes,recRes,sentRes]=await Promise.all([
@@ -3969,11 +3975,24 @@ async function renderFriendsPage(){
         sb.from('friend_requests').select('*').eq('to_id',CU.id).eq('status','pending'),
         sb.from('friend_requests').select('*').eq('from_id',CU.id).eq('status','pending')
       ]);
-      friendsList=(frRes.data||[]).map(r=>({id:r.friend_id,name:r.friend_name,avatar:r.friend_avatar,color:r.friend_color}));
-      receivedList=(recRes.data||[]).map(r=>({id:r.from_id,name:r.from_name,avatar:r.from_avatar,color:r.from_color}));
-      sentList=(sentRes.data||[]).map(r=>({id:r.to_id,name:r.from_name||'?',avatar:'🎮',color:'#7b61ff'}));
-    }catch(e){const fd=getFriendDataLS();friendsList=fd.friends;receivedList=fd.received;sentList=fd.sent;}
-  }else{const fd=getFriendDataLS();friendsList=fd.friends;receivedList=fd.received;sentList=fd.sent;}
+      if(!frRes.error){
+        const sbFriends=(frRes.data||[]).map(r=>({id:r.friend_id,name:r.friend_name,avatar:r.friend_avatar,color:r.friend_color}));
+        // Merge: any friend in Supabase not in LS gets added, LS keeps any extras
+        sbFriends.forEach(sf=>{if(!friendsList.find(f=>f.id===sf.id))friendsList.push(sf);});
+        // Save merged result back
+        saveFriendDataLS({friends:friendsList,received:receivedList,sent:sentList});
+      }
+      if(!recRes.error){
+        const sbRec=(recRes.data||[]).map(r=>({id:r.from_id,name:r.from_name,avatar:r.from_avatar,color:r.from_color}));
+        // Replace received with Supabase version (more authoritative)
+        if(sbRec.length||!receivedList.length)receivedList=sbRec;
+      }
+      if(!sentRes.error){
+        const sbSent=(sentRes.data||[]).map(r=>({id:r.to_id,name:r.to_name||r.from_name||'?',avatar:'🎮',color:'#7b61ff'}));
+        if(sbSent.length||!sentList.length)sentList=sbSent;
+      }
+    }catch(e){/* use localStorage data already set above */}
+  }
 
   const fc=document.getElementById('friendsCount');if(fc)fc.textContent=friendsList.length;
   const pc=document.getElementById('pendingCount');if(pc)pc.textContent=receivedList.length;
@@ -3989,7 +4008,8 @@ async function renderFriendsPage(){
       const ck=[CU.id,f.id].sort().join('_');
       const unread=(lsGet('bhq_chat_'+ck,[])).filter(m=>m.from!==CU.id&&!m.read).length;
       const safeName=escHtml(f.name||'?');
-      return`<div class="friend-card">
+      const isActive=chatPartnerId===f.id;
+      return`<div class="friend-card${isActive?' fc-active':''}">
         <div class="fc-av" style="background:${f.color||'#7b61ff'}">${f.avatar||f.name[0]}</div>
         <div class="fc-info">
           <div class="fc-name">${safeName}</div>
@@ -3997,7 +4017,7 @@ async function renderFriendsPage(){
         </div>
         <div class="fc-actions">
           <button class="fc-btn view" onclick="openFriendProfile('${f.id}')">⚔️ VS</button>
-          <button class="fc-btn chat${chatPartnerId===f.id?' active-chat':''}" id="fcbtn_${f.id}" onclick="openInlineChat('${f.id}','${safeName}','${f.avatar||f.name[0]}','${f.color||'#7b61ff'}')" style="position:relative">
+          <button class="fc-btn chat${isActive?' active-chat':''}" onclick="openInlineChat('${f.id}','${safeName}','${f.avatar||f.name[0]}','${f.color||'#7b61ff'}')" style="position:relative">
             💬${unread>0?`<span class="chat-msg-badge">${unread}</span>`:''}
           </button>
           <button class="fc-btn remove" onclick="removeFriend('${f.id}')">✕</button>
@@ -4032,6 +4052,23 @@ async function renderFriendsPage(){
         <div class="fc-actions"><button class="fc-btn remove" onclick="cancelFriendRequest('${s.id}')">Cancel</button></div>
       </div>`).join('');}
   }
+
+  // Show/hide inline chat panel
+  const chatWrap=document.getElementById('inlineChatWrap');
+  if(chatWrap){
+    if(friendsList.length>0){
+      chatWrap.classList.add('visible');
+      if(!chatPartnerId){
+        // No active chat yet — show picker prompt
+        document.getElementById('fchatMessages').innerHTML='<div class="chat-empty">👆 Click 💬 on any friend above to start chatting!</div>';
+        const nameEl=document.getElementById('fchatName');if(nameEl)nameEl.textContent='Select a friend';
+        const avEl=document.getElementById('fchatAv');if(avEl){avEl.textContent='💬';avEl.style.background='#7b61ff';}
+      }
+    }else{
+      chatWrap.classList.remove('visible');
+    }
+  }
+
   updateFriendsBadge();
 }
 
@@ -4191,57 +4228,67 @@ function closeChat(){
   stopChatPoll();
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// INLINE CHAT (Friends Page Panel)
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function openInlineChat(partnerId, partnerName, partnerAv, partnerColor){
+// INLINE CHAT PANEL FUNCTIONS
+async function openInlineChat(partnerId,partnerName,partnerAv,partnerColor){
   if(!CU){toast('Sign in to chat','🔐');return;}
+  stopChatPoll();
   chatPartnerId=partnerId;
-  // Update header
   const avEl=document.getElementById('fchatAv');
-  if(avEl){avEl.textContent=partnerAv;avEl.style.background=partnerColor;}
   const nameEl=document.getElementById('fchatName');
+  const inp=document.getElementById('fchatInput');
+  const btn=document.getElementById('fchatSendBtn');
+  if(avEl){avEl.textContent=partnerAv;avEl.style.background=partnerColor;}
   if(nameEl)nameEl.textContent=partnerName;
-  // Load messages
+  if(inp){inp.disabled=false;inp.placeholder='Message '+partnerName+'…';inp.focus();}
+  if(btn)btn.disabled=false;
+  const wrap=document.getElementById('inlineChatWrap');
+  if(wrap){wrap.classList.add('visible');setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'nearest'}),80);}
   _chatMsgs=[];
+  const msgBox=document.getElementById('fchatMessages');
+  if(msgBox)msgBox.innerHTML='<div class="chat-empty">Loading…</div>';
   await loadChatMessages();
-  // Mark incoming as read
+  renderInlineChatMessages();
   if(SB_READY&&sb){
     sb.from('chat_messages').update({read:true}).eq('to_id',CU.id).eq('from_id',partnerId).eq('read',false).then(()=>{});
   }else{
-    const msgs=lsGet(chatLSKey(CU.id,partnerId),[]);
+    const key=chatLSKey(CU.id,partnerId);
+    const msgs=lsGet(key,[]);
     msgs.forEach(m=>{if(m.from!==CU.id)m.read=true;});
-    lsSet(chatLSKey(CU.id,partnerId),msgs);
+    lsSet(key,msgs);
   }
-  renderInlineChatMessages();
-  // Show the panel and scroll into view
-  const wrap=document.getElementById('inlineChatWrap');
-  if(wrap){wrap.classList.add('visible');setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'nearest'}),80);}
-  document.getElementById('fchatInput')?.focus();
   startInlineChatPoll();
-  // Re-render friend list to update active-chat button
-  setTimeout(()=>renderFriendsPage(),100);
+  setTimeout(()=>renderFriendsPage(),150);
 }
 
 function closeInlineChat(){
-  chatPartnerId=null;
   stopChatPoll();
+  chatPartnerId=null;
   const wrap=document.getElementById('inlineChatWrap');
   if(wrap)wrap.classList.remove('visible');
+  const inp=document.getElementById('fchatInput');
+  const btn=document.getElementById('fchatSendBtn');
+  if(inp){inp.disabled=true;inp.value='';inp.placeholder='Type a message and press Enter…';}
+  if(btn)btn.disabled=true;
+  const msgBox=document.getElementById('fchatMessages');
+  if(msgBox)msgBox.innerHTML='<div class="chat-empty">Click 💬 on any friend above to start chatting!</div>';
+  const nameEl=document.getElementById('fchatName');if(nameEl)nameEl.textContent='Select a friend to chat';
+  const avEl=document.getElementById('fchatAv');if(avEl){avEl.textContent='💬';avEl.style.background='#7b61ff';}
   renderFriendsPage();
 }
 
 function renderInlineChatMessages(){
   const box=document.getElementById('fchatMessages');
   if(!box)return;
-  if(!_chatMsgs.length){box.innerHTML='<div class="chat-empty">No messages yet — say hello! 👋</div>';return;}
+  if(!_chatMsgs.length){box.innerHTML='<div class="chat-empty">No messages yet — say hi! 👋</div>';return;}
   const timeStr=t=>{const d=new Date(t);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');};
   let html='',lastDay='';
   _chatMsgs.forEach(m=>{
     const day=new Date(m.time).toLocaleDateString();
-    if(day!==lastDay){html+=`<div class="chat-day-sep">${day}</div>`;lastDay=day;}
+    if(day!==lastDay){html+='<div class="chat-day-sep">'+day+'</div>';lastDay=day;}
     const isMe=m.from===CU.id;
-    html+=`<div><div class="chat-bubble ${isMe?'me':'them'}">${escHtml(m.msg)}</div><div class="chat-bubble-time">${timeStr(m.time)}</div></div>`;
+    html+='<div style="display:flex;flex-direction:column;align-items:'+(isMe?'flex-end':'flex-start')+'">'
+      +'<div class="chat-bubble '+(isMe?'me':'them')+'">'+escHtml(m.msg)+'</div>'
+      +'<div class="chat-bubble-time'+(isMe?' me-t':'')+'">'+timeStr(m.time)+'</div></div>';
   });
   box.innerHTML=html;
   box.scrollTop=box.scrollHeight;
@@ -4265,7 +4312,8 @@ async function sendInlineChatMsg(){
     lsSet(key,msgs);
     _chatMsgs=msgs;
     renderInlineChatMessages();
-    pushNotifForUser(chatPartnerId,'💬',`${CU.name}: ${msg.length>40?msg.slice(0,40)+'…':msg}`,'chat');
+    const preview=msg.length>40?msg.slice(0,40)+'…':msg;
+    pushNotifForUser(chatPartnerId,'💬',CU.name+': '+preview,'chat');
   }
 }
 
@@ -4273,16 +4321,15 @@ function startInlineChatPoll(){
   stopChatPoll();
   if(SB_READY&&sb&&chatPartnerId&&CU){
     if(chatRealtimeSub){try{sb.removeChannel(chatRealtimeSub);}catch(e){}}
-    chatRealtimeSub=sb.channel('chat-rt-'+[CU.id,chatPartnerId].sort().join('-'))
-      .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages',filter:`to_id=eq.${CU.id}`},async(payload)=>{
+    chatRealtimeSub=sb.channel('ichat-rt-'+[CU.id,chatPartnerId].sort().join('-'))
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages',filter:'to_id=eq.'+CU.id},async payload=>{
         if(payload.new.from_id===chatPartnerId){
           _chatMsgs.push({from:payload.new.from_id,msg:payload.new.message,time:new Date(payload.new.created_at).getTime(),read:false,id:payload.new.id});
           renderInlineChatMessages();
           sb.from('chat_messages').update({read:true}).eq('id',payload.new.id).then(()=>{});
           setTimeout(()=>renderFriendsPage(),200);
         }
-      })
-      .subscribe();
+      }).subscribe();
   }else{
     chatPollTimer=setInterval(async()=>{
       if(chatPartnerId&&CU){await loadChatMessages();renderInlineChatMessages();}
