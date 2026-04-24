@@ -1622,6 +1622,89 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 const SUPABASE_URL  = 'https://peoxnvimchfmygabaoou.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_XXVstD1A3yFGEF6cQV4T2g_jLG2b_ir';
 
+/* ═══════════════════════════════════════════════════════════
+   SUPABASE SQL SCHEMA — run once in your Supabase SQL editor
+   ═══════════════════════════════════════════════════════════
+
+-- 1. user_registry
+create table if not exists user_registry (
+  id uuid primary key,
+  slq_id text,
+  gamertag text,
+  display_name text,
+  avatar_emoji text,
+  avatar_color text,
+  updated_at timestamptz default now()
+);
+alter table user_registry enable row level security;
+create policy "users can upsert own registry" on user_registry for all using (auth.uid() = id);
+create policy "anyone can read registry" on user_registry for select using (true);
+
+-- 2. leaderboard  (global rankings — synced from saveGames + awardQuizXP)
+create table if not exists leaderboard (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  display_name text,
+  avatar_emoji text,
+  avatar_color text,
+  completed int default 0,
+  playing int default 0,
+  total int default 0,
+  hours int default 0,
+  quiz_xp int default 0,
+  updated_at timestamptz default now()
+);
+alter table leaderboard enable row level security;
+create policy "users can upsert own lb" on leaderboard for all using (auth.uid() = user_id);
+create policy "anyone can read lb" on leaderboard for select using (true);
+
+-- 3. friends  (one-directional insert, bidirectional query)
+-- When A accepts B's request: inserts row {user_id:A, friend_id:B}
+-- Both sides query with: WHERE user_id=X OR friend_id=X
+create table if not exists friends (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  friend_id uuid not null references auth.users(id) on delete cascade,
+  friend_name text,
+  friend_avatar text,
+  friend_color text,
+  created_at timestamptz default now(),
+  unique(user_id, friend_id)
+);
+alter table friends enable row level security;
+create policy "users manage own friend rows" on friends for all using (auth.uid() = user_id);
+create policy "users can read rows where they are friend_id" on friends for select using (auth.uid() = friend_id);
+
+-- 4. friend_requests
+create table if not exists friend_requests (
+  id bigint generated always as identity primary key,
+  from_id uuid not null references auth.users(id) on delete cascade,
+  to_id uuid not null references auth.users(id) on delete cascade,
+  from_name text, from_avatar text, from_color text, from_gamertag text,
+  status text default 'pending',
+  created_at timestamptz default now(),
+  unique(from_id, to_id)
+);
+alter table friend_requests enable row level security;
+create policy "sender can insert/update own requests" on friend_requests for all using (auth.uid() = from_id);
+create policy "recipient can update status" on friend_requests for update using (auth.uid() = to_id);
+create policy "both parties can read" on friend_requests for select using (auth.uid() = from_id or auth.uid() = to_id);
+
+-- 5. chat_messages
+create table if not exists chat_messages (
+  id bigint generated always as identity primary key,
+  from_id uuid not null references auth.users(id) on delete cascade,
+  to_id uuid not null references auth.users(id) on delete cascade,
+  message text not null,
+  read bool default false,
+  created_at timestamptz default now()
+);
+alter table chat_messages enable row level security;
+create policy "sender can insert" on chat_messages for insert with check (auth.uid() = from_id);
+create policy "sender can update read" on chat_messages for update using (auth.uid() = to_id);
+create policy "parties can read" on chat_messages for select using (auth.uid() = from_id or auth.uid() = to_id);
+
+   ═══════════════════════════════════════════════════════════ */
+
 // Initialise Supabase client (only if credentials are set)
 let sb = null;
 const SB_READY = SUPABASE_URL !== 'YOUR_SUPABASE_PROJECT_URL';
@@ -1971,7 +2054,7 @@ function goPage(name){
   document.getElementById('page-'+name).classList.add('active');
   window.scrollTo(0,0);
   if(name==='rankings'){
-    buildRankList(rankTab);
+    buildRankList(rankTab);  // async — non-blocking, renders when ready
     startRankPolling();
   } else {
     stopRankPolling();
@@ -2237,6 +2320,26 @@ function saveGames(){
   lsSet('bhq_lb',lb);
   broadcastRankUpdate();
 
+  // ── Sync to Supabase leaderboard so ALL users appear in global rankings ──
+  if(SB_READY&&sb&&CU){
+    (async()=>{
+      try{
+        await sb.from('leaderboard').upsert({
+          user_id:CU.id,
+          display_name:CU.name,
+          avatar_emoji:CU.avatar,
+          avatar_color:CU.color,
+          completed:lb[CU.id].completed,
+          playing:lb[CU.id].playing,
+          total:lb[CU.id].total,
+          hours:lb[CU.id].hours,
+          quiz_xp:lb[CU.id].quizXP||0,
+          updated_at:new Date().toISOString()
+        },{onConflict:'user_id'});
+      }catch(e){console.warn('LB sync:',e);}
+    })();
+  }
+
   // Check tier upgrade from game tracking XP
   const xpAfter=calcXP(lb[CU.id]);
   const tierAfter=getTier(xpAfter);
@@ -2310,10 +2413,34 @@ function getXPProg(xp){
 function setRankTab(tab,el){
   rankTab=tab;
   document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');buildRankList(tab);
+  el.classList.add('active');buildRankList(tab);  // async — non-blocking
 }
-function buildRankList(tab){
+async function buildRankList(tab){
   const lb=lsGet('bhq_lb',{});
+
+  // ── Fetch ALL players from Supabase leaderboard (global cross-device rankings) ──
+  if(SB_READY&&sb){
+    try{
+      const{data,error}=await sb.from('leaderboard').select('*');
+      if(!error&&data&&data.length){
+        data.forEach(r=>{
+          // Merge into lb: Supabase is authoritative for other users, local wins for self
+          if(r.user_id===CU?.id){
+            // For self: keep local quizXP if higher (local may be ahead of sync)
+            const localXP=lb[r.user_id]?.quizXP||0;
+            lb[r.user_id]={id:r.user_id,name:r.display_name||CU.name,avatar:r.avatar_emoji||CU.avatar,
+              color:r.avatar_color||CU.color,completed:r.completed||0,playing:r.playing||0,
+              total:r.total||0,hours:r.hours||0,quizXP:Math.max(localXP,r.quiz_xp||0)};
+          } else {
+            lb[r.user_id]={id:r.user_id,name:r.display_name||'Player',avatar:r.avatar_emoji||'🎮',
+              color:r.avatar_color||'#7b61ff',completed:r.completed||0,playing:r.playing||0,
+              total:r.total||0,hours:r.hours||0,quizXP:r.quiz_xp||0};
+          }
+        });
+        lsSet('bhq_lb',lb);
+      }
+    }catch(e){console.warn('LB fetch:',e);}
+  }
   const players=Object.values(lb).map(p=>({...p,_xp:calcXP(p)}));
   const podEl=document.getElementById('podiumArea');
   const listEl=document.getElementById('rankList');
@@ -2582,6 +2709,26 @@ function awardQuizXP(xp){
   lb[CU.id].quizXP=(lb[CU.id].quizXP||0)+xp;
   lsSet('bhq_lb',lb);
   broadcastRankUpdate();
+
+  // ── Sync quiz XP to Supabase leaderboard ──
+  if(SB_READY&&sb){
+    (async()=>{
+      try{
+        await sb.from('leaderboard').upsert({
+          user_id:CU.id,
+          display_name:CU.name,
+          avatar_emoji:CU.avatar,
+          avatar_color:CU.color,
+          completed:lb[CU.id].completed||0,
+          playing:lb[CU.id].playing||0,
+          total:lb[CU.id].total||0,
+          hours:lb[CU.id].hours||0,
+          quiz_xp:lb[CU.id].quizXP,
+          updated_at:new Date().toISOString()
+        },{onConflict:'user_id'});
+      }catch(e){console.warn('Quiz XP LB sync:',e);}
+    })();
+  }
 
   // Check if tier changed
   const newXP=calcXP(lb[CU.id]);
@@ -3852,16 +3999,18 @@ async function acceptFriendRequest(fromId){
   }
 
   // ── Step 2: Write to Supabase FIRST (so renderFriendsPage reads correct data) ──
+  // NOTE: RLS only allows inserting rows where user_id = auth.uid(), so we only insert
+  // OUR side. The other direction is resolved via bidirectional query in renderFriendsPage.
   if(SB_READY&&sb){
     try{
       await sb.from('friend_requests').update({status:'accepted'}).eq('from_id',fromId).eq('to_id',CU.id);
-      // Insert both directions — use INSERT ignore-on-conflict so RLS update policy not needed
-      await sb.from('friends').insert([
+      // Insert only our side — RLS prevents inserting rows owned by another user
+      const{error:insErr}=await sb.from('friends').upsert(
         {user_id:CU.id,friend_id:fromId,friend_name:theirName,friend_avatar:theirAvatar,friend_color:theirColor},
-        {user_id:fromId,friend_id:CU.id,friend_name:myP.displayName,friend_avatar:myP.avatarEmoji,friend_color:myP.avatarColor}
-      ]).select();
+        {onConflict:'user_id,friend_id',ignoreDuplicates:true}
+      );
+      if(insErr&&insErr.code!=='23505')console.warn('Supabase friends insert:',insErr);
     }catch(e){
-      // Ignore duplicate key errors (23505) — means friendship already exists
       if(!e.code||e.code!=='23505')console.warn('Supabase accept error:',e);
     }
     try{pushNotifForUser(fromId,'🤝',`${myP.displayName} accepted your friend request!`,'friend');}catch(e){}
@@ -3974,17 +4123,37 @@ async function renderFriendsPage(){
   if(SB_READY&&sb){
     try{
       const[frRes,recRes,sentRes]=await Promise.all([
-        sb.from('friends').select('*').eq('user_id',CU.id),
+        // Bidirectional query: find all friendship rows where we are EITHER side
+        sb.from('friends').select('*').or(`user_id.eq.${CU.id},friend_id.eq.${CU.id}`),
         sb.from('friend_requests').select('*').eq('to_id',CU.id).eq('status','pending'),
         sb.from('friend_requests').select('*').eq('from_id',CU.id).eq('status','pending')
       ]);
-      const sbFriends=!frRes.error?(frRes.data||[]).map(r=>({id:r.friend_id,name:r.friend_name,avatar:r.friend_avatar,color:r.friend_color})):null;
+
+      // Normalise bidirectional rows: extract the *other* person in each row
+      const sbFriends=!frRes.error?(frRes.data||[]).map(r=>{
+        if(r.user_id===CU.id){
+          return{id:r.friend_id,name:r.friend_name,avatar:r.friend_avatar,color:r.friend_color};
+        } else {
+          // We are the friend_id — pull our name from user_registry fallback or cached registry
+          const reg=lsGet('bhq_registry',{});
+          const them=reg[r.user_id]||{};
+          return{id:r.user_id,name:r.friend_name||them.displayName||'Friend',avatar:r.friend_avatar||them.avatarEmoji||'🎮',color:r.friend_color||them.avatarColor||'#7b61ff'};
+        }
+      }):null;
+
       const sbReceived=!recRes.error?(recRes.data||[]).map(r=>({id:r.from_id,name:r.from_name,avatar:r.from_avatar,color:r.from_color})):null;
-      const sbSent=!sentRes.error?(sentRes.data||[]).map(r=>({id:r.to_id,name:r.to_name||'?',avatar:'🎮',color:'#7b61ff'})):null;
+      // For sent requests, also look up recipient names from user_registry
+      const sbSent=!sentRes.error?await Promise.all((sentRes.data||[]).map(async r=>{
+        let name='Pending',avatar='🎮',color='#7b61ff';
+        try{
+          const{data:reg}=await sb.from('user_registry').select('display_name,avatar_emoji,avatar_color').eq('id',r.to_id).maybeSingle();
+          if(reg){name=reg.display_name||name;avatar=reg.avatar_emoji||avatar;color=reg.avatar_color||color;}
+        }catch(e){}
+        return{id:r.to_id,name,avatar,color};
+      })):null;
 
       // Only replace if Supabase returned data (not null = query failed)
       // Safety: if Supabase returns empty friends but localStorage has some, keep localStorage
-      // (prevents wipe due to RLS timing right after insert)
       if(sbFriends!==null){
         friendsList = sbFriends.length>0 ? sbFriends : (friendsList.length>0 ? friendsList : []);
       }
@@ -4118,9 +4287,30 @@ function startFriendPagePoll(){
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FRIEND PROFILE + VS MODE
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function openFriendProfile(friendId){
+async function openFriendProfile(friendId){
   const lb=lsGet('bhq_lb',{});
-  const fd=getFriendData();
+
+  // Fetch friend's latest stats from Supabase leaderboard (cross-device)
+  if(SB_READY&&sb){
+    try{
+      const[lbRes,regRes]=await Promise.all([
+        sb.from('leaderboard').select('*').eq('user_id',friendId).maybeSingle(),
+        sb.from('user_registry').select('*').eq('id',friendId).maybeSingle()
+      ]);
+      if(lbRes.data){
+        const r=lbRes.data;
+        lb[friendId]={id:friendId,name:r.display_name||'Friend',avatar:r.avatar_emoji||'🎮',color:r.avatar_color||'#7b61ff',
+          completed:r.completed||0,playing:r.playing||0,total:r.total||0,hours:r.hours||0,quizXP:r.quiz_xp||0};
+      }
+      if(regRes.data&&!lb[friendId]){
+        const r=regRes.data;
+        lb[friendId]={id:friendId,name:r.display_name||'Friend',avatar:r.avatar_emoji||'🎮',color:r.avatar_color||'#7b61ff',
+          completed:0,playing:0,total:0,hours:0,quizXP:0};
+      }
+    }catch(e){console.warn('Friend lb fetch:',e);}
+  }
+
+  const fd=getFriendDataLS();  // Fixed: was getFriendData() (undefined)
   const friend=fd.friends.find(f=>f.id===friendId)||{id:friendId,name:'Friend',avatar:'?',color:'#7b61ff'};
   const fp=lb[friendId]||{completed:0,total:0,hours:0,quizXP:0};
   const me=lb[CU.id]||{completed:0,total:0,hours:0,quizXP:0};
