@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StackLog – Your Game Stack</title>
+<meta name="description" content="StackLog — Track your game backlog, rate games, take quizzes and compete with friends. Free web app, works offline.">
+<meta name="theme-color" content="#7b61ff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StackLog">
+<meta property="og:title" content="StackLog – Your Game Stack">
+<meta property="og:description" content="Track every game you play, rate them, compete on the leaderboard. Free & works offline.">
+<meta property="og:type" content="website">
+<link rel="manifest" id="pwaManifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -926,155 +936,35 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 /* pending request badge on friends nav */
 .fr-badge{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#ff3d7f;color:#fff;font-size:9px;font-weight:800;font-family:'JetBrains Mono',monospace;margin-left:5px;animation:badgePop .3s cubic-bezier(.34,1.56,.64,1)}
 
-/* ── Inline Chat Panel v2 ─────────────────────────────────────── */
-.friends-chat-wrap{
-  display:none;flex-direction:column;
-  border:1px solid rgba(123,97,255,.2);border-radius:22px;
-  overflow:hidden;background:var(--bg1);margin-top:24px;
-  animation:cardIn .35s cubic-bezier(.34,1.2,.64,1) both;
-  box-shadow:0 12px 44px rgba(123,97,255,.12),0 0 0 1px rgba(123,97,255,.07);
-}
+/* ── Inline Chat Panel ───────────────────────────────────────── */
+.friends-chat-wrap{display:none;flex-direction:column;border:1px solid rgba(56,189,248,.25);border-radius:18px;overflow:hidden;background:var(--bg1);margin-top:24px;animation:cardIn .3s ease both}
 .friends-chat-wrap.visible{display:flex}
-.fchat-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 20px;
-  border-bottom:1px solid rgba(123,97,255,.1);
-  background:linear-gradient(135deg,rgba(123,97,255,.15) 0%,rgba(56,189,248,.07) 55%,rgba(255,61,127,.07) 100%);
-  position:relative;overflow:hidden;
-}
-.fchat-header::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at -10% 50%,rgba(123,97,255,.18),transparent 55%);
-  pointer-events:none;
-}
-.fchat-header-left{display:flex;align-items:center;gap:13px;position:relative;z-index:1}
-.fchat-av{
-  width:44px;height:44px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:800;flex-shrink:0;
-  border:2.5px solid rgba(0,210,180,.5);
-  box-shadow:0 0 0 4px rgba(0,210,180,.1),0 0 18px rgba(0,210,180,.22);
-  transition:all .3s;position:relative;
-}
-.fchat-name{font-size:15px;font-weight:800;color:var(--text1);letter-spacing:-.3px}
-.fchat-status{font-size:10px;color:#00d2b4;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:5px;margin-top:3px}
+.fchat-header{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,rgba(56,189,248,.08),rgba(123,97,255,.05))}
+.fchat-header-left{display:flex;align-items:center;gap:12px}
+.fchat-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;border:2px solid rgba(56,189,248,.3);background:#7b61ff;transition:background .3s}
+.fchat-name{font-size:14px;font-weight:700;color:var(--text1)}
+.fchat-status{font-size:10.5px;color:#00d2b4;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:5px;margin-top:3px}
 .fchat-online-dot{width:6px;height:6px;border-radius:50%;background:#00d2b4;flex-shrink:0;animation:livePulse 1.4s ease-in-out infinite}
-.fchat-close-btn{
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
-  color:var(--text2);font-size:12.5px;cursor:pointer;
-  padding:7px 14px;border-radius:100px;transition:all .15s;
-  font-family:'Outfit',sans-serif;font-weight:700;
-  position:relative;z-index:1;display:flex;align-items:center;gap:5px;
-}
-.fchat-close-btn:hover{color:#ff7eb6;background:rgba(255,61,127,.12);border-color:rgba(255,61,127,.3)}
-/* emoji quick bar */
-.fchat-emoji-bar{
-  display:flex;align-items:center;gap:2px;padding:6px 16px 5px;
-  background:rgba(8,9,16,.25);border-bottom:1px solid rgba(255,255,255,.04);
-  overflow-x:auto;scrollbar-width:none;flex-shrink:0;
-}
-.fchat-emoji-bar::-webkit-scrollbar{display:none}
-.chat-eq{font-size:17px;cursor:pointer;padding:3px 5px;border-radius:8px;transition:transform .14s,background .14s;user-select:none;flex-shrink:0}
-.chat-eq:hover{transform:scale(1.32);background:rgba(123,97,255,.16)}
-.chat-eq-label{font-size:8.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;margin-right:4px;white-space:nowrap;text-transform:uppercase;opacity:.7}
-/* messages area */
-.fchat-messages{
-  height:310px;overflow-y:auto;padding:14px 18px 10px;
-  display:flex;flex-direction:column;gap:3px;
-  scroll-behavior:smooth;
-  background:var(--bg0);
-  background-image:
-    radial-gradient(circle at 15% 15%,rgba(123,97,255,.05),transparent 55%),
-    radial-gradient(circle at 85% 85%,rgba(255,61,127,.03),transparent 45%);
-}
-.fchat-messages::-webkit-scrollbar{width:3px}
-.fchat-messages::-webkit-scrollbar-thumb{background:rgba(123,97,255,.22);border-radius:3px}
-/* shared bubble styles */
-.chat-empty{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:8px;padding:40px 20px;margin:auto;text-align:center;
-}
-.chat-empty-icon{font-size:42px;animation:floatIcon 3s ease-in-out infinite}
-@keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-.chat-empty-text{font-size:14px;color:var(--text2);font-weight:700}
-.chat-empty-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
-.chat-bubble{
-  max-width:73%;padding:9px 14px;border-radius:18px;
-  font-size:13.5px;line-height:1.5;word-break:break-word;
-  animation:bubbleSlide .22s cubic-bezier(.34,1.2,.64,1);
-}
-@keyframes bubbleSlide{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
-.chat-bubble.me{
-  align-self:flex-end;
-  background:linear-gradient(135deg,#7b61ff 0%,#ff3d7f 100%);
-  color:#fff;border-bottom-right-radius:5px;
-  box-shadow:0 3px 14px rgba(123,97,255,.38);
-}
-.chat-bubble.them{
-  align-self:flex-start;
-  background:var(--bg2);color:var(--text1);
-  border:1px solid var(--border2);border-bottom-left-radius:5px;
-  box-shadow:0 2px 8px rgba(0,0,0,.15);
-}
-.chat-bubble.me.grp-next{border-bottom-right-radius:18px;margin-bottom:1px}
-.chat-bubble.them.grp-next{border-bottom-left-radius:18px;margin-bottom:1px}
-.chat-bubble.me.grp-prev{border-top-right-radius:6px}
-.chat-bubble.them.grp-prev{border-top-left-radius:6px}
-.chat-bubble-time{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:3px;padding:0 2px}
+.fchat-close-btn{background:none;border:1px solid var(--border);color:var(--text3);font-size:12.5px;cursor:pointer;padding:5px 11px;border-radius:9px;transition:all .15s;font-family:'Outfit',sans-serif}
+.fchat-close-btn:hover{color:#ff7eb6;background:rgba(255,61,127,.1);border-color:rgba(255,61,127,.3)}
+.fchat-messages{height:280px;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:9px;scroll-behavior:smooth;background:var(--bg0)}
+.fchat-messages::-webkit-scrollbar{width:4px}
+.fchat-messages::-webkit-scrollbar-thumb{background:rgba(123,97,255,.2);border-radius:3px}
+.chat-empty{font-size:13px;color:var(--text3);text-align:center;margin:auto;font-family:'JetBrains Mono',monospace;line-height:1.7}
+.chat-bubble{padding:8px 13px;border-radius:16px;font-size:13.5px;max-width:75%;word-break:break-word;line-height:1.5}
+.chat-bubble.me{background:linear-gradient(135deg,#38bdf8,#7b61ff);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.chat-bubble.them{background:var(--bg2);color:var(--text1);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+.chat-bubble-time{font-size:9.5px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;padding:0 4px}
 .chat-bubble-time.me-t{text-align:right}
-.chat-day-sep{
-  display:flex;align-items:center;gap:8px;
-  font-size:9px;font-family:'JetBrains Mono',monospace;
-  color:var(--text3);letter-spacing:1.2px;padding:10px 0;text-transform:uppercase;
-}
-.chat-day-sep::before,.chat-day-sep::after{content:'';flex:1;height:1px;background:var(--border)}
-/* typing dots */
-.chat-typing{
-  display:none;align-self:flex-start;align-items:center;gap:5px;
-  padding:10px 15px;border-radius:18px;border-bottom-left-radius:5px;
-  background:var(--bg2);border:1px solid var(--border2);
-  animation:bubbleSlide .22s ease;margin-bottom:3px;
-}
-.chat-typing.visible{display:flex}
-.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);animation:typingBounce 1.2s ease-in-out infinite}
-.typing-dot:nth-child(2){animation-delay:.2s}
-.typing-dot:nth-child(3){animation-delay:.4s}
-@keyframes typingBounce{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}
-/* input wrap */
-.fchat-input-wrap{
-  display:flex;align-items:flex-end;gap:9px;
-  padding:10px 14px 13px;border-top:1px solid var(--border);
-  background:linear-gradient(180deg,var(--bg1),var(--bg1));
-}
-.fchat-input-inner{flex:1;position:relative}
-.fchat-input{
-  width:100%;padding:10px 50px 10px 15px;
-  background:var(--bg2);border:1.5px solid var(--border2);border-radius:14px;
-  color:var(--text1);font-size:13.5px;font-family:'Outfit',sans-serif;
-  outline:none;transition:border-color .2s,box-shadow .2s;
-  resize:none;min-height:42px;max-height:80px;overflow-y:auto;line-height:1.5;
-}
-.fchat-input:focus{border-color:rgba(123,97,255,.55);box-shadow:0 0 0 3px rgba(123,97,255,.1)}
+.chat-day-sep{text-align:center;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin:6px 0}
+.fchat-input-wrap{display:flex;gap:8px;padding:11px 14px;border-top:1px solid var(--border);background:var(--bg1)}
+.fchat-input{flex:1;padding:9px 15px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;color:var(--text1);font-size:13.5px;font-family:'Outfit',sans-serif;outline:none;transition:border-color .2s}
+.fchat-input:focus{border-color:rgba(56,189,248,.5)}
 .fchat-input::placeholder{color:var(--text3)}
-.fchat-input:disabled{opacity:.4;cursor:not-allowed}
-.fchat-char-count{
-  position:absolute;right:12px;bottom:10px;
-  font-size:9px;font-family:'JetBrains Mono',monospace;
-  color:var(--text3);pointer-events:none;transition:color .2s;
-}
-.fchat-char-count.warn{color:#f59e0b}
-.fchat-char-count.danger{color:#ff3d7f}
-.fchat-send{
-  width:43px;height:43px;border-radius:13px;
-  background:linear-gradient(135deg,#7b61ff,#ff3d7f);
-  border:none;color:#fff;font-size:17px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  transition:transform .15s,box-shadow .2s;
-  box-shadow:0 4px 18px rgba(123,97,255,.4);
-}
-.fchat-send:hover:not(:disabled){transform:scale(1.1) translateY(-1px);box-shadow:0 6px 22px rgba(123,97,255,.55)}
-.fchat-send:active:not(:disabled){transform:scale(.94)}
-.fchat-send:disabled{opacity:.3;cursor:not-allowed;box-shadow:none;background:var(--bg3)}
+.fchat-input:disabled{opacity:.45;cursor:not-allowed}
+.fchat-send{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#7b61ff);border:none;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s,transform .15s}
+.fchat-send:hover:not(:disabled){opacity:.85;transform:scale(1.08)}
+.fchat-send:disabled{opacity:.35;cursor:not-allowed}
 .fc-btn.chat.active-chat{background:rgba(56,189,248,.2);border-color:#38bdf8;color:#38bdf8}
 .fc-active{border-color:rgba(56,189,248,.4)!important;background:rgba(56,189,248,.04)!important}
 
@@ -1107,110 +997,25 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
 .flib-status{font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--text3);margin-top:2px}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   CHAT MODAL v2 — Advanced
+   CHAT MODAL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-.chat-modal{max-width:460px;height:590px;display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:24px!important;border:1px solid rgba(123,97,255,.22)!important;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(123,97,255,.08)!important}
-.chat-modal .modal-hdr{padding:0;border-bottom:none;flex-shrink:0}
-/* custom chat header */
-.chat-hdr-v2{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:15px 20px;
-  background:linear-gradient(135deg,rgba(123,97,255,.2) 0%,rgba(56,189,248,.1) 55%,rgba(255,61,127,.1) 100%);
-  border-bottom:1px solid rgba(123,97,255,.14);
-  position:relative;overflow:hidden;flex-shrink:0;
-}
-.chat-hdr-v2::before{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at -5% 50%,rgba(123,97,255,.22),transparent 55%);
-  pointer-events:none;
-}
-.chat-hdr-left{display:flex;align-items:center;gap:13px;position:relative;z-index:1}
-.chat-hdr-av{
-  width:44px;height:44px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:800;flex-shrink:0;
-  border:2.5px solid rgba(0,210,180,.55);
-  box-shadow:0 0 0 4px rgba(0,210,180,.1),0 0 20px rgba(0,210,180,.25);
-  animation:avatarGlow 3s ease-in-out infinite;
-  position:relative;
-}
-@keyframes avatarGlow{0%,100%{box-shadow:0 0 0 4px rgba(0,210,180,.1),0 0 18px rgba(0,210,180,.22)}50%{box-shadow:0 0 0 6px rgba(0,210,180,.15),0 0 28px rgba(0,210,180,.4)}}
-.chat-hdr-online{
-  position:absolute;bottom:0;right:0;
-  width:11px;height:11px;border-radius:50%;
-  background:#00d2b4;border:2px solid var(--bg1);
-  animation:livePulse 1.4s ease-in-out infinite;
-}
-.chat-hdr-name{font-size:15px;font-weight:800;color:var(--text1);letter-spacing:-.3px}
-.chat-hdr-status{
-  font-size:10px;color:#00d2b4;font-family:'JetBrains Mono',monospace;
-  margin-top:3px;display:flex;align-items:center;gap:5px;
-}
-.chat-hdr-dot{width:5px;height:5px;border-radius:50%;background:#00d2b4;animation:livePulse 1.4s ease-in-out infinite}
-.chat-hdr-close{
-  position:relative;z-index:1;
-  width:32px;height:32px;border-radius:50%;
-  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-  color:var(--text2);font-size:14px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;
-}
-.chat-hdr-close:hover{background:rgba(255,61,127,.2);color:#ff7eb6;border-color:rgba(255,61,127,.35);transform:scale(1.1)}
-/* emoji quick bar */
-.chat-emoji-bar{
-  display:flex;align-items:center;gap:2px;padding:6px 16px 5px;
-  background:rgba(8,9,16,.2);border-bottom:1px solid rgba(255,255,255,.04);
-  overflow-x:auto;scrollbar-width:none;flex-shrink:0;
-}
-.chat-emoji-bar::-webkit-scrollbar{display:none}
-/* messages area */
-.chat-messages{
-  flex:1;overflow-y:auto;padding:14px 16px 10px;
-  display:flex;flex-direction:column;gap:3px;
-  scroll-behavior:smooth;
-  background:var(--bg0);
-  background-image:
-    radial-gradient(circle at 20% 15%,rgba(123,97,255,.05),transparent 55%),
-    radial-gradient(circle at 80% 85%,rgba(255,61,127,.04),transparent 50%);
-}
-.chat-messages::-webkit-scrollbar{width:3px}
-.chat-messages::-webkit-scrollbar-thumb{background:rgba(123,97,255,.22);border-radius:3px}
-/* input zone */
-.chat-input-zone{display:flex;flex-direction:column;flex-shrink:0}
-.chat-input-wrap{
-  display:flex;align-items:flex-end;gap:9px;
-  padding:10px 14px 14px;
-  border-top:1px solid var(--border);background:var(--bg1);
-}
-.chat-input-inner{flex:1;position:relative}
-.chat-input{
-  width:100%;padding:10px 50px 10px 16px;
-  background:var(--bg2);border:1.5px solid var(--border2);
-  border-radius:15px;color:var(--text1);
-  font-size:13.5px;font-family:'Outfit',sans-serif;outline:none;
-  transition:border-color .2s,box-shadow .2s;
-  resize:none;min-height:42px;max-height:100px;overflow-y:auto;line-height:1.5;
-}
-.chat-input:focus{border-color:rgba(123,97,255,.55);box-shadow:0 0 0 3px rgba(123,97,255,.1)}
+.chat-modal{max-width:440px;height:520px;display:flex;flex-direction:column;padding:0;overflow:hidden}
+.chat-modal .modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.chat-messages{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.chat-bubble{max-width:74%;padding:8px 13px;border-radius:16px;font-size:13px;line-height:1.45;word-break:break-word;animation:bubbleIn .2s ease}
+@keyframes bubbleIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.chat-bubble.me{align-self:flex-end;background:linear-gradient(135deg,rgba(123,97,255,.28),rgba(255,61,127,.18));border:1px solid rgba(123,97,255,.25);border-bottom-right-radius:4px;color:var(--text1)}
+.chat-bubble.them{align-self:flex-start;background:var(--bg2);border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--text1)}
+.chat-bubble-time{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:3px;text-align:right}
+.chat-bubble.them .chat-bubble-time{text-align:left}
+.chat-input-wrap{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border);flex-shrink:0}
+.chat-input{flex:1;padding:10px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:100px;color:var(--text1);font-size:13.5px;font-family:'Outfit',sans-serif;outline:none;transition:border-color .2s}
+.chat-input:focus{border-color:rgba(123,97,255,.45)}
 .chat-input::placeholder{color:var(--text3)}
-.chat-input:disabled{opacity:.4;cursor:not-allowed}
-.chat-char-count{
-  position:absolute;right:12px;bottom:10px;
-  font-size:9px;font-family:'JetBrains Mono',monospace;
-  color:var(--text3);pointer-events:none;transition:color .2s;
-}
-.chat-char-count.warn{color:#f59e0b}
-.chat-char-count.danger{color:#ff3d7f}
-.chat-send-btn{
-  width:43px;height:43px;border-radius:13px;
-  background:linear-gradient(135deg,#7b61ff,#ff3d7f);
-  border:none;color:#fff;font-size:15px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;transition:transform .15s,box-shadow .2s;
-  box-shadow:0 4px 18px rgba(123,97,255,.4);
-}
-.chat-send-btn:hover:not(:disabled){transform:scale(1.1) translateY(-1px);box-shadow:0 6px 22px rgba(123,97,255,.55)}
-.chat-send-btn:active:not(:disabled){transform:scale(.94)}
-.chat-send-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.chat-send-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .2s;flex-shrink:0}
+.chat-send-btn:hover{opacity:.85}
+.chat-empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:13px}
+.chat-day-sep{text-align:center;font-size:9.5px;font-family:'JetBrains Mono',monospace;color:var(--text3);letter-spacing:1px;padding:6px 0;text-transform:uppercase}
 .chat-msg-badge{
   position:absolute;top:-3px;right:-3px;
   width:14px;height:14px;border-radius:50%;
@@ -1386,6 +1191,46 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
       <div class="amz-cta">Shop Deals →</div>
       <button class="amz-dismiss" onclick="event.preventDefault();event.stopPropagation();document.getElementById('amzBanner').style.display='none'" title="Dismiss">✕</button>
     </a>
+
+    <!-- ═══ APP DOWNLOAD BANNER ═══ -->
+    <div class="app-dl-banner" id="appDlBanner">
+      <div class="app-dl-glow"></div>
+
+      <div class="app-dl-left">
+        <div class="app-dl-icon">
+          <svg viewBox="0 0 24 24" width="30" height="30" fill="none">
+            <rect x="3" y="15" width="18" height="4.5" rx="2.2" fill="rgba(255,255,255,0.95)"/>
+            <rect x="5" y="9.5" width="14" height="4.5" rx="2.2" fill="rgba(255,255,255,0.72)"/>
+            <rect x="7" y="4" width="10" height="4.5" rx="2.2" fill="rgba(255,255,255,0.45)"/>
+          </svg>
+        </div>
+        <div class="app-dl-info">
+          <div class="app-dl-name">StackLog <span class="app-dl-version">v1.0</span></div>
+          <div class="app-dl-meta">
+            <span class="app-dl-stars">★★★★★</span>
+            <span class="app-dl-rating-n">5.0</span>
+            <span class="app-dl-sep">·</span>
+            <span class="app-dl-size">📦 Single file</span>
+            <span class="app-dl-sep">·</span>
+            <span class="app-dl-free">🆓 Free forever</span>
+          </div>
+          <div class="app-dl-tags">
+            <span class="app-dl-tag">🌐 Web App</span>
+            <span class="app-dl-tag">📴 Works Offline</span>
+            <span class="app-dl-tag">📱 Installable</span>
+            <span class="app-dl-tag">🔒 Private</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-dl-right">
+        <button class="app-dl-btn" onclick="openDownloadModal()">
+          <span class="app-dl-btn-icon">⬇</span>
+          <span>Get App</span>
+        </button>
+        <button class="app-dl-dismiss" onclick="document.getElementById('appDlBanner').style.display='none'" title="Dismiss">✕</button>
+      </div>
+    </div>
 
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:0">
       <div class="view-tabs" id="viewTabs">
@@ -1667,59 +1512,23 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
   </div>
 </div>
 
-<!-- CHAT MODAL v2 -->
+<!-- CHAT MODAL -->
 <div class="modal-overlay" id="chatOverlay">
   <div class="modal chat-modal">
-    <!-- Custom Header -->
-    <div class="modal-hdr" style="padding:0;border:none;display:block">
-      <div class="chat-hdr-v2">
-        <div class="chat-hdr-left">
-          <div class="chat-hdr-av" id="chatPartnerAv">
-            <span class="chat-hdr-online"></span>
-          </div>
-          <div>
-            <div class="chat-hdr-name" id="chatPartnerName">Chat</div>
-            <div class="chat-hdr-status"><span class="chat-hdr-dot"></span> online · StackLog</div>
-          </div>
+    <div class="modal-hdr" style="padding:14px 18px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="chatPartnerAv" style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800"></div>
+        <div>
+          <div class="modal-title" id="chatPartnerName" style="font-size:14px">Chat</div>
+          <div style="font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">StackLog</div>
         </div>
-        <button class="chat-hdr-close" onclick="closeChat()">✕</button>
       </div>
+      <button class="modal-close" onclick="closeChat()">✕</button>
     </div>
-    <!-- Quick Emoji Bar -->
-    <div class="chat-emoji-bar">
-      <span class="chat-eq-label">Quick</span>
-      <span class="chat-eq" title="Controller" onclick="appendToChatInput('🎮')">🎮</span>
-      <span class="chat-eq" title="Fire" onclick="appendToChatInput('🔥')">🔥</span>
-      <span class="chat-eq" title="Skull" onclick="appendToChatInput('💀')">💀</span>
-      <span class="chat-eq" title="Trophy" onclick="appendToChatInput('🏆')">🏆</span>
-      <span class="chat-eq" title="Alien" onclick="appendToChatInput('👾')">👾</span>
-      <span class="chat-eq" title="Laugh" onclick="appendToChatInput('😂')">😂</span>
-      <span class="chat-eq" title="Eyes" onclick="appendToChatInput('👀')">👀</span>
-      <span class="chat-eq" title="Target" onclick="appendToChatInput('🎯')">🎯</span>
-      <span class="chat-eq" title="Lightning" onclick="appendToChatInput('⚡')">⚡</span>
-      <span class="chat-eq" title="Sword" onclick="appendToChatInput('⚔️')">⚔️</span>
-      <span class="chat-eq" title="Dragon" onclick="appendToChatInput('🐉')">🐉</span>
-      <span class="chat-eq" title="100" onclick="appendToChatInput('💯')">💯</span>
-    </div>
-    <!-- Messages -->
-    <div class="chat-messages" id="chatMessages">
-      <div class="chat-empty">
-        <div class="chat-empty-icon">💬</div>
-        <div class="chat-empty-text">No messages yet</div>
-        <div class="chat-empty-sub">say hi first! 👇</div>
-      </div>
-    </div>
-    <!-- Input -->
-    <div class="chat-input-zone">
-      <div class="chat-input-wrap">
-        <div class="chat-input-inner">
-          <textarea class="chat-input" id="chatInput" placeholder="Message… (Enter to send, Shift+Enter for newline)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg()}" oninput="updateChatCharCount(this)" maxlength="300" rows="1"></textarea>
-          <span class="chat-char-count" id="chatCharCount">300</span>
-        </div>
-        <button class="chat-send-btn" onclick="sendChatMsg()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-wrap">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Message…" onkeydown="if(event.key==='Enter')sendChatMsg()" maxlength="300">
+      <button class="chat-send-btn" onclick="sendChatMsg()">➤</button>
     </div>
   </div>
 </div>
@@ -1795,10 +1604,9 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
     </div>
 
     <!-- ══════════════════════════════════════════
-         INLINE CHAT PANEL v2
+         INLINE CHAT PANEL
     ══════════════════════════════════════════ -->
     <div class="friends-chat-wrap" id="inlineChatWrap">
-      <!-- Header -->
       <div class="fchat-header">
         <div class="fchat-header-left">
           <div class="fchat-av" id="fchatAv">💬</div>
@@ -1809,48 +1617,15 @@ h1,h2,h3,h4{font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.4px
         </div>
         <button class="fchat-close-btn" onclick="closeInlineChat()">✕ Close</button>
       </div>
-      <!-- Quick Emoji Bar -->
-      <div class="fchat-emoji-bar">
-        <span class="chat-eq-label">Quick</span>
-        <span class="chat-eq" onclick="appendToFchatInput('🎮')">🎮</span>
-        <span class="chat-eq" onclick="appendToFchatInput('🔥')">🔥</span>
-        <span class="chat-eq" onclick="appendToFchatInput('💀')">💀</span>
-        <span class="chat-eq" onclick="appendToFchatInput('🏆')">🏆</span>
-        <span class="chat-eq" onclick="appendToFchatInput('👾')">👾</span>
-        <span class="chat-eq" onclick="appendToFchatInput('😂')">😂</span>
-        <span class="chat-eq" onclick="appendToFchatInput('👀')">👀</span>
-        <span class="chat-eq" onclick="appendToFchatInput('🎯')">🎯</span>
-        <span class="chat-eq" onclick="appendToFchatInput('⚡')">⚡</span>
-        <span class="chat-eq" onclick="appendToFchatInput('⚔️')">⚔️</span>
-        <span class="chat-eq" onclick="appendToFchatInput('💯')">💯</span>
-      </div>
-      <!-- Messages -->
       <div class="fchat-messages" id="fchatMessages">
-        <div class="chat-empty">
-          <div class="chat-empty-icon">👆</div>
-          <div class="chat-empty-text">Click 💬 on a friend to chat</div>
-          <div class="chat-empty-sub">messages appear here</div>
-        </div>
+        <div class="chat-empty">👆 Click 💬 on any friend above to start chatting!</div>
       </div>
-      <!-- Typing indicator (hidden by default) -->
-      <div class="chat-typing" id="fchatTyping">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-      </div>
-      <!-- Input -->
       <div class="fchat-input-wrap">
-        <div class="fchat-input-inner">
-          <textarea class="fchat-input" id="fchatInput"
-            placeholder="Type a message… (Enter to send)"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendInlineChatMsg()}"
-            oninput="updateFchatCharCount(this)"
-            maxlength="300" rows="1" disabled></textarea>
-          <span class="fchat-char-count" id="fchatCharCount" style="display:none">300</span>
-        </div>
-        <button class="fchat-send" id="fchatSendBtn" onclick="sendInlineChatMsg()" disabled>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
+        <input type="text" class="fchat-input" id="fchatInput"
+          placeholder="Type a message and press Enter…"
+          onkeydown="if(event.key==='Enter')sendInlineChatMsg()"
+          maxlength="300" disabled>
+        <button class="fchat-send" id="fchatSendBtn" onclick="sendInlineChatMsg()" disabled>➤</button>
       </div>
     </div>
 
@@ -4692,9 +4467,7 @@ async function openChat(partnerId,partnerName,partnerAv,partnerColor){
   }
   renderChatMessages();
   document.getElementById('chatOverlay').classList.add('open');
-  const ci=document.getElementById('chatInput');
-  if(ci){ci.focus();ci.value='';ci.style.height='';}
-  const cc=document.getElementById('chatCharCount');if(cc){cc.textContent='300';cc.className='chat-char-count';}
+  document.getElementById('chatInput')?.focus();
   startChatPoll();
   setTimeout(()=>renderFriendsPage(),150);
 }
@@ -4714,17 +4487,15 @@ async function openInlineChat(partnerId,partnerName,partnerAv,partnerColor){
   const nameEl=document.getElementById('fchatName');
   const inp=document.getElementById('fchatInput');
   const btn=document.getElementById('fchatSendBtn');
-  const cc=document.getElementById('fchatCharCount');
   if(avEl){avEl.textContent=partnerAv;avEl.style.background=partnerColor;}
   if(nameEl)nameEl.textContent=partnerName;
-  if(inp){inp.disabled=false;inp.placeholder='Message '+partnerName+'… (Enter to send)';inp.focus();}
+  if(inp){inp.disabled=false;inp.placeholder='Message '+partnerName+'…';inp.focus();}
   if(btn)btn.disabled=false;
-  if(cc){cc.textContent='300';cc.style.display='block';cc.className='fchat-char-count';}
   const wrap=document.getElementById('inlineChatWrap');
   if(wrap){wrap.classList.add('visible');setTimeout(()=>wrap.scrollIntoView({behavior:'smooth',block:'nearest'}),80);}
   _chatMsgs=[];
   const msgBox=document.getElementById('fchatMessages');
-  if(msgBox)msgBox.innerHTML='<div class="chat-empty"><div class="chat-empty-icon" style="animation:none;font-size:22px">⏳</div><div class="chat-empty-text" style="font-size:12px">Loading…</div></div>';
+  if(msgBox)msgBox.innerHTML='<div class="chat-empty">Loading…</div>';
   await loadChatMessages();
   renderInlineChatMessages();
   if(SB_READY&&sb){
@@ -4746,11 +4517,10 @@ function closeInlineChat(){
   if(wrap)wrap.classList.remove('visible');
   const inp=document.getElementById('fchatInput');
   const btn=document.getElementById('fchatSendBtn');
-  if(inp){inp.disabled=true;inp.value='';inp.placeholder='Type a message… (Enter to send)';inp.style.height='';}
+  if(inp){inp.disabled=true;inp.value='';inp.placeholder='Type a message and press Enter…';}
   if(btn)btn.disabled=true;
-  const cc=document.getElementById('fchatCharCount');if(cc)cc.style.display='none';
   const msgBox=document.getElementById('fchatMessages');
-  if(msgBox)msgBox.innerHTML='<div class="chat-empty"><div class="chat-empty-icon">👆</div><div class="chat-empty-text">Click 💬 on a friend</div><div class="chat-empty-sub">messages appear here</div></div>';
+  if(msgBox)msgBox.innerHTML='<div class="chat-empty">Click 💬 on any friend above to start chatting!</div>';
   const nameEl=document.getElementById('fchatName');if(nameEl)nameEl.textContent='Select a friend to chat';
   const avEl=document.getElementById('fchatAv');if(avEl){avEl.textContent='💬';avEl.style.background='#7b61ff';}
   renderFriendsPage();
@@ -4759,25 +4529,16 @@ function closeInlineChat(){
 function renderInlineChatMessages(){
   const box=document.getElementById('fchatMessages');
   if(!box)return;
-  if(!_chatMsgs.length){
-    box.innerHTML='<div class="chat-empty"><div class="chat-empty-icon">👋</div><div class="chat-empty-text">No messages yet</div><div class="chat-empty-sub">say hi first!</div></div>';
-    return;
-  }
+  if(!_chatMsgs.length){box.innerHTML='<div class="chat-empty">No messages yet — say hi! 👋</div>';return;}
   const timeStr=t=>{const d=new Date(t);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');};
   let html='',lastDay='';
-  _chatMsgs.forEach((m,i)=>{
+  _chatMsgs.forEach(m=>{
     const day=new Date(m.time).toLocaleDateString();
     if(day!==lastDay){html+='<div class="chat-day-sep">'+day+'</div>';lastDay=day;}
     const isMe=m.from===CU.id;
-    const prev=_chatMsgs[i-1];const next=_chatMsgs[i+1];
-    const grpPrev=prev&&prev.from===m.from&&new Date(m.time)-new Date(prev.time)<120000;
-    const grpNext=next&&next.from===m.from&&new Date(next.time)-new Date(m.time)<120000;
-    const cls='chat-bubble '+(isMe?'me':'them')+(grpPrev?' grp-prev':'')+(grpNext?' grp-next':'');
-    const showTime=!grpNext;
-    html+='<div style="display:flex;flex-direction:column;align-items:'+(isMe?'flex-end':'flex-start')+';margin-bottom:'+(grpNext?'1':'6')+'px">'
-      +'<div class="'+cls+'">'+escHtml(m.msg)+'</div>'
-      +(showTime?'<div class="chat-bubble-time'+(isMe?' me-t':'')+'">'+timeStr(m.time)+(isMe&&m.read?'<span style="color:rgba(0,210,180,.8);margin-left:3px">✓✓</span>':'')+'</div>':'')
-      +'</div>';
+    html+='<div style="display:flex;flex-direction:column;align-items:'+(isMe?'flex-end':'flex-start')+'">'
+      +'<div class="chat-bubble '+(isMe?'me':'them')+'">'+escHtml(m.msg)+'</div>'
+      +'<div class="chat-bubble-time'+(isMe?' me-t':'')+'">'+timeStr(m.time)+'</div></div>';
   });
   box.innerHTML=html;
   box.scrollTop=box.scrollHeight;
@@ -4787,8 +4548,7 @@ async function sendInlineChatMsg(){
   const input=document.getElementById('fchatInput');
   const msg=input?.value.trim();
   if(!msg||!chatPartnerId||!CU)return;
-  input.value='';input.style.height='';
-  const cc=document.getElementById('fchatCharCount');if(cc)cc.textContent='300';
+  input.value='';
   if(SB_READY&&sb){
     const{data,error}=await sb.from('chat_messages').insert({from_id:CU.id,to_id:chatPartnerId,message:msg,read:false}).select().single();
     if(!error&&data){
@@ -4830,25 +4590,14 @@ function startInlineChatPoll(){
 function renderChatMessages(){
   const box=document.getElementById('chatMessages');
   if(!box)return;
-  if(!_chatMsgs.length){
-    box.innerHTML='<div class="chat-empty"><div class="chat-empty-icon">💬</div><div class="chat-empty-text">No messages yet</div><div class="chat-empty-sub">say something! 👇</div></div>';
-    return;
-  }
+  if(!_chatMsgs.length){box.innerHTML='<div class="chat-empty">Say hello! 👋</div>';return;}
   const timeStr=t=>{const d=new Date(t);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');};
   let html='',lastDay='';
-  _chatMsgs.forEach((m,i)=>{
+  _chatMsgs.forEach(m=>{
     const day=new Date(m.time).toLocaleDateString();
-    if(day!==lastDay){html+='<div class="chat-day-sep">'+day+'</div>';lastDay=day;}
+    if(day!==lastDay){html+=`<div class="chat-day-sep">${day}</div>`;lastDay=day;}
     const isMe=m.from===CU.id;
-    const prev=_chatMsgs[i-1];const next=_chatMsgs[i+1];
-    const grpPrev=prev&&prev.from===m.from&&new Date(m.time)-new Date(prev.time)<120000;
-    const grpNext=next&&next.from===m.from&&new Date(next.time)-new Date(m.time)<120000;
-    const cls='chat-bubble '+(isMe?'me':'them')+(grpPrev?' grp-prev':'')+(grpNext?' grp-next':'');
-    const showTime=!grpNext;
-    html+='<div style="display:flex;flex-direction:column;align-items:'+(isMe?'flex-end':'flex-start')+';margin-bottom:'+(grpNext?'1':'6')+'px">'
-      +'<div class="'+cls+'">'+escHtml(m.msg)+'</div>'
-      +(showTime?'<div class="chat-bubble-time'+(isMe?' me-t':'')+'">'+timeStr(m.time)+(isMe&&m.read?'<span style="color:rgba(0,210,180,.8);margin-left:3px">✓✓</span>':'')+'</div>':'')
-      +'</div>';
+    html+=`<div><div class="chat-bubble ${isMe?'me':'them'}">${escHtml(m.msg)}</div><div class="chat-bubble-time">${timeStr(m.time)}</div></div>`;
   });
   box.innerHTML=html;
   box.scrollTop=box.scrollHeight;
@@ -4858,8 +4607,7 @@ async function sendChatMsg(){
   const input=document.getElementById('chatInput');
   const msg=input?.value.trim();
   if(!msg||!chatPartnerId||!CU)return;
-  input.value='';input.style.height='';
-  const cc=document.getElementById('chatCharCount');if(cc){cc.textContent='300';cc.className='chat-char-count';}
+  input.value='';
   if(SB_READY&&sb){
     const{data,error}=await sb.from('chat_messages').insert({from_id:CU.id,to_id:chatPartnerId,message:msg,read:false}).select().single();
     if(!error&&data){
@@ -4878,39 +4626,6 @@ async function sendChatMsg(){
 }
 
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-// Chat helper functions
-function appendToChatInput(emoji){
-  const el=document.getElementById('chatInput');
-  if(!el)return;
-  el.value+=emoji;
-  el.focus();
-  updateChatCharCount(el);
-}
-function appendToFchatInput(emoji){
-  const el=document.getElementById('fchatInput');
-  if(!el||el.disabled)return;
-  el.value+=emoji;
-  el.focus();
-  updateFchatCharCount(el);
-}
-function updateChatCharCount(el){
-  const cc=document.getElementById('chatCharCount');
-  if(!cc)return;
-  const rem=300-el.value.length;
-  cc.textContent=rem;
-  cc.className='chat-char-count'+(rem<50?' danger':rem<100?' warn':'');
-  // auto-grow textarea
-  el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';
-}
-function updateFchatCharCount(el){
-  const cc=document.getElementById('fchatCharCount');
-  if(!cc)return;
-  const rem=300-el.value.length;
-  cc.textContent=rem;
-  cc.className='fchat-char-count'+(rem<50?' danger':rem<100?' warn':'');
-  el.style.height='auto';el.style.height=Math.min(el.scrollHeight,80)+'px';
-}
 
 function startChatPoll(){
   stopChatPoll();
@@ -4985,5 +4700,559 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAddModal();clo
   setTimeout(()=>{if(CU)scheduleNotifChecks();},2000);
 })();
 </script>
+
+
+
+<!-- ═══ DOWNLOAD MODAL ═══ -->
+<div class="dl-overlay" id="dlOverlay" onclick="if(event.target===this)closeDlModal()">
+  <div class="dl-modal">
+    <button class="dl-close" onclick="closeDlModal()">✕</button>
+
+    <!-- Hero -->
+    <div class="dl-hero">
+      <div class="dl-hero-icon">
+        <svg viewBox="0 0 24 24" width="38" height="38" fill="none">
+          <rect x="3" y="15" width="18" height="4.5" rx="2.2" fill="rgba(255,255,255,0.95)"/>
+          <rect x="5" y="9.5" width="14" height="4.5" rx="2.2" fill="rgba(255,255,255,0.72)"/>
+          <rect x="7" y="4" width="10" height="4.5" rx="2.2" fill="rgba(255,255,255,0.45)"/>
+        </svg>
+      </div>
+      <div>
+        <div class="dl-hero-name">StackLog</div>
+        <div class="dl-hero-sub">Your Game Stack · Free · No ads · Works offline</div>
+        <div class="dl-stars-row">
+          <span style="color:#f59e0b;letter-spacing:1px">★★★★★</span>
+          <span class="dl-hero-rating">5.0 · Gaming Tracker</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screenshots strip -->
+    <div class="dl-screens">
+      <div class="dl-screen sc1">🎮<div class="dl-screen-lbl">Game Stack</div></div>
+      <div class="dl-screen sc2">📊<div class="dl-screen-lbl">Stats</div></div>
+      <div class="dl-screen sc3">🧠<div class="dl-screen-lbl">Quiz</div></div>
+      <div class="dl-screen sc4">🏆<div class="dl-screen-lbl">Rankings</div></div>
+      <div class="dl-screen sc5">👥<div class="dl-screen-lbl">Friends</div></div>
+    </div>
+
+    <!-- Platform options -->
+    <div class="dl-section-label">Choose how to install</div>
+    <div class="dl-options">
+
+      <div class="dl-option" onclick="installAndroid()">
+        <div class="dl-opt-icon" style="background:linear-gradient(135deg,#3ddc84,#00a896)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.523 15.341A8 8 0 0 0 20 9H4a8 8 0 0 0 2.477 6.341L5 20h14l-1.477-4.659zM8.5 4.5l-1.5-2.5M15.5 4.5l1.5-2.5M9 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>
+        </div>
+        <div class="dl-opt-info">
+          <div class="dl-opt-name">Android</div>
+          <div class="dl-opt-sub">Install as home screen app</div>
+        </div>
+        <div class="dl-opt-badge">Guide →</div>
+      </div>
+
+      <div class="dl-option" onclick="installIOS()">
+        <div class="dl-opt-icon" style="background:linear-gradient(135deg,#555,#111)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        </div>
+        <div class="dl-opt-info">
+          <div class="dl-opt-name">iPhone / iPad</div>
+          <div class="dl-opt-sub">Add to Home Screen via Safari</div>
+        </div>
+        <div class="dl-opt-badge">Guide →</div>
+      </div>
+
+      <div class="dl-option" onclick="downloadHTML()">
+        <div class="dl-opt-icon" style="background:linear-gradient(135deg,#7b61ff,#ff3d7f)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 16l-6-6h4V3h4v7h4l-6 6zM4 20h16v2H4z"/></svg>
+        </div>
+        <div class="dl-opt-info">
+          <div class="dl-opt-name">Download File</div>
+          <div class="dl-opt-sub">Save StackLog.html to your device</div>
+        </div>
+        <div class="dl-opt-badge dl-opt-primary">↓ .html</div>
+      </div>
+
+      <div class="dl-option" onclick="installPWA()">
+        <div class="dl-opt-icon" style="background:linear-gradient(135deg,#0090ff,#00c4b8)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-1 14H5c-.55 0-1-.45-1-1V7c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v10c0 .55-.45 1-1 1z"/><path d="M12 9l-4 4h3v4h2v-4h3z"/></svg>
+        </div>
+        <div class="dl-opt-info">
+          <div class="dl-opt-name">Install as PWA</div>
+          <div class="dl-opt-sub">Desktop Chrome / Edge browser</div>
+        </div>
+        <div class="dl-opt-badge" id="pwaBtn">Install</div>
+      </div>
+
+    </div>
+
+    <!-- Install guide panel (hidden by default) -->
+    <div class="dl-guide" id="dlGuide" style="display:none">
+      <div class="dl-guide-close" onclick="document.getElementById('dlGuide').style.display='none'">✕ Close guide</div>
+      <div id="dlGuideContent"></div>
+    </div>
+
+    <!-- Features -->
+    <div class="dl-features">
+      <div class="dl-feat">✅ 100% Free</div>
+      <div class="dl-feat">🔒 All data stays on your device</div>
+      <div class="dl-feat">📴 No internet needed after download</div>
+      <div class="dl-feat">🚫 No sign-up required</div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ━━━━ BANNER ━━━━ */
+.app-dl-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  background: linear-gradient(120deg, rgba(123,97,255,.12) 0%, rgba(255,61,127,.08) 50%, rgba(0,210,180,.07) 100%);
+  border: 1px solid rgba(123,97,255,.3);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  flex-wrap: wrap;
+}
+.app-dl-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgba(123,97,255,.07) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: bannerShimmer 4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes bannerShimmer {
+  0% { transform: translateX(-100%) }
+  60%,100% { transform: translateX(200%) }
+}
+.app-dl-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0 }
+.app-dl-icon {
+  width: 52px; height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7b61ff, #ff3d7f);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 18px rgba(123,97,255,.4);
+}
+.app-dl-info { min-width: 0 }
+.app-dl-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text1);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+.app-dl-version {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 100px;
+  background: rgba(123,97,255,.18);
+  color: #a89ffc;
+  border: 1px solid rgba(123,97,255,.3);
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+.app-dl-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.app-dl-stars { color: #f59e0b; font-size: 11px; letter-spacing: 1px }
+.app-dl-rating-n { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text2); font-weight: 700 }
+.app-dl-sep { color: var(--text3); font-size: 10px }
+.app-dl-size, .app-dl-free { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--text3) }
+.app-dl-tags { display: flex; gap: 6px; flex-wrap: wrap }
+.app-dl-tag {
+  padding: 2px 9px;
+  border-radius: 100px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  color: var(--text3);
+  letter-spacing: .5px;
+}
+.app-dl-right { display: flex; align-items: center; gap: 8px }
+.app-dl-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #7b61ff, #ff3d7f);
+  border: none;
+  border-radius: 100px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity .2s, transform .15s;
+  box-shadow: 0 4px 18px rgba(123,97,255,.4);
+  white-space: nowrap;
+}
+.app-dl-btn:hover { opacity: .86; transform: scale(1.03) }
+.app-dl-btn-icon { font-size: 15px }
+.app-dl-dismiss {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.app-dl-dismiss:hover { color: var(--text1); background: var(--bg3) }
+
+/* ━━━━ DOWNLOAD MODAL ━━━━ */
+.dl-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(8,9,16,.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+  padding: 20px;
+}
+.dl-overlay.open { opacity: 1; pointer-events: all }
+.dl-modal {
+  background: var(--bg1);
+  border: 1px solid rgba(123,97,255,.22);
+  border-radius: 28px;
+  width: 100%; max-width: 500px;
+  padding: 28px;
+  transform: translateY(24px) scale(.96);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow: 0 40px 120px rgba(0,0,0,.65);
+  max-height: 92vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  position: relative;
+}
+.dl-overlay.open .dl-modal { transform: translateY(0) scale(1) }
+.dl-close {
+  position: absolute;
+  top: 18px; right: 18px;
+  width: 32px; height: 32px;
+  border-radius: 9px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.dl-close:hover { background: rgba(255,61,127,.15); color: #ff3d7f }
+
+/* Hero */
+.dl-hero {
+  display: flex; align-items: center; gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.dl-hero-icon {
+  width: 72px; height: 72px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #7b61ff, #ff3d7f);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 6px 24px rgba(123,97,255,.4);
+}
+.dl-hero-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px; font-weight: 900;
+  color: var(--text1); letter-spacing: -.5px;
+}
+.dl-hero-sub { font-size: 12px; color: var(--text3); margin: 3px 0 6px }
+.dl-stars-row { display: flex; align-items: center; gap: 7px }
+.dl-hero-rating { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text3) }
+
+/* Screenshots */
+.dl-screens {
+  display: flex; gap: 10px;
+  overflow-x: auto; padding-bottom: 4px;
+  margin-bottom: 22px;
+  scrollbar-width: none;
+}
+.dl-screens::-webkit-scrollbar { display: none }
+.dl-screen {
+  flex-shrink: 0;
+  width: 82px; height: 140px;
+  border-radius: 14px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px;
+  font-size: 30px;
+  border: 1px solid var(--border2);
+  transition: transform .2s;
+  cursor: default;
+}
+.dl-screen:hover { transform: scale(1.04) }
+.sc1 { background: linear-gradient(135deg, rgba(123,97,255,.2), rgba(123,97,255,.08)) }
+.sc2 { background: linear-gradient(135deg, rgba(0,210,180,.18), rgba(0,210,180,.07)) }
+.sc3 { background: linear-gradient(135deg, rgba(0,210,180,.15), rgba(123,97,255,.1)) }
+.sc4 { background: linear-gradient(135deg, rgba(255,107,53,.18), rgba(255,107,53,.07)) }
+.sc5 { background: linear-gradient(135deg, rgba(56,189,248,.18), rgba(56,189,248,.07)) }
+.dl-screen-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text3);
+}
+
+/* Section label */
+.dl-section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text3);
+  margin-bottom: 12px;
+}
+
+/* Options */
+.dl-options { display: flex; flex-direction: column; gap: 9px; margin-bottom: 20px }
+.dl-option {
+  display: flex; align-items: center; gap: 13px;
+  padding: 13px 15px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.dl-option:hover { border-color: rgba(123,97,255,.4); background: var(--bg3); transform: translateX(3px) }
+.dl-opt-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.dl-opt-info { flex: 1; min-width: 0 }
+.dl-opt-name { font-size: 14px; font-weight: 700; color: var(--text1); font-family: 'Outfit', sans-serif }
+.dl-opt-sub { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--text3); margin-top: 2px }
+.dl-opt-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px; font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.dl-opt-primary { background: rgba(123,97,255,.15); border-color: rgba(123,97,255,.4); color: #a89ffc }
+
+/* Install guide */
+.dl-guide {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 15px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+.dl-guide-close {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--text3);
+  cursor: pointer; margin-bottom: 12px;
+  display: inline-block;
+  transition: color .2s;
+}
+.dl-guide-close:hover { color: var(--text1) }
+.dl-guide-step {
+  display: flex; gap: 10px; align-items: flex-start;
+  margin-bottom: 10px;
+}
+.dl-guide-step:last-child { margin-bottom: 0 }
+.dl-step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(123,97,255,.2);
+  border: 1px solid rgba(123,97,255,.4);
+  color: #a89ffc;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.dl-step-text { font-size: 13px; color: var(--text2); line-height: 1.55 }
+.dl-step-text strong { color: var(--text1) }
+
+/* Features */
+.dl-features {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dl-feat {
+  padding: 9px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-size: 11.5px;
+  color: var(--text2);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+}
+</style>
+
+<script>
+/* ━━━━━━━━━━━━━━━━━━━━━━ DOWNLOAD / PWA SYSTEM ━━━━━━━━━━━━━━━━━━━━━━ */
+
+// Inject PWA manifest dynamically
+(function injectManifest(){
+  const manifest = {
+    name: "StackLog – Your Game Stack",
+    short_name: "StackLog",
+    description: "Track your game backlog, rate games & compete with friends.",
+    start_url: ".",
+    display: "standalone",
+    background_color: "#080910",
+    theme_color: "#7b61ff",
+    orientation: "portrait-primary",
+    icons: [
+      { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='%237b61ff'/><rect x='28' y='120' width='136' height='36' rx='17' fill='white' opacity='.95'/><rect x='42' y='76' width='108' height='36' rx='17' fill='white' opacity='.72'/><rect x='56' y='32' width='80' height='36' rx='17' fill='white' opacity='.45'/></svg>", sizes: "192x192", type: "image/svg+xml" },
+      { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%237b61ff'/><rect x='72' y='322' width='368' height='96' rx='44' fill='white' opacity='.95'/><rect x='110' y='202' width='292' height='96' rx='44' fill='white' opacity='.72'/><rect x='150' y='84' width='212' height='96' rx='44' fill='white' opacity='.45'/></svg>", sizes: "512x512", type: "image/svg+xml" }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  document.getElementById('pwaManifest').href = url;
+})();
+
+let pwaPromptEvent = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  pwaPromptEvent = e;
+  document.getElementById('pwaBtn').textContent = '✓ Install';
+  document.getElementById('pwaBtn').style.background = 'rgba(0,210,180,.15)';
+  document.getElementById('pwaBtn').style.borderColor = 'rgba(0,210,180,.4)';
+  document.getElementById('pwaBtn').style.color = '#00d2b4';
+});
+
+function openDownloadModal(){
+  document.getElementById('dlOverlay').classList.add('open');
+  document.getElementById('dlGuide').style.display = 'none';
+}
+function closeDlModal(){
+  document.getElementById('dlOverlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeDlModal(); });
+
+function downloadHTML(){
+  const html = document.documentElement.outerHTML;
+  const blob = new Blob([html], {type:'text/html'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'StackLog.html';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  closeDlModal();
+  const t = document.querySelector('.toast');
+  if(t){ t.textContent='StackLog.html downloaded! Open in any browser 🎮'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3200); }
+}
+
+function installPWA(){
+  if(pwaPromptEvent){
+    pwaPromptEvent.prompt();
+    pwaPromptEvent.userChoice.then(r => {
+      if(r.outcome==='accepted'){
+        closeDlModal();
+        const t = document.querySelector('.toast');
+        if(t){ t.textContent='StackLog installed as app! 🎮'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+      }
+      pwaPromptEvent = null;
+    });
+  } else {
+    showGuide('pwa');
+  }
+}
+
+function installAndroid(){
+  showGuide('android');
+}
+function installIOS(){
+  showGuide('ios');
+}
+
+function showGuide(type){
+  const guides = {
+    android: {
+      title: '📱 Android — Add to Home Screen',
+      steps: [
+        { n:1, text: '<strong>Download</strong> the StackLog.html file to your phone by tapping "Download File" above.' },
+        { n:2, text: 'Open the downloaded file in <strong>Chrome</strong> on your Android device.' },
+        { n:3, text: 'Tap the <strong>⋮ menu</strong> (three dots, top-right) in Chrome.' },
+        { n:4, text: 'Tap <strong>"Add to Home screen"</strong> from the menu.' },
+        { n:5, text: 'Tap <strong>Add</strong> — StackLog will appear on your home screen like a real app! 🎉' },
+      ]
+    },
+    ios: {
+      title: '🍎 iPhone / iPad — Add to Home Screen',
+      steps: [
+        { n:1, text: '<strong>Download</strong> StackLog.html to your iPhone using the "Download File" option.' },
+        { n:2, text: 'Open the file in <strong>Safari</strong> (must be Safari, not Chrome).' },
+        { n:3, text: 'Tap the <strong>Share button</strong> (the box with arrow pointing up) at the bottom.' },
+        { n:4, text: 'Scroll down and tap <strong>"Add to Home Screen"</strong>.' },
+        { n:5, text: 'Tap <strong>Add</strong> — StackLog now lives on your iPhone like a native app! 🎉' },
+      ]
+    },
+    pwa: {
+      title: '🌐 Install as PWA — Chrome / Edge',
+      steps: [
+        { n:1, text: 'Open StackLog in <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong> on desktop.' },
+        { n:2, text: 'Look for the <strong>install icon ⊕</strong> in the browser address bar (right side).' },
+        { n:3, text: 'Click it and select <strong>"Install StackLog"</strong> from the popup.' },
+        { n:4, text: 'StackLog opens in its own window — no browser chrome, just the app! 🎉' },
+      ]
+    }
+  };
+  const g = guides[type];
+  if(!g) return;
+  document.getElementById('dlGuideContent').innerHTML = `
+    <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--text1);margin-bottom:13px">${g.title}</div>
+    ${g.steps.map(s=>`
+      <div class="dl-guide-step">
+        <div class="dl-step-num">${s.n}</div>
+        <div class="dl-step-text">${s.text}</div>
+      </div>
+    `).join('')}
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+      <button onclick="downloadHTML()" style="width:100%;padding:11px;background:linear-gradient(135deg,#7b61ff,#ff3d7f);border:none;border-radius:11px;color:#fff;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:800;cursor:pointer;">⬇ Download StackLog.html first</button>
+    </div>
+  `;
+  document.getElementById('dlGuide').style.display = 'block';
+}
+</script>
+
+<style>
+/* extra — fab-badge used in banner */
+.fab-badge {
+  padding: 3px 9px;
+  border-radius: 100px;
+  background: rgba(123,97,255,.14);
+  border: 1px solid rgba(123,97,255,.35);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; font-weight: 700;
+  color: #a89ffc; white-space: nowrap; letter-spacing: .5px;
+}
+
+</style>
+
 </body>
 </html>
