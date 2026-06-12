@@ -4,500 +4,394 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTMS — Cognitive Traffic Management System | Smart Cities</title>
-    <meta name="description" content="CTMS is an AI-powered intelligent traffic management system for smart cities.">
-    <meta name="theme-color" content="#060b13">
+    <meta name="description" content="CTMS is an AI-powered intelligent traffic management system for smart cities, combining Deep Q-Network reinforcement learning, YOLOv8 emergency vehicle detection, and Kafka stream processing.">
     
-    <!-- Modern Tech Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Modern Font Pairings -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
     
     <style>
         /* ═══════════════════════════════════════
-           ROOT VARIABLES & MODERN UPGRADES
+           MODERN CSS VARIABLES
         ═══════════════════════════════════════ */
         :root {
-            --bg-base: #030712;
-            --primary: #00f2fe;
-            --primary-glow: rgba(0, 242, 254, 0.4);
-            --secondary: #4facfe;
-            --ac: #00f2fe;
-            --ac2: #4facfe;
-            --ac3: #818cf8;
+            --bg: #030509;
+            --surface: rgba(255, 255, 255, 0.02);
+            --surface-hover: rgba(255, 255, 255, 0.04);
+            --surface-border: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            
+            --cyan: #00f0ff;
+            --purple: #8a2be2;
+            --pink: #ff007f;
+            
             --warn: #fbbf24;
             --danger: #ef4444;
             --ok: #10b981;
-            --txt: #94a3b8;
-            --txtd: #64748b;
-            --txtb: #f8fafc;
-            --white: #ffffff;
             
-            /* Glassmorphism Variables */
-            --glass-bg: rgba(255, 255, 255, 0.02);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-hover: rgba(255, 255, 255, 0.05);
-
-            --f1: 'Outfit', sans-serif;
-            --f2: 'JetBrains Mono', monospace;
-            --f3: 'Outfit', sans-serif;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dark: #64748b;
+            
+            --font-head: 'Space Grotesk', sans-serif;
+            --font-ui: 'Plus Jakarta Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
-        * { margin:0; padding:0; box-sizing:border-box; scroll-behavior:smooth; }
-        html { font-size:16px; }
-        
-        body {
-            background-color: var(--bg-base);
-            color: var(--txt);
-            font-family: var(--f3);
-            overflow-x: hidden;
-        }
-
-        ::selection { background:rgba(0,242,254,.25); color:var(--white); }
-        ::-webkit-scrollbar { width:6px; }
-        ::-webkit-scrollbar-track { background:var(--bg-base); }
-        ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.2); border-radius:3px; }
-        ::-webkit-scrollbar-thumb:hover { background:var(--primary); }
+        *{margin:0;padding:0;box-sizing:border-box;scroll-behavior:smooth;}
+        body{background:var(--bg);color:var(--text-main);font-family:var(--font-ui);overflow-x:hidden;}
+        ::selection{background:var(--cyan);color:#000;}
+        ::-webkit-scrollbar{width:6px;}
+        ::-webkit-scrollbar-track{background:var(--bg);}
+        ::-webkit-scrollbar-thumb{background:var(--surface-border);border-radius:10px;}
+        ::-webkit-scrollbar-thumb:hover{background:var(--cyan);}
 
         /* ═══════════════════════════════════════
-           ANIMATED AMBIENT BACKGROUND (NEW)
+           AMBIENT BACKGROUND ANIMATIONS
         ═══════════════════════════════════════ */
-        .cyber-grid {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background-image: 
-                linear-gradient(var(--glass-border) 1px, transparent 1px),
-                linear-gradient(90deg, var(--glass-border) 1px, transparent 1px);
+        .ambient-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none;
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(120px);
+            opacity: 0.4; animation: float 20s infinite ease-in-out alternate;
+        }
+        .orb-1 { width: 50vw; height: 50vw; background: rgba(0, 240, 255, 0.15); top: -20%; left: -10%; animation-duration: 25s; }
+        .orb-2 { width: 40vw; height: 40vw; background: rgba(138, 43, 226, 0.15); bottom: -10%; right: -10%; animation-duration: 22s; animation-direction: alternate-reverse; }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(5%, 10%) scale(1.1); }
+            100% { transform: translate(-5%, -5%) scale(0.9); }
+        }
+
+        /* Grid Pattern */
+        .grid-overlay {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background-image: linear-gradient(var(--surface-border) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--surface-border) 1px, transparent 1px);
             background-size: 50px 50px;
-            z-index: -2;
-            transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
-            animation: gridMove 15s linear infinite;
-            mask-image: radial-gradient(ellipse at center, black 10%, transparent 80%);
-            -webkit-mask-image: radial-gradient(ellipse at center, black 10%, transparent 80%);
-        }
-
-        .ambient-glow {
-            position: fixed;
-            top: 20%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70vw; height: 70vw;
-            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 50%);
-            filter: blur(100px);
-            z-index: -1;
-            border-radius: 50%;
-            animation: pulseGlow 10s ease-in-out infinite alternate;
-            pointer-events: none;
-        }
-
-        @keyframes gridMove {
-            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
-            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
-        }
-        @keyframes pulseGlow {
-            0% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.9); }
-            100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.1); }
+            mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0%, transparent 80%);
         }
 
         /* ═══════════════════════════════════════
-           TOPNAV
+           FLOATING NAVIGATION
         ═══════════════════════════════════════ */
         #topnav {
-            position:fixed; top:0; left:0; right:0; z-index:999;
-            background: rgba(3, 7, 18, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--glass-border);
-            display:flex; align-items:center; justify-content:space-between;
-            padding:0 28px; height:64px; transition:all .3s;
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 999; display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 24px; width: 95%; max-width: 1200px;
+            background: rgba(3, 5, 9, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--surface-border); border-radius: 100px;
+            transition: all 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        #topnav.scrolled { box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .nav-brand { display:flex; align-items:center; gap:12px; text-decoration:none; }
+        #topnav.scrolled { padding: 8px 24px; background: rgba(3, 5, 9, 0.85); border-color: rgba(255,255,255,0.15); }
+        .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
         .nav-mark {
-            width:36px; height:36px; border-radius:10px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            display:flex; align-items:center; justify-content:center;
-            font-family:var(--f1); font-weight:800; font-size:14px; color:#000;
-            box-shadow: 0 0 15px var(--primary-glow);
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--cyan), var(--purple));
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-head); font-weight: 700; font-size: 14px; color: #000;
+            box-shadow: 0 0 20px rgba(0,240,255,0.4);
         }
-        .nav-title { font-family:var(--f1); font-weight:700; font-size:18px; color:var(--white); letter-spacing:2px; }
-        .nav-links { display:flex; gap:8px; }
+        .nav-title { font-family: var(--font-head); font-weight: 700; font-size: 18px; color: #fff; letter-spacing: 1px; }
+        .nav-links { display: flex; gap: 8px; }
         .nav-links a {
-            font-family:var(--f1); font-size:13px; font-weight:500; color:var(--txt);
-            text-decoration:none; padding:8px 14px; border-radius:8px;
-            transition:all .3s;
+            font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none;
+            padding: 8px 16px; border-radius: 50px; transition: all 0.3s;
         }
-        .nav-links a:hover, .nav-links a.active {
-            color: var(--primary); background: var(--glass-bg);
-            box-shadow: inset 0 0 0 1px var(--glass-border);
+        .nav-links a:hover, .nav-links a.active { color: #fff; background: var(--surface-hover); box-shadow: inset 0 0 0 1px var(--glass-border); }
+        
+        #nav-clock { font-family: var(--font-mono); font-size: 12px; color: var(--cyan); background: rgba(0,240,255,0.1); padding: 6px 14px; border-radius: 50px; border: 1px solid rgba(0,240,255,0.2); }
+
+        /* ═══════════════════════════════════════
+           MODERN SPOTLIGHT CARDS
+        ═══════════════════════════════════════ */
+        .spotlight-card {
+            position: relative; background: var(--surface); border: 1px solid var(--surface-border);
+            border-radius: 24px; padding: 32px; overflow: hidden; transition: transform 0.3s, border-color 0.3s;
         }
-        .nav-right { display:flex; align-items:center; gap:14px; }
-        .nav-badge {
-            font-family:var(--f2); font-size:10px; padding:6px 12px; border-radius:6px;
-            background: rgba(0,242,254,0.1); color:var(--primary); border:1px solid rgba(0,242,254,0.3);
-            letter-spacing:1px;
+        .spotlight-card::before {
+            content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s;
+            background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.06), transparent 40%);
+            pointer-events: none;
         }
-        #nav-clock { font-family:var(--f2); font-size:13px; color:var(--txtd); }
+        .spotlight-card:hover::before { opacity: 1; }
+        .spotlight-card:hover { transform: translateY(-5px); border-color: var(--glass-border); }
 
         /* ═══════════════════════════════════════
            HERO SECTION
         ═══════════════════════════════════════ */
-        #hero {
-            min-height:100vh; display:flex; align-items:center;
-            position:relative; overflow:hidden; padding-top:64px;
-        }
-        .hero-inner {
-            position:relative; z-index:2; max-width:1200px; margin:0 auto; padding:60px 28px;
-            width:100%; display:grid; grid-template-columns:1.2fr 1fr; gap:60px; align-items:center;
-        }
+        #hero { min-height: 100vh; display: flex; align-items: center; padding: 120px 0 60px; position: relative; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; width: 100%; }
+        .hero-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 60px; align-items: center; }
+        
         .hero-tag {
-            display:inline-flex; align-items:center; gap:8px;
-            font-family:var(--f2); font-size:11px; color:var(--primary);
-            background: rgba(0,242,254,0.05); border:1px solid rgba(0,242,254,0.2);
-            border-radius:30px; padding:6px 16px; letter-spacing:1px; margin-bottom:24px;
-            box-shadow: 0 0 20px rgba(0,242,254,0.1);
+            display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px;
+            color: var(--cyan); background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.2);
+            padding: 6px 16px; border-radius: 50px; margin-bottom: 24px; text-transform: uppercase;
         }
-        .htag-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); animation:blink 2s infinite; }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+        .htag-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
         
-        h1.hero-title {
-            font-family:var(--f1); font-weight:800; font-size:clamp(40px, 5vw, 68px);
-            color:var(--white); line-height:1.1; margin-bottom:20px; letter-spacing:-1px;
+        .hero-title {
+            font-family: var(--font-head); font-size: clamp(48px, 6vw, 80px); line-height: 1.05; font-weight: 700; margin-bottom: 24px; letter-spacing: -1px;
         }
-        h1.hero-title span {
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        .text-gradient {
+            background: linear-gradient(to right, var(--cyan), var(--purple), var(--pink), var(--cyan));
+            background-size: 300% auto; color: transparent; -webkit-background-clip: text; background-clip: text;
+            animation: gradient-flow 6s linear infinite;
         }
-        .hero-desc { font-size:17px; line-height:1.7; color:var(--txt); max-width:550px; margin-bottom:36px; }
+        @keyframes gradient-flow { 0% { background-position: 0% center; } 100% { background-position: 300% center; } }
         
-        /* Modern Buttons */
-        .hero-btns { display:flex; gap:16px; flex-wrap:wrap; }
-        .btn-primary {
-            display:inline-flex; align-items:center; gap:10px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary)); color:#000;
-            padding:14px 28px; border-radius:12px; font-family:var(--f1); font-weight:700; font-size:15px;
-            text-decoration:none; border:none; cursor:pointer; transition:all .3s;
-            box-shadow: 0 10px 30px rgba(0,242,254,0.3);
+        .hero-desc { font-size: 18px; line-height: 1.6; color: var(--text-muted); margin-bottom: 40px; max-width: 540px; }
+        
+        .hero-btns { display: flex; gap: 16px; }
+        .btn-primary, .btn-outline {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 16px 32px; border-radius: 50px; font-family: var(--font-head); font-weight: 600; font-size: 15px;
+            text-decoration: none; transition: all 0.3s ease; cursor: pointer;
         }
-        .btn-primary:hover { transform:translateY(-3px); box-shadow: 0 15px 40px rgba(0,242,254,0.5); }
-        .btn-outline {
-            display:inline-flex; align-items:center; gap:10px;
-            background: var(--glass-bg); color:var(--white); padding:14px 28px; border-radius:12px;
-            font-family:var(--f1); font-weight:600; font-size:15px; text-decoration:none;
-            border:1px solid var(--glass-border); cursor:pointer; transition:all .3s;
-            backdrop-filter: blur(10px);
-        }
-        .btn-outline:hover { border-color:var(--primary); color:var(--primary); background:rgba(0,242,254,0.05); }
+        .btn-primary { background: var(--text-main); color: var(--bg); border: none; }
+        .btn-primary:hover { background: var(--cyan); box-shadow: 0 0 30px rgba(0,240,255,0.4); transform: translateY(-2px); }
+        .btn-outline { background: transparent; color: var(--text-main); border: 1px solid var(--surface-border); backdrop-filter: blur(10px); }
+        .btn-outline:hover { border-color: var(--text-main); background: rgba(255,255,255,0.05); }
 
-        /* Hero Card (Glassmorphism) */
-        .hero-card {
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-radius: 20px; overflow:hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            animation: floatY 8s ease-in-out infinite;
+        /* Hero Team Card */
+        .glass-id-card {
+            background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid var(--surface-border);
+            border-radius: 24px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            animation: float-card 6s ease-in-out infinite alternate;
         }
-        @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
-        .hc-top { padding:20px 24px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between; }
-        .hc-top-title { font-family:var(--f2); font-size:12px; color:var(--txtd); letter-spacing:1px; }
-        .hc-dot { width:10px; height:10px; border-radius:50%; background:var(--ok); box-shadow: 0 0 10px var(--ok); animation:blink 2s infinite; }
-        .hc-meta { padding:20px 24px; border-bottom:1px solid var(--glass-border); }
-        .hc-row { display:flex; justify-content:space-between; padding:6px 0; font-size:13px; font-family:var(--f2); }
-        .hck { color:var(--txtd); } .hcv { color:var(--white); }
-        .team-list { padding:20px 24px; }
-        .team-row { display:flex; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid var(--glass-border); }
-        .team-row:last-child { border-bottom:none; }
-        .team-num {
-            width:32px; height:32px; border-radius:8px; background:rgba(0,242,254,0.1); color:var(--primary);
-            font-family:var(--f2); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
-        }
-        .team-name { font-size:15px; font-weight:600; color:var(--white); }
-        .team-usn { font-family:var(--f2); font-size:11px; color:var(--txtd); }
-        .hero-stats { display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--glass-border); background:rgba(0,0,0,0.2); }
-        .hstat { padding:18px; text-align:center; border-right:1px solid var(--glass-border); }
-        .hstat:last-child { border-right:none; }
-        .hstat-v { font-family:var(--f2); font-size:24px; font-weight:700; color:var(--primary); }
-        .hstat-l { font-size:10px; color:var(--txtd); font-family:var(--f2); margin-top:6px; letter-spacing:1px; text-transform:uppercase;}
+        @keyframes float-card { 0% { transform: translateY(0) rotate(0); } 100% { transform: translateY(-15px) rotate(1deg); } }
+        
+        .gic-header { padding: 24px; border-bottom: 1px solid var(--surface-border); display: flex; justify-content: space-between; align-items: center; }
+        .gic-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); letter-spacing: 2px; text-transform: uppercase; }
+        .gic-body { padding: 24px; }
+        .gic-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-family: var(--font-mono); font-size: 13px; }
+        .gic-k { color: var(--text-dark); } .gic-v { color: var(--text-main); }
+        
+        .team-list { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; padding-top: 24px; border-top: 1px dashed var(--surface-border); }
+        .team-member { display: flex; align-items: center; gap: 16px; }
+        .tm-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--surface-hover); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; color: var(--cyan); border: 1px solid var(--surface-border); }
+        .tm-info { display: flex; flex-direction: column; }
+        .tm-name { font-weight: 600; font-size: 15px; color: var(--text-main); }
+        .tm-usn { font-family: var(--font-mono); font-size: 11px; color: var(--text-dark); margin-top: 2px; }
 
         /* ═══════════════════════════════════════
-           SECTION COMMON
+           SECTION STYLES
         ═══════════════════════════════════════ */
-        section { padding:100px 0; position:relative; z-index:1; }
-        .section-inner { max-width:1200px; margin:0 auto; padding:0 28px; }
-        .sec-tag {
-            font-family:var(--f2); font-size:12px; color:var(--primary); letter-spacing:2px;
-            text-transform:uppercase; margin-bottom:12px; display:flex; align-items:center; gap:10px;
-        }
-        .sec-tag::before { content:''; width:30px; height:2px; background:var(--primary); border-radius:2px;}
-        h2.sec-title {
-            font-family:var(--f1); font-weight:800; font-size:clamp(32px,4vw,48px);
-            color:var(--white); margin-bottom:20px; line-height:1.2; letter-spacing:-0.5px;
-        }
-        h2.sec-title span { color:var(--primary); }
-        .sec-desc { font-size:16px; line-height:1.7; color:var(--txt); max-width:700px; margin-bottom:50px; }
+        section { padding: 120px 0; position: relative; }
+        .sec-header { max-width: 600px; margin-bottom: 60px; }
+        .sec-label { font-family: var(--font-mono); color: var(--cyan); font-size: 13px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .sec-label::before { content: ""; width: 30px; height: 1px; background: var(--cyan); }
+        .sec-title { font-family: var(--font-head); font-size: clamp(32px, 4vw, 48px); font-weight: 700; margin-bottom: 20px; line-height: 1.1; }
+        .sec-desc { font-size: 17px; color: var(--text-muted); line-height: 1.6; }
 
         /* ═══════════════════════════════════════
-           CARDS (GLASSMORPHISM)
+           BENTO GRID (Problems)
         ═══════════════════════════════════════ */
-        .prob-grid, .arch-grid, .res-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; }
+        .bento-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .bento-item { position: relative; }
+        .bento-item:nth-child(1) { grid-column: span 2; }
+        .bento-item:nth-child(4) { grid-column: span 2; }
         
-        .pcard, .arch-card, .res-card {
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-radius: 16px; padding:28px; transition:all .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position:relative; overflow:hidden;
-        }
-        
-        .pcard::before, .arch-card::before {
-            content:''; position:absolute; top:0; left:0; width:100%; height:3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease;
-        }
-
-        .pcard:hover, .arch-card:hover, .res-card:hover {
-            transform: translateY(-8px); border-color: rgba(0,242,254,0.3);
-            background: var(--glass-hover); box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-        }
-        .pcard:hover::before, .arch-card:hover::before { transform: scaleX(1); }
-
-        .pico, .arch-icon { font-size:36px; margin-bottom:16px; }
-        .ptitle, .arch-title, .res-title { font-family:var(--f1); font-weight:700; font-size:18px; color:var(--white); margin-bottom:10px; }
-        .pdesc, .arch-desc, .res-desc { font-size:14px; line-height:1.7; color:var(--txt); }
-        .pnum, .res-num {
-            position:absolute; top:20px; right:20px; font-family:var(--f2); font-size:14px;
-            color:var(--glass-border); font-weight:700;
-        }
-        .res-num { position:static; width:36px; height:36px; border-radius:10px; background:rgba(0,242,254,0.1); color:var(--primary); display:flex; align-items:center; justify-content:center; margin-bottom:16px; font-size:14px;}
-
-        /* Tech Tags */
-        .arch-tech { display:flex; flex-wrap:wrap; gap:8px; }
-        .tech-tag {
-            font-family:var(--f2); font-size:11px; padding:4px 10px; border-radius:6px;
-            background: rgba(0,0,0,0.3); border:1px solid var(--glass-border); color:var(--primary);
-        }
+        .b-icon { width: 50px; height: 50px; border-radius: 16px; background: var(--surface-hover); border: 1px solid var(--surface-border); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px; }
+        .b-title { font-family: var(--font-head); font-size: 20px; font-weight: 600; margin-bottom: 12px; color: #fff; }
+        .b-desc { color: var(--text-muted); font-size: 15px; line-height: 1.6; }
+        .b-num { position: absolute; top: 32px; right: 32px; font-family: var(--font-mono); font-size: 40px; font-weight: 700; color: rgba(255,255,255,0.03); line-height: 1; }
 
         /* ═══════════════════════════════════════
-           LIVE DASHBOARD SECTION
+           LIVE DASHBOARD (Sleek UI)
         ═══════════════════════════════════════ */
-        .dash-wrap {
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            backdrop-filter: blur(20px); border-radius: 20px; overflow:hidden;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+        .dash-container {
+            background: rgba(3, 5, 9, 0.4); border: 1px solid var(--surface-border);
+            border-radius: 32px; backdrop-filter: blur(30px); overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6);
         }
-
-        .dmetrics { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--glass-border); background:rgba(0,0,0,0.3);}
-        .dmc { padding:24px; border-right:1px solid var(--glass-border); display:flex; align-items:center; gap:16px; transition:background .3s;}
-        .dmc:last-child { border-right:none; }
-        .dmc:hover { background: rgba(255,255,255,0.03); }
-        .dmico { width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; background:var(--glass-border);}
-        .dmlabel { font-size:11px; color:var(--txtd); font-family:var(--f2); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
-        .dmval { font-size:28px; font-weight:700; color:var(--white); line-height:1; font-family:var(--f2); }
-        .dmval small { font-size:14px; color:var(--txtd); font-weight:400; }
-        .dmdelta { font-size:11px; font-family:var(--f2); margin-top:6px; color:var(--ok); }
-
-        .dmain { display:grid; grid-template-columns:1fr 400px 350px; min-height:500px; }
-        .dp { border-right:1px solid var(--glass-border); display:flex; flex-direction:column; overflow:hidden; }
-        .dp:last-child { border-right:none; }
-        .dph { padding:16px 24px; border-bottom:1px solid var(--glass-border); display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.2);}
-        .dphttl { font-size:12px; font-weight:700; color:var(--white); font-family:var(--f2); text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:10px; }
-        .dphttl::before { content:''; width:4px; height:14px; background:var(--primary); border-radius:2px; }
-        .dp-badge { font-size:10px; font-family:var(--f2); padding:4px 10px; border-radius:6px; background:rgba(0,242,254,0.1); color:var(--primary); border:1px solid rgba(0,242,254,0.3); font-weight:600;}
-        .dpbody { flex:1; overflow-y:auto; padding:20px; }
-
-        /* Intersection grid */
-        .igrid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-        .icell {
-            background: rgba(0,0,0,0.4); border:1px solid var(--glass-border); border-radius:12px;
-            padding:12px; cursor:pointer; transition:all .2s;
-        }
-        .icell:hover { border-color:var(--primary); transform:scale(1.03); box-shadow: 0 0 15px var(--primary-glow);}
-        .icell.emg { border-color:var(--danger)!important; animation:epulse .7s infinite alternate; }
-        @keyframes epulse{from{box-shadow:0 0 4px rgba(239,68,68,.2)}to{box-shadow:0 0 20px rgba(239,68,68,.6)}}
         
-        .ihead { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-        .iid { font-size:12px; font-weight:700; color:var(--primary); font-family:var(--f2); }
-        .iphase { font-size:9px; font-family:var(--f2); padding:3px 8px; border-radius:4px; font-weight:600;}
-        .iphase.NS { background:rgba(0,242,254,0.1); color:var(--primary); border:1px solid rgba(0,242,254,0.3); }
-        .iphase.EW { background:rgba(129,140,248,0.1); color:var(--ac3); border:1px solid rgba(129,140,248,0.3); }
-        .iphase.EMG { background:rgba(239,68,68,0.1); color:var(--danger); border:1px solid rgba(239,68,68,0.4); }
+        /* Stats Strip */
+        .dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--surface-border); background: rgba(255,255,255,0.01); }
+        .d-stat { padding: 24px 32px; border-right: 1px solid var(--surface-border); }
+        .d-stat:last-child { border-right: none; }
+        .ds-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-dark); text-transform: uppercase; margin-bottom: 8px; }
+        .ds-val { font-family: var(--font-head); font-size: 36px; font-weight: 700; color: #fff; line-height: 1; display: flex; align-items: baseline; gap: 4px; }
+        .ds-val small { font-size: 16px; color: var(--text-muted); font-weight: 400; }
+        .ds-delta { display: inline-block; margin-top: 10px; font-family: var(--font-mono); font-size: 11px; padding: 4px 10px; border-radius: 50px; background: rgba(16, 185, 129, 0.1); color: var(--ok); }
         
-        .isvg { width:100%; aspect-ratio:1; margin-bottom:10px; border-radius:8px;}
-        .dbars { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-        .dbar-item { font-size:9px; font-family:var(--f2); color:var(--txt); }
-        .dbar-lbl { margin-bottom:4px; }
-        .dbar-track { height:4px; background:var(--glass-border); border-radius:2px; overflow:hidden; }
-        .dbar-fill { height:100%; border-radius:2px; transition:width 1s ease; }
-        .dbar-fill.lo { background:var(--primary); }
-        .dbar-fill.md { background:var(--warn); }
-        .dbar-fill.hi { background:var(--danger); }
-        .idqn-row { margin-top:10px; display:flex; justify-content:space-between; font-size:10px; font-family:var(--f2); color:var(--txtd); }
-        .idqn-score { color:var(--white); font-weight:700;}
-        .itimer { color:var(--warn); font-weight:700;}
-
-        /* Chart & Events */
-        .chart-wrap { flex:0 0 50%; border-bottom:1px solid var(--glass-border); display:flex; flex-direction:column; }
-        .ccanvas-wrap { flex:1; position:relative; padding:16px; }
-        .events-col { flex:1; display:flex; flex-direction:column; overflow:hidden; background:rgba(0,0,0,0.2);}
-        .evfeed { flex:1; overflow-y:auto; padding:12px 16px; display:flex; flex-direction:column; gap:8px; }
-        .evitem {
-            display:flex; gap:10px; padding:10px; background:var(--glass-bg);
-            border-radius:8px; border-left:3px solid transparent; border:1px solid var(--glass-border);
-            font-size:11px; font-family:var(--f2); animation:slideIn .3s ease;
-        }
-        @keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-        .evitem.info { border-left-color:var(--primary); }
-        .evitem.warn { border-left-color:var(--warn); }
-        .evitem.danger { border-left-color:var(--danger); background:rgba(239,68,68,0.1);}
-        .evitem.success { border-left-color:var(--ok); }
-        .evt { color:var(--txtd); flex-shrink:0; font-size:10px; }
-        .evm { color:var(--white); line-height:1.5; }
-
+        /* Main Layout */
+        .dash-main { display: grid; grid-template-columns: 1fr 1fr 350px; min-height: 600px; }
+        .dash-panel { border-right: 1px solid var(--surface-border); display: flex; flex-direction: column; }
+        .dash-panel:last-child { border-right: none; }
+        
+        .dp-header { padding: 20px 32px; border-bottom: 1px solid var(--surface-border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.01); }
+        .dp-title { font-family: var(--font-head); font-weight: 600; font-size: 14px; color: #fff; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .dp-title::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+        .dp-body { padding: 24px; flex: 1; overflow-y: auto; overflow-x: hidden; }
+        
+        /* Intersection Grid */
+        .i-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .i-cell { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 16px; padding: 16px; transition: all 0.3s; cursor: pointer; }
+        .i-cell:hover { border-color: var(--cyan); background: rgba(0,240,255,0.03); transform: scale(1.02); }
+        .i-cell.emg { border-color: var(--danger); background: rgba(239, 68, 68, 0.05); animation: emg-pulse 1s infinite alternate; }
+        @keyframes emg-pulse { from { box-shadow: 0 0 0 transparent; } to { box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); } }
+        
+        .ic-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .ic-id { font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text-main); }
+        .ic-phase { font-family: var(--font-mono); font-size: 9px; padding: 3px 8px; border-radius: 50px; }
+        .ic-phase.NS { background: rgba(0,240,255,0.1); color: var(--cyan); }
+        .ic-phase.EW { background: rgba(138,43,226,0.1); color: #c084fc; }
+        .ic-phase.EMG { background: rgba(239,68,68,0.1); color: var(--danger); }
+        
+        .ic-svg { width: 100%; aspect-ratio: 1; margin-bottom: 12px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--surface-border); padding: 8px; }
+        
+        /* Chart & Logs */
+        .chart-wrapper { flex: 1; padding: 24px; min-height: 250px; position: relative; }
+        .log-feed { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--surface-border); background: rgba(0,0,0,0.2); }
+        .log-item { display: flex; gap: 12px; font-family: var(--font-mono); font-size: 11px; padding: 10px 14px; background: var(--surface); border-radius: 8px; border-left: 2px solid transparent; animation: slide-in 0.3s ease-out; }
+        @keyframes slide-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .log-item.info { border-left-color: var(--cyan); }
+        .log-item.warn { border-left-color: var(--warn); }
+        .log-item.danger { border-left-color: var(--danger); }
+        .log-item.success { border-left-color: var(--ok); }
+        .log-t { color: var(--text-dark); flex-shrink: 0; }
+        
         /* AI Panel */
-        .ai-sec { margin-bottom:20px; }
-        .ai-sec-title { font-size:11px; font-family:var(--f2); color:var(--txtd); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
-        .ai-sec-title::after { content:''; flex:1; height:1px; background:var(--glass-border); }
-        .ai-dbox { background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:12px; padding:16px; }
-        .ai-row { display:flex; justify-content:space-between; padding:4px 0; font-size:11px; font-family:var(--f2); }
-        .ai-k { color:var(--txtd); } .ai-v { color:var(--white); font-weight:600; }
-        .ai-v.ac { color:var(--primary); } .ai-v.ok { color:var(--ok); } .ai-v.danger { color:var(--danger); }
+        .ai-module { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+        .ai-m-title { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--text-dark); margin-bottom: 16px; display: flex; justify-content: space-between; }
+        .ai-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-family: var(--font-mono); font-size: 12px; }
+        .ai-row:last-child { margin-bottom: 0; }
+        .ai-k { color: var(--text-muted); }
+        .ai-v { color: #fff; font-weight: 600; }
+        .ai-v.cyan { color: var(--cyan); }
+        .ai-v.ok { color: var(--ok); }
         
-        .dqn-ring-row { display:flex; align-items:center; gap:16px; padding-bottom:16px; border-bottom:1px solid var(--glass-border); margin-bottom:12px;}
-        .rsvg { width:56px; height:56px; flex-shrink:0; }
-        .rstats .rlbl { font-size:10px; color:var(--txtd); font-family:var(--f2); letter-spacing:1px; }
-        .rstats .rval { font-size:24px; font-weight:700; color:var(--primary); font-family:var(--f2); }
-        .rstats .rsub { font-size:10px; color:var(--txtd); font-family:var(--f2); margin-top:2px; }
-
-        .det-item { background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:8px; padding:10px 12px; display:flex; align-items:center; gap:12px; font-size:11px; font-family:var(--f2); margin-bottom:6px;}
-        .det-item.emg { border-color:var(--danger); background:rgba(239,68,68,.1); }
-        .dico { width:32px; height:32px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; }
-        .dtype { color:var(--white); font-weight:600; font-size:12px;}
-        .dloc { color:var(--txtd); font-size:9px; margin-top:2px; }
-        .dconf { font-size:12px; font-weight:700; margin-left:auto;}
-        .dconf.ok { color:var(--ok); } .dconf.emg { color:var(--danger); }
-
-        .emg-act-btn {
-            width:100%; padding:14px; background:rgba(239,68,68,.1); border:1px solid var(--danger);
-            border-radius:10px; color:var(--danger); font-family:var(--f2); font-size:12px; font-weight:700;
-            cursor:pointer; letter-spacing:1px; transition:all .3s;
-        }
-        .emg-act-btn:hover { background:var(--danger); color:#fff; box-shadow:0 0 20px rgba(239,68,68,0.5); }
-
-        /* Emergency Overlay */
-        #emg-overlay { position:fixed; inset:0; pointer-events:none; z-index:900; border:4px solid transparent; display:none; }
-        #emg-overlay.on { display:block; border-color:rgba(239,68,68,.8); background:rgba(239,68,68,.05); animation:eframe .6s infinite alternate; }
-        @keyframes eframe{ from{border-color:rgba(239,68,68,.4);} to{border-color:rgba(239,68,68,1);} }
-        #emg-banner { position:fixed; top:64px; left:0; right:0; z-index:901; background:var(--danger); color:#fff; display:none; padding:12px; text-align:center; font-family:var(--f2); font-size:14px; font-weight:700; letter-spacing:2px; animation:slideDown .3s; }
-        #emg-banner.on { display:block; }
-        @keyframes slideDown{from{transform:translateY(-100%);}to{transform:translateY(0);}}
+        .emg-btn { width: 100%; padding: 16px; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.4); border-radius: 12px; color: var(--danger); font-family: var(--font-head); font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .emg-btn:hover { background: rgba(239,68,68,0.2); box-shadow: 0 0 20px rgba(239,68,68,0.3); transform: translateY(-2px); }
 
         /* ═══════════════════════════════════════
-           EMPATHY MAP
+           ARCHITECTURE (Glowing Nodes)
         ═══════════════════════════════════════ */
-        .emp-outer { background:var(--glass-bg); border:1px solid var(--glass-border); backdrop-filter:blur(12px); border-radius:20px; overflow:hidden; }
-        .emp-header { padding:24px 32px; border-bottom:1px solid var(--glass-border); display:flex; align-items:center; gap:20px; background:rgba(0,0,0,0.3); }
-        .emp-avatar { width:60px; height:60px; border-radius:16px; background:rgba(0,242,254,0.1); display:flex; align-items:center; justify-content:center; font-size:32px; border:1px solid rgba(0,242,254,0.3);}
-        .emp-who { font-family:var(--f1); font-weight:800; font-size:20px; color:var(--white); margin-bottom:4px;}
-        .emp-role { font-size:14px; color:var(--primary); font-family:var(--f2); }
-        .emp-grid { display:grid; grid-template-columns:repeat(3,1fr); }
-        .emp-zone { padding:28px; border-right:1px solid var(--glass-border); border-bottom:1px solid var(--glass-border); transition:background .3s;}
-        .emp-zone:hover { background:var(--glass-hover); }
-        .emp-zone:nth-child(3n) { border-right:none; }
-        .emp-zone:nth-child(n+7) { border-bottom:none; }
-        .emp-zone-label { font-family:var(--f2); font-size:11px; color:var(--txtd); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
-        .emp-zone-label span { width:10px; height:10px; border-radius:50%; }
-        .ez-think .emp-zone-label span { background:var(--ac3); }
-        .ez-do .emp-zone-label span { background:var(--ac2); }
-        .ez-hear .emp-zone-label span { background:var(--ok); }
-        .ez-say .emp-zone-label span { background:var(--warn); }
-        .ez-see .emp-zone-label span { background:var(--primary); }
-        .ez-pain .emp-zone-label span { background:var(--danger); }
-        .ez-gain .emp-zone-label span { background:var(--ok); }
-        .ez-needs .emp-zone-label span { background:var(--ac2); }
-        .emp-zone-title { font-family:var(--f1); font-weight:700; font-size:18px; color:var(--white); margin-bottom:12px; }
-        .emp-points { list-style:none; display:flex; flex-direction:column; gap:8px; }
-        .emp-points li { font-size:14px; line-height:1.6; color:var(--txt); padding-left:18px; position:relative; }
-        .emp-points li::before { content:'›'; position:absolute; left:0; color:var(--primary); font-size:18px; font-weight:bold; }
+        .arch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .arch-card { text-align: left; }
+        .arch-icon { width: 64px; height: 64px; border-radius: 20px; background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 24px; transition: transform 0.3s; }
+        .arch-card:hover .arch-icon { transform: scale(1.1) rotate(-5deg); border-color: var(--cyan); box-shadow: 0 0 20px rgba(0,240,255,0.2); }
+        .arch-title { font-family: var(--font-head); font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+        .arch-desc { font-size: 15px; color: var(--text-muted); line-height: 1.6; margin-bottom: 20px; }
+        .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag { font-family: var(--font-mono); font-size: 11px; padding: 4px 10px; background: rgba(255,255,255,0.05); border-radius: 50px; color: var(--text-main); }
 
         /* ═══════════════════════════════════════
-           PERFORMANCE & STATS
+           EMPATHY MAP (Modern Grid)
         ═══════════════════════════════════════ */
-        .perf-grid { display:grid; grid-template-columns:1fr 1fr; gap:30px; }
-        .perf-card { background:var(--glass-bg); border:1px solid var(--glass-border); backdrop-filter:blur(12px); border-radius:20px; padding:32px; }
-        .perf-title { font-family:var(--f1); font-weight:700; font-size:20px; color:var(--white); margin-bottom:24px; display:flex; align-items:center; gap:10px; }
-        .perf-bar-wrap { margin-bottom:20px; }
-        .perf-bar-head { display:flex; justify-content:space-between; font-size:13px; font-family:var(--f2); margin-bottom:8px; }
-        .perf-bar-lbl { color:var(--txt); } .perf-bar-val { color:var(--white); font-weight:700; }
-        .perf-bar-track { height:8px; background:rgba(0,0,0,0.5); border-radius:4px; overflow:hidden; border:1px solid var(--glass-border);}
-        .perf-bar-fill { height:100%; border-radius:4px; transition:width 1.5s cubic-bezier(.22,1,.36,1); box-shadow: 0 0 10px currentColor;}
+        .empathy-container { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 32px; overflow: hidden; }
+        .emp-top { padding: 32px; border-bottom: 1px solid var(--surface-border); display: flex; align-items: center; gap: 24px; background: rgba(0,0,0,0.2); }
+        .emp-avatar { width: 64px; height: 64px; background: linear-gradient(135deg, var(--cyan), var(--purple)); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+        .emp-who { font-family: var(--font-head); font-size: 24px; font-weight: 700; color: #fff; }
+        .emp-role { font-family: var(--font-mono); font-size: 13px; color: var(--cyan); margin-top: 4px; }
         
-        .stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
-        .stat-box { background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:16px; padding:24px; text-align:center; transition:all .3s;}
-        .stat-box:hover { transform:translateY(-5px); border-color:var(--primary); background:rgba(0,242,254,0.05); box-shadow:0 10px 30px rgba(0,0,0,0.5);}
-        .stat-box-v { font-family:var(--f2); font-size:36px; font-weight:700; line-height:1; text-shadow:0 0 20px currentColor;}
-        .stat-box-l { font-size:12px; color:var(--white); font-family:var(--f2); margin-top:10px; font-weight:600; text-transform:uppercase;}
-        .stat-box-c { font-size:11px; margin-top:6px; font-family:var(--f2); color:var(--txtd);}
+        .emp-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .emp-zone { padding: 32px; border-right: 1px solid var(--surface-border); border-bottom: 1px solid var(--surface-border); transition: background 0.3s; }
+        .emp-zone:hover { background: var(--surface-hover); }
+        .emp-zone:nth-child(3n) { border-right: none; }
+        .emp-zone:nth-child(n+7) { border-bottom: none; }
+        
+        .ez-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-dark); text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .ez-label span { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--cyan); }
+        .ez-title { font-family: var(--font-head); font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+        .ez-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+        .ez-list li { font-size: 14px; color: var(--text-muted); line-height: 1.5; padding-left: 20px; position: relative; }
+        .ez-list li::before { content: "→"; position: absolute; left: 0; color: var(--text-dark); }
 
         /* ═══════════════════════════════════════
-           FAQ & CONTACT
+           PERFORMANCE BARS
         ═══════════════════════════════════════ */
-        .faq-list { max-width:800px; display:flex; flex-direction:column; gap:16px; }
-        .faq-item { background:var(--glass-bg); border:1px solid var(--glass-border); backdrop-filter:blur(12px); border-radius:16px; overflow:hidden; transition:all .3s; }
-        .faq-item.open { border-color:var(--primary); background:rgba(0,242,254,0.03); }
-        .faq-q { width:100%; background:none; border:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:24px; text-align:left; font-family:var(--f1); font-weight:600; font-size:18px; color:var(--white); }
-        .faq-q .fx { font-family:var(--f2); color:var(--primary); font-size:24px; transition:transform .3s; font-weight:300;}
-        .faq-item.open .fx { transform:rotate(45deg); }
-        .faq-a { max-height:0; overflow:hidden; transition:max-height .4s ease; }
-        .faq-a p { padding:0 24px 24px; font-size:15px; line-height:1.8; color:var(--txt); }
+        .perf-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; align-items: center; }
+        .bar-wrap { margin-bottom: 24px; }
+        .bar-head { display: flex; justify-content: space-between; margin-bottom: 10px; font-family: var(--font-mono); font-size: 13px; }
+        .bar-lbl { color: var(--text-main); }
+        .bar-val { color: var(--cyan); font-weight: 700; }
+        .bar-track { height: 8px; background: var(--surface-border); border-radius: 10px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 10px; transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1); box-shadow: 0 0 10px currentColor; }
 
-        .contact-grid { display:grid; grid-template-columns:350px 1fr; gap:30px; }
-        .cinfo, .cform { background:var(--glass-bg); border:1px solid var(--glass-border); backdrop-filter:blur(12px); border-radius:20px; padding:32px; }
-        .cinfo-row { display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--glass-border); }
-        .cinfo-row:last-child { border-bottom:none; }
-        .cinfo-ico { width:40px; height:40px; border-radius:10px; background:rgba(0,242,254,0.1); border:1px solid rgba(0,242,254,0.3); display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--primary);}
-        .cinfo-k { font-family:var(--f2); font-size:10px; color:var(--txtd); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;}
-        .cinfo-v { font-size:15px; color:var(--white); font-weight:500; line-height:1.5;}
-
-        .fgroup { margin-bottom:20px; display:flex; flex-direction:column; }
-        .fgroup label { font-family:var(--f2); font-size:12px; color:var(--txt); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;}
-        .fgroup input, .fgroup textarea { background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); border-radius:10px; padding:14px; color:var(--white); font-family:var(--f3); font-size:15px; outline:none; transition:all .3s; }
-        .fgroup input:focus, .fgroup textarea:focus { border-color:var(--primary); box-shadow:0 0 15px rgba(0,242,254,0.2); background:rgba(0,0,0,0.5);}
+        .stat-blocks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .s-block { background: var(--surface); border: 1px solid var(--surface-border); padding: 24px; border-radius: 20px; text-align: center; }
+        .s-val { font-family: var(--font-head); font-size: 36px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+        .s-lbl { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
 
         /* ═══════════════════════════════════════
-           FOOTER & UTILS
+           CONTACT FORM
         ═══════════════════════════════════════ */
-        footer { background:rgba(0,0,0,0.5); border-top:1px solid var(--glass-border); padding:40px 28px; text-align:center; position:relative; z-index:1;}
-        .footer-title { font-family:var(--f1); font-weight:800; font-size:20px; color:var(--white); letter-spacing:2px; margin-bottom:10px; }
-        .footer-sub { font-size:14px; color:var(--txtd); font-family:var(--f2); margin-bottom:24px; }
-        .footer-team { display:flex; justify-content:center; gap:30px; flex-wrap:wrap; font-size:13px; color:var(--txt); font-family:var(--f2); }
-        .footer-team span span { color:var(--white); font-weight:600;}
+        .contact-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 60px; }
+        .c-info { display: flex; flex-direction: column; gap: 24px; }
+        .c-row { display: flex; gap: 16px; }
+        .c-icon { width: 48px; height: 48px; background: rgba(255,255,255,0.03); border: 1px solid var(--surface-border); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .c-detail-k { font-family: var(--font-mono); font-size: 11px; color: var(--text-dark); text-transform: uppercase; margin-bottom: 4px; }
+        .c-detail-v { font-size: 15px; color: #fff; font-weight: 500; }
 
-        /* Scroll Reveal & Back to Top */
-        .reveal { opacity:0; transform:translateY(40px); transition:all 0.8s cubic-bezier(0.5, 0, 0, 1); }
-        .reveal.visible { opacity:1; transform:none; }
-        #scroll-progress { position:fixed; top:0; left:0; height:3px; width:0; background:linear-gradient(90deg,var(--primary),var(--secondary)); z-index:1001; box-shadow:0 0 10px var(--primary);}
-        #btt { position:fixed; right:30px; bottom:30px; z-index:999; width:50px; height:50px; border-radius:50%; border:1px solid var(--primary); background:rgba(0,0,0,0.8); color:var(--primary); font-size:24px; cursor:pointer; opacity:0; transform:translateY(20px); transition:all .3s; backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center;}
-        #btt.show { opacity:1; transform:none; }
-        #btt:hover { box-shadow:0 0 20px var(--primary-glow); background:var(--primary); color:#000;}
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+        .form-control { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--surface-border); padding: 16px 20px; border-radius: 16px; color: #fff; font-family: var(--font-ui); font-size: 15px; transition: all 0.3s; outline: none; }
+        .form-control:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(0,240,255,0.1); background: rgba(0,240,255,0.02); }
+        textarea.form-control { resize: vertical; min-height: 120px; }
 
-        /* Canvas */
-        #hero-canvas { position:absolute; inset:0; width:100%; height:100%; z-index:1; opacity:0.8; pointer-events:none; }
+        /* ═══════════════════════════════════════
+           FOOTER
+        ═══════════════════════════════════════ */
+        footer { border-top: 1px solid var(--surface-border); padding: 60px 24px; text-align: center; background: rgba(0,0,0,0.4); }
+        .f-title { font-family: var(--font-head); font-weight: 700; font-size: 20px; color: #fff; letter-spacing: 1px; margin-bottom: 12px; }
+        .f-sub { font-size: 14px; color: var(--text-dark); font-family: var(--font-mono); margin-bottom: 32px; }
+        .f-team { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); }
+        .f-team span { color: var(--text-main); font-weight: 600; }
+
+        /* ═══════════════════════════════════════
+           ANIMATIONS & UTILS
+        ═══════════════════════════════════════ */
+        .reveal { opacity: 0; transform: translateY(40px) scale(0.95); filter: blur(10px); transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
+        .reveal.visible { opacity: 1; transform: none; filter: blur(0); }
+
+        /* EMG Overlay */
+        #emg-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 990; display: none; }
+        #emg-overlay.on { display: block; border: 4px solid var(--danger); background: rgba(239,68,68,0.05); animation: flash 1s infinite alternate; }
+        @keyframes flash { from { opacity: 0.5; } to { opacity: 1; } }
 
         /* Responsive */
-        @media(max-width:900px){
-            .hero-inner { grid-template-columns:1fr; text-align:center; padding:40px 20px;}
-            .hero-btns { justify-content:center; }
-            .dmain { grid-template-columns:1fr; }
-            .dp:nth-child(n) { border-right:none; border-bottom:1px solid var(--glass-border); }
-            .emp-grid, .perf-grid, .contact-grid { grid-template-columns:1fr; }
-            .emp-zone { border-right:none!important; }
-            .nav-links { display:none; }
+        @media(max-width: 1024px) {
+            .dash-main { grid-template-columns: 1fr; }
+            .dash-panel { border-right: none; border-bottom: 1px solid var(--surface-border); }
+            .dp-body { overflow: visible; }
+            .bento-grid { grid-template-columns: 1fr 1fr; }
+            .bento-item:nth-child(1), .bento-item:nth-child(4) { grid-column: auto; }
+            .emp-grid { grid-template-columns: 1fr 1fr; }
+            .emp-zone:nth-child(2n) { border-right: none; }
+        }
+        @media(max-width: 768px) {
+            .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+            .hero-title { font-size: 40px; }
+            .dash-stats { grid-template-columns: 1fr 1fr; }
+            .d-stat:nth-child(2) { border-right: none; }
+            .bento-grid { grid-template-columns: 1fr; }
+            .perf-grid, .contact-grid, .emp-grid { grid-template-columns: 1fr; }
+            .emp-zone { border-right: none !important; border-bottom: 1px solid var(--surface-border) !important; }
+            .nav-links { display: none; }
         }
     </style>
 </head>
 <body>
 
-<!-- Animated Cyber Background -->
-<div class="cyber-grid"></div>
-<div class="ambient-glow"></div>
+<!-- Ambient Background -->
+<div class="ambient-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+</div>
+<div class="grid-overlay"></div>
 
-<!-- ─────────── TOPNAV ─────────── -->
+<!-- Navigation -->
 <nav id="topnav">
     <a class="nav-brand" href="#hero">
         <div class="nav-mark">CT</div>
@@ -507,138 +401,135 @@
         <a href="#problem">Problem</a>
         <a href="#dashboard">Live Demo</a>
         <a href="#architecture">Architecture</a>
-        <a href="#research">Research</a>
-        <a href="#empathy">Empathy Map</a>
         <a href="#performance">Results</a>
-        <a href="#contact">Contact</a>
     </div>
-    <div class="nav-right">
-        <div class="nav-badge">IV SEM · CSE-B</div>
-        <div id="nav-clock">--:--:--</div>
-    </div>
+    <div id="nav-clock">--:--:--</div>
 </nav>
-<div id="scroll-progress"></div>
 
-<!-- ─────────── HERO ─────────── -->
+<!-- Hero Section -->
 <section id="hero">
-    <canvas id="hero-canvas" aria-hidden="true"></canvas>
-    <div class="hero-inner">
+    <div class="container hero-grid">
         <div class="reveal">
-            <div class="hero-tag"><div class="htag-dot"></div>PBL PROJECT · TEAM 1 · 22CSE43</div>
-            <h1 class="hero-title">Smart Cities:<br><span>Intelligent Traffic</span><br>Management</h1>
-            <p class="hero-desc">
-                An integrated Cognitive Traffic Management System (CTMS) that uses IoT sensing,
-                Deep Q-Network AI, YOLO object detection, and real-time stream processing
-                to dynamically optimize intersection throughput and prioritize emergency logistics.
-            </p>
+            <div class="hero-tag"><div class="htag-dot"></div> PBL Project · Team 1 · 22CSE43</div>
+            <h1 class="hero-title">Intelligent Traffic<br><span class="text-gradient">Management System</span></h1>
+            <p class="hero-desc">An edge-AI powered cognitive platform replacing static timers with Reinforcement Learning and Computer Vision to eliminate urban gridlock and prioritize emergency responses.</p>
             <div class="hero-btns">
-                <a href="#dashboard" class="btn-primary">View Live Demo</a>
-                <a href="#architecture" class="btn-outline">Explore Architecture</a>
+                <a href="#dashboard" class="btn-primary">Initialize Live Demo</a>
+                <a href="#architecture" class="btn-outline">System Architecture</a>
             </div>
         </div>
-        <div class="hero-card reveal">
-            <div class="hc-top">
-                <div class="hc-top-title">PROJECT INFO</div>
-                <div class="hc-dot"></div>
-            </div>
-            <div class="hc-meta">
-                <div class="hc-row"><span class="hck">Subject</span><span class="hcv">Database Management System</span></div>
-                <div class="hc-row"><span class="hck">Code</span><span class="hcv">22CSE43</span></div>
-                <div class="hc-row"><span class="hck">Section</span><span class="hcv">B · IV Semester</span></div>
-            </div>
-            <div class="team-list">
-                <div class="team-row"><div class="team-num">01</div><div><div class="team-name">Joel Ryan Bangera</div><div class="team-usn">4S024CS098</div></div></div>
-                <div class="team-row"><div class="team-num">02</div><div><div class="team-name">Jovin Sequeira</div><div class="team-usn">4S024CS100</div></div></div>
-                <div class="team-row"><div class="team-num">03</div><div><div class="team-name">Keshav Aditiya</div><div class="team-usn">4S024CS103</div></div></div>
-                <div class="team-row"><div class="team-num">04</div><div><div class="team-name">Loyston Leon D Souza</div><div class="team-usn">4S024CS135</div></div></div>
-            </div>
-            <div class="hero-stats">
-                <div class="hstat"><div class="hstat-v">40%</div><div class="hstat-l">WAIT REDUCTION</div></div>
-                <div class="hstat"><div class="hstat-v">50%</div><div class="hstat-l">FASTER EMS</div></div>
-                <div class="hstat"><div class="hstat-v">&lt;10μs</div><div class="hstat-l">DB LATENCY</div></div>
+        <div class="reveal" style="transition-delay: 0.2s;">
+            <div class="glass-id-card">
+                <div class="gic-header">
+                    <span class="gic-label">Project Database</span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--cyan);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div class="gic-body">
+                    <div class="gic-row"><span class="gic-k">Subject</span><span class="gic-v">Database Management System</span></div>
+                    <div class="gic-row"><span class="gic-k">Section</span><span class="gic-v">B · IV Semester</span></div>
+                    <div class="gic-row"><span class="gic-k">Department</span><span class="gic-v">Computer Science & Eng.</span></div>
+                    
+                    <div class="team-list">
+                        <div class="team-member"><div class="tm-avatar">01</div><div class="tm-info"><span class="tm-name">Joel Ryan Bangera</span><span class="tm-usn">4S024CS098</span></div></div>
+                        <div class="team-member"><div class="tm-avatar">02</div><div class="tm-info"><span class="tm-name">Jovin Sequeira</span><span class="tm-usn">4S024CS100</span></div></div>
+                        <div class="team-member"><div class="tm-avatar">03</div><div class="tm-info"><span class="tm-name">Keshav Aditiya</span><span class="tm-usn">4S024CS103</span></div></div>
+                        <div class="team-member"><div class="tm-avatar">04</div><div class="tm-info"><span class="tm-name">Loyston Leon D Souza</span><span class="tm-usn">4S024CS135</span></div></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ─────────── PROBLEM ─────────── -->
+<!-- Problem Section (Bento Grid) -->
 <section id="problem">
-    <div class="section-inner">
-        <div class="reveal">
-            <div class="sec-tag">The Problem</div>
-            <h2 class="sec-title">Why Static Signals <span>Fail Cities</span></h2>
-            <p class="sec-desc">Urban transportation networks are increasingly strained by population growth and aging infrastructure. Current timer-based systems can't adapt to real-time conditions — creating congestion, emissions, and delayed emergency responses.</p>
+    <div class="container">
+        <div class="sec-header reveal">
+            <div class="sec-label">The Challenge</div>
+            <h2 class="sec-title">Why Legacy Infrastructure <span style="color:var(--danger)">Fails</span></h2>
+            <p class="sec-desc">Current timer-based intersections cannot adapt to dynamic city flows, creating cascading gridlock and fatal delays for emergency services.</p>
         </div>
-        <div class="prob-grid reveal">
-            <div class="pcard"><div class="pnum">01</div><div class="pico">⏱</div><div class="ptitle">Inefficient Static Timing</div><div class="pdesc">Fixed green-light cycles ignore real-time traffic density, leading to unnecessary wait times and gridlock during peak hours or unexpected surges.</div></div>
-            <div class="pcard"><div class="pnum">02</div><div class="pico">🚑</div><div class="ptitle">Emergency Vehicle Delay</div><div class="pdesc">Ambulances and fire trucks are trapped behind standard red lights for up to 10 minutes — directly impacting life-threatening response times.</div></div>
-            <div class="pcard"><div class="pnum">03</div><div class="pico">🏚</div><div class="ptitle">Siloed Infrastructure</div><div class="pdesc">Traffic, emergency, and public-works departments operate in data silos with no shared platform — preventing coordinated city-wide responses.</div></div>
-            <div class="pcard"><div class="pnum">04</div><div class="pico">🌊</div><div class="ptitle">Cascading Gridlock</div><div class="pdesc">One blocked intersection triggers a domino effect across corridors — phantom jams spreading system-wide with no predictive mechanism.</div></div>
+        <div class="bento-grid">
+            <div class="spotlight-card bento-item reveal">
+                <div class="b-num">01</div>
+                <div class="b-icon">⏱️</div>
+                <h3 class="b-title">Static Timing Inefficiency</h3>
+                <p class="b-desc">Fixed green-light cycles ignore real-time density, leading to empty lanes holding green while cross-traffic builds massive queues.</p>
+            </div>
+            <div class="spotlight-card bento-item reveal" style="transition-delay: 0.1s;">
+                <div class="b-num">02</div>
+                <div class="b-icon" style="color:var(--danger)">🚑</div>
+                <h3 class="b-title">Emergency Blockage</h3>
+                <p class="b-desc">First responders are trapped behind red lights, directly impacting life-threatening response times by up to 10 minutes.</p>
+            </div>
+            <div class="spotlight-card bento-item reveal" style="transition-delay: 0.2s;">
+                <div class="b-num">03</div>
+                <div class="b-icon" style="color:var(--cyan)">🌊</div>
+                <h3 class="b-title">Cascading Gridlock</h3>
+                <p class="b-desc">A single blocked intersection creates a phantom jam that spreads system-wide without predictive mechanisms to stop it.</p>
+            </div>
+            <div class="spotlight-card bento-item reveal" style="transition-delay: 0.3s;">
+                <div class="b-num">04</div>
+                <div class="b-icon">⚡</div>
+                <h3 class="b-title">High Latency Decisions</h3>
+                <p class="b-desc">Relying on manual operators in control rooms introduces dangerous minutes of delay. Cities need sub-second, autonomous edge processing.</p>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- ─────────── LIVE DASHBOARD ─────────── -->
+<!-- Dashboard Section -->
 <section id="dashboard">
-    <div class="section-inner">
-        <div class="reveal">
-            <div class="sec-tag">Live Simulation</div>
-            <h2 class="sec-title">CTMS <span>Dashboard</span></h2>
-            <p class="sec-desc">Real-time simulation of 9 intersections powered by a Deep Q-Network AI, YOLO object detection, and Kafka stream processing. Click <strong style="color:var(--danger)">🚨 Simulate Emergency</strong> below to see priority override in action.</p>
+    <div class="container">
+        <div class="sec-header reveal">
+            <div class="sec-label">Live Simulation</div>
+            <h2 class="sec-title">CTMS <span style="color:var(--cyan)">Edge Platform</span></h2>
+            <p class="sec-desc">Real-time digital twin monitoring 9 intersections. Powered by Deep Q-Network RL and YOLOv8 object detection. <strong style="color:#fff">Hit the Emergency button below to test priority overrides.</strong></p>
         </div>
-        <div class="dash-wrap reveal">
-            <div class="dmetrics">
-                <div class="dmc"><div class="dmico" style="color:var(--primary);">⏱</div><div><div class="dmlabel">Avg Wait Time</div><div class="dmval"><span id="m-wait">18.3</span><small> sec</small></div><div class="dmdelta">↓ 35.2% vs static</div></div></div>
-                <div class="dmc"><div class="dmico" style="color:var(--ac3);">🚦</div><div><div class="dmlabel">Vehicle Throughput</div><div class="dmval"><span id="m-thru">4,821</span><small> /hr</small></div><div class="dmdelta">↑ 40.1% vs baseline</div></div></div>
-                <div class="dmc"><div class="dmico" style="color:var(--warn);">🚑</div><div><div class="dmlabel">Emergency Response</div><div class="dmval"><span id="m-ems">2.4</span><small> min</small></div><div class="dmdelta">↓ 51.3% improvement</div></div></div>
-                <div class="dmc"><div class="dmico" style="color:var(--ok);">🌱</div><div><div class="dmlabel">CO₂ Avoided</div><div class="dmval"><span id="m-co2">28.7</span><small> %</small></div><div class="dmdelta">↓ Idle emissions saved</div></div></div>
+        
+        <div class="dash-container reveal">
+            <!-- Stats -->
+            <div class="dash-stats">
+                <div class="d-stat"><div class="ds-label">Avg Wait Time</div><div class="ds-val"><span id="m-wait">18.3</span><small>s</small></div><div class="ds-delta">↓ 35% vs static</div></div>
+                <div class="d-stat"><div class="ds-label">Throughput</div><div class="ds-val"><span id="m-thru">4,821</span><small>/hr</small></div><div class="ds-delta" style="background:rgba(0,240,255,0.1);color:var(--cyan)">↑ 40% optimized</div></div>
+                <div class="d-stat"><div class="ds-label">EMS Response</div><div class="ds-val"><span id="m-ems">2.4</span><small>m</small></div><div class="ds-delta">↓ 51% faster</div></div>
+                <div class="d-stat"><div class="ds-label">DQN Accuracy</div><div class="ds-val"><span id="m-acc">87</span><small>%</small></div><div class="ds-delta" style="background:rgba(138,43,226,0.1);color:#c084fc">Epoch 14k</div></div>
             </div>
-            <div class="dmain">
-                <div class="dp">
-                    <div class="dph"><div class="dphttl">Live Intersection Grid</div><span class="dp-badge" id="dp-badge">DQN ACTIVE</span></div>
-                    <div class="dpbody"><div class="igrid" id="igrid"></div></div>
+            
+            <!-- Main grid -->
+            <div class="dash-main">
+                <!-- Intersections -->
+                <div class="dash-panel">
+                    <div class="dp-header"><div class="dp-title">Grid State</div><span style="font-family:var(--font-mono);font-size:10px;color:var(--cyan);border:1px solid var(--cyan);padding:4px 8px;border-radius:50px;" id="dp-badge">DQN ACTIVE</span></div>
+                    <div class="dp-body"><div class="i-grid" id="igrid"></div></div>
                 </div>
-                <div class="dp">
-                    <div class="chart-wrap">
-                        <div class="dph"><div class="dphttl">Throughput (vehicles/hr)</div></div>
-                        <div class="ccanvas-wrap"><canvas id="tchart"></canvas></div>
-                    </div>
-                    <div class="events-col">
-                        <div class="dph"><div class="dphttl">CEP Event Stream</div><span id="ev-count" style="font-size:10px;color:var(--txtd);font-family:var(--f2)">0 events</span></div>
-                        <div class="evfeed" id="evfeed"></div>
-                    </div>
+                
+                <!-- Chart & Logs -->
+                <div class="dash-panel">
+                    <div class="dp-header"><div class="dp-title">Throughput Analytics</div></div>
+                    <div class="chart-wrapper"><canvas id="tchart"></canvas></div>
+                    <div class="dp-header" style="border-top:1px solid var(--surface-border)"><div class="dp-title">Event Stream</div></div>
+                    <div class="log-feed" id="evfeed"></div>
                 </div>
-                <div class="dp">
-                    <div class="dph"><div class="dphttl">AI Control Engine</div><span class="dp-badge">ONLINE</span></div>
-                    <div class="dpbody">
-                        <div class="ai-sec">
-                            <div class="ai-sec-title">Deep Q-Network</div>
-                            <div class="ai-dbox">
-                                <div class="dqn-ring-row">
-                                    <svg class="rsvg" viewBox="0 0 44 44">
-                                        <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="4"/>
-                                        <circle id="rring" cx="22" cy="22" r="18" fill="none" stroke="#00f2fe" stroke-width="4" stroke-dasharray="113.1" stroke-dashoffset="14" stroke-linecap="round" transform="rotate(-90 22 22)"/>
-                                        <text id="rrtxt" x="22" y="26" text-anchor="middle" fill="#00f2fe" font-family="JetBrains Mono,monospace" font-size="10" font-weight="700">87%</text>
-                                    </svg>
-                                    <div class="rstats">
-                                        <div class="rlbl">CUMULATIVE REWARD</div>
-                                        <div class="rval" id="dqn-r">+0.872</div>
-                                        <div class="rsub" id="dqn-ep">Episode 14,392 · ε=0.05</div>
-                                    </div>
-                                </div>
-                                <div class="ai-row"><span class="ai-k">Status</span><span class="ai-v ok">● INFERENCE</span></div>
-                                <div class="ai-row"><span class="ai-k">Architecture</span><span class="ai-v">DQN ResNet-18</span></div>
-                                <div class="ai-row"><span class="ai-k">Decision Rate</span><span class="ai-v ac" id="dqn-dec">47 dec/s</span></div>
-                            </div>
+                
+                <!-- AI Engine -->
+                <div class="dash-panel">
+                    <div class="dp-header"><div class="dp-title">AI Engine</div></div>
+                    <div class="dp-body">
+                        <div class="ai-module">
+                            <div class="ai-m-title">Deep Q-Network <span>● INFERENCE</span></div>
+                            <div class="ai-row"><span class="ai-k">Architecture</span><span class="ai-v">ResNet-18</span></div>
+                            <div class="ai-row"><span class="ai-k">Reward Score</span><span class="ai-v cyan" id="dqn-r">+0.872</span></div>
+                            <div class="ai-row"><span class="ai-k">Decision Rate</span><span class="ai-v">47 dec/s</span></div>
+                            <div class="ai-row"><span class="ai-k">Lookahead</span><span class="ai-v">γ=0.99 · T+30s</span></div>
                         </div>
-                        <div class="ai-sec">
-                            <div class="ai-sec-title">YOLO v8 Object Detection</div>
-                            <div class="det-list" id="yololist"></div>
+                        <div class="ai-module">
+                            <div class="ai-m-title">Stream Processor <span>● SYNC</span></div>
+                            <div class="ai-row"><span class="ai-k">Active Topics</span><span class="ai-v">9 Partitions</span></div>
+                            <div class="ai-row"><span class="ai-k">Kafka Msg Rate</span><span class="ai-v cyan" id="kafka">2,840/s</span></div>
+                            <div class="ai-row"><span class="ai-k">Redis Latency</span><span class="ai-v ok" id="redis">6.2μs</span></div>
                         </div>
-                        <div class="ai-sec">
-                            <div class="ai-sec-title">Emergency Override</div>
-                            <button class="emg-act-btn" onclick="triggerEmergency()">🚨 SIMULATE EMERGENCY VEHICLE</button>
-                        </div>
+                        <button class="emg-btn" onclick="triggerEmergency()">🚨 Simulate Emergency</button>
                     </div>
                 </div>
             </div>
@@ -646,234 +537,267 @@
     </div>
 </section>
 
-<!-- ─────────── ARCHITECTURE ─────────── -->
+<!-- Architecture -->
 <section id="architecture">
-    <div class="section-inner">
-        <div class="reveal">
-            <div class="sec-tag">System Design</div>
-            <h2 class="sec-title">Technical <span>Architecture</span></h2>
-            <p class="sec-desc">A layered system combining edge computing, in-memory databases, reinforcement learning, and stream processing — each component purpose-built for sub-second urban mobility decisions.</p>
+    <div class="container">
+        <div class="sec-header reveal">
+            <div class="sec-label">System Design</div>
+            <h2 class="sec-title">Edge-to-Cloud <span style="color:var(--purple)">Stack</span></h2>
         </div>
-        <div class="arch-grid reveal">
-            <div class="arch-card">
-                <div class="arch-icon">🔌</div>
-                <div class="arch-title">IoT Sensor Layer</div>
-                <div class="arch-desc">Inductive loop sensors, radar units, and cameras capture raw vehicle counts and speeds as input to the AI pipeline.</div>
-                <div class="arch-tech"><span class="tech-tag">Inductive Loops</span><span class="tech-tag">RADAR</span><span class="tech-tag">Edge Nodes</span></div>
+        <div class="arch-grid">
+            <div class="spotlight-card reveal">
+                <div class="arch-icon" style="color:var(--cyan)">🔌</div>
+                <h3 class="arch-title">IoT Sensor Edge</h3>
+                <p class="arch-desc">Inductive loops and IP cameras feed raw state into local edge nodes, completely bypassing cloud latency for critical safety loops.</p>
+                <div class="tags"><span class="tag">Radar</span><span class="tag">Cameras</span><span class="tag">Edge GPU</span></div>
             </div>
-            <div class="arch-card">
-                <div class="arch-icon">⚡</div>
-                <div class="arch-title">Redis Edge Cache</div>
-                <div class="arch-desc">All intersection state is held in a Redis cache, guaranteeing &lt;10μs state access latency for real-time AI inference.</div>
-                <div class="arch-tech"><span class="tech-tag">Redis</span><span class="tech-tag">&lt;10μs Latency</span></div>
+            <div class="spotlight-card reveal" style="transition-delay: 0.1s;">
+                <div class="arch-icon" style="color:#c084fc">⚡</div>
+                <h3 class="arch-title">Redis In-Memory</h3>
+                <p class="arch-desc">Guarantees sub-10μs state access. The entire city intersection state matrix lives in-memory, synchronized instantly to PostgreSQL for persistence.</p>
+                <div class="tags"><span class="tag">Redis Cache</span><span class="tag">PostgreSQL 3NF</span></div>
             </div>
-            <div class="arch-card">
-                <div class="arch-icon">🧠</div>
-                <div class="arch-title">Deep Q-Network (DQN)</div>
-                <div class="arch-desc">Trained via reinforcement learning on a digital twin to learn optimal green-phase policies maximizing throughput.</div>
-                <div class="arch-tech"><span class="tech-tag">DQN</span><span class="tech-tag">RL</span><span class="tech-tag">Digital Twin</span></div>
+            <div class="spotlight-card reveal" style="transition-delay: 0.2s;">
+                <div class="arch-icon" style="color:var(--ok)">🧠</div>
+                <h3 class="arch-title">Deep Reinforcement</h3>
+                <p class="arch-desc">A DQN agent trained on a digital twin maximizes cumulative vehicle throughput by dynamically altering phases and creating green waves.</p>
+                <div class="tags"><span class="tag">DQN</span><span class="tag">PyTorch</span><span class="tag">Digital Twin</span></div>
             </div>
-            <div class="arch-card">
-                <div class="arch-icon">👁</div>
-                <div class="arch-title">YOLO Object Detection</div>
-                <div class="arch-desc">Processes live feeds. Ambulance detection triggers an instant priority override to clear a path automatically.</div>
-                <div class="arch-tech"><span class="tech-tag">YOLOv8</span><span class="tech-tag">GPU Edge</span></div>
+            <div class="spotlight-card reveal" style="transition-delay: 0.3s;">
+                <div class="arch-icon" style="color:var(--danger)">👁️</div>
+                <h3 class="arch-title">YOLOv8 Vision</h3>
+                <p class="arch-desc">Identifies ambulances and fire trucks in real-time, instantly bypassing DQN logic to clear an emergency corridor across intersections.</p>
+                <div class="tags"><span class="tag">Computer Vision</span><span class="tag">YOLOv8</span></div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ─────────── PERFORMANCE ─────────── -->
+<!-- Performance Bars -->
 <section id="performance">
-    <div class="section-inner">
-        <div class="reveal">
-            <div class="sec-tag">Expected Results</div>
-            <h2 class="sec-title">Performance <span>Outcomes</span></h2>
+    <div class="container">
+        <div class="sec-header reveal">
+            <div class="sec-label">Benchmarks</div>
+            <h2 class="sec-title">Empirical <span style="color:var(--ok)">Results</span></h2>
         </div>
-        <div class="perf-grid reveal">
-            <div class="perf-card">
-                <div class="perf-title">📊 System Improvements</div>
-                <div class="perf-bar-wrap">
-                    <div class="perf-bar-head"><span class="perf-bar-lbl">Avg Wait Time Reduction</span><span class="perf-bar-val">40%</span></div>
-                    <div class="perf-bar-track"><div class="perf-bar-fill" style="width:40%; background:var(--primary); color:var(--primary);" data-w="40"></div></div>
+        <div class="perf-grid">
+            <div class="spotlight-card reveal">
+                <div class="bar-wrap">
+                    <div class="bar-head"><span class="bar-lbl">Wait Time Reduction</span><span class="bar-val" style="color:var(--cyan)">40%</span></div>
+                    <div class="bar-track"><div class="bar-fill" style="width:0; background:var(--cyan);" data-w="40"></div></div>
                 </div>
-                <div class="perf-bar-wrap">
-                    <div class="perf-bar-head"><span class="perf-bar-lbl">Emergency Response Improvement</span><span class="perf-bar-val">50%</span></div>
-                    <div class="perf-bar-track"><div class="perf-bar-fill" style="width:50%; background:var(--danger); color:var(--danger);" data-w="50"></div></div>
+                <div class="bar-wrap">
+                    <div class="bar-head"><span class="bar-lbl">EMS Response Speedup</span><span class="bar-val" style="color:var(--danger)">50%</span></div>
+                    <div class="bar-track"><div class="bar-fill" style="width:0; background:var(--danger);" data-w="50"></div></div>
                 </div>
-                <div class="perf-bar-wrap">
-                    <div class="perf-bar-head"><span class="perf-bar-lbl">Vehicle Throughput Gain</span><span class="perf-bar-val">41%</span></div>
-                    <div class="perf-bar-track"><div class="perf-bar-fill" style="width:41%; background:var(--ac3); color:var(--ac3);" data-w="41"></div></div>
+                <div class="bar-wrap">
+                    <div class="bar-head"><span class="bar-lbl">Throughput Gain</span><span class="bar-val" style="color:var(--purple)">41%</span></div>
+                    <div class="bar-track"><div class="bar-fill" style="width:0; background:var(--purple);" data-w="41"></div></div>
+                </div>
+                <div class="bar-wrap" style="margin-bottom:0;">
+                    <div class="bar-head"><span class="bar-lbl">CO₂ Emission Reduction</span><span class="bar-val" style="color:var(--ok)">28%</span></div>
+                    <div class="bar-track"><div class="bar-fill" style="width:0; background:var(--ok);" data-w="28"></div></div>
                 </div>
             </div>
-            <div class="perf-card">
-                <div class="perf-title">⚡ Technical Benchmarks</div>
-                <div class="stat-grid">
-                    <div class="stat-box"><div class="stat-box-v" style="color:var(--primary)">&lt;10μs</div><div class="stat-box-l">Redis State Access</div><div class="stat-box-c">Edge cache latency</div></div>
-                    <div class="stat-box"><div class="stat-box-v" style="color:var(--ac3)">&lt;1s</div><div class="stat-box-l">End-to-End Decision</div><div class="stat-box-c">Sensor → signal</div></div>
-                    <div class="stat-box"><div class="stat-box-v" style="color:var(--ok)">99.8%</div><div class="stat-box-l">Ambulance Detection</div><div class="stat-box-c">YOLO confidence</div></div>
-                    <div class="stat-box"><div class="stat-box-v" style="color:var(--primary)">2.8K</div><div class="stat-box-l">Kafka Msgs/sec</div><div class="stat-box-c">Stream throughput</div></div>
-                </div>
+            <div class="stat-blocks reveal" style="transition-delay: 0.2s;">
+                <div class="s-block"><div class="s-val" style="color:var(--cyan)">&lt;10μs</div><div class="s-lbl">Database Latency</div></div>
+                <div class="s-block"><div class="s-val" style="color:var(--ok)">99.8%</div><div class="s-lbl">YOLO Confidence</div></div>
+                <div class="s-block"><div class="s-val" style="color:#c084fc">14K+</div><div class="s-lbl">DQN Episodes</div></div>
+                <div class="s-block"><div class="s-val" style="color:var(--danger)">5 min</div><div class="s-lbl">Jam Prediction</div></div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- ─────────── FOOTER ─────────── -->
+<!-- Footer -->
 <footer>
-    <div class="footer-title">CTMS — COGNITIVE TRAFFIC MANAGEMENT SYSTEM</div>
-    <div class="footer-sub">PBL Project · 22CSE43 · IV Semester · Section B</div>
-    <div class="footer-team">
-        <span>Team No. 1 · <span>Joel Ryan Bangera</span></span>
-        <span><span>Jovin Sequeira</span></span>
-        <span><span>Keshav Aditiya</span></span>
-        <span><span>Loyston Leon D Souza</span></span>
+    <div class="container">
+        <div class="f-title">CTMS Platform</div>
+        <div class="f-sub">Database Management System Final Project · 22CSE43</div>
+        <div class="f-team">
+            <span>Joel Ryan Bangera (4S024CS098)</span>
+            <span>Jovin Sequeira (4S024CS100)</span>
+            <span>Keshav Aditiya (4S024CS103)</span>
+            <span>Loyston Leon D Souza (4S024CS135)</span>
+        </div>
     </div>
 </footer>
 
+<!-- Overlays -->
 <div id="emg-overlay"></div>
-<div id="emg-banner">🚨 AMBULANCE DETECTED — INT-B2 — PRIORITY OVERRIDE ACTIVE</div>
-<button id="btt">↑</button>
 
-<!-- ═══════════════════════════════════════
-   JAVASCRIPT (Untouched Logic, Adapted for UI)
-═══════════════════════════════════════ -->
+<!-- JavaScript Logic -->
 <script>
-    // Clock
-    const clockEl = document.getElementById('nav-clock');
-    setInterval(() => clockEl.textContent = new Date().toLocaleTimeString('en-US',{hour12:false}), 1000);
+    /* ── Spotlight Hover Effect on Cards ── */
+    document.querySelectorAll('.spotlight-card').forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+            card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+        });
+    });
 
-    // Scroll Reveal
-    const revObs = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:0.1});
-    document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+    /* ── Intersection Observer (Scroll Reveals & Progress Bars) ── */
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                // Trigger progress bars
+                const bars = entry.target.querySelectorAll('.bar-fill');
+                bars.forEach(bar => { bar.style.width = bar.getAttribute('data-w') + '%'; });
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // Intersection State & Grid Logic
-    const NAMES = ['A1','A2','A3','B1','B2','B3','C1','C2','C3'];
-    const ints = NAMES.map(id => ({
-        id, phase: Math.random()>.5?'NS':'EW', timer: Math.floor(Math.random()*35)+8,
-        maxT: Math.floor(Math.random()*18)+25,
-        den: {N:Math.random()*85+5, S:Math.random()*85+5, E:Math.random()*85+5, W:Math.random()*85+5},
-        dqn: 0.72+Math.random()*0.24, emg: false
+    /* ── Nav Scroll & Clock ── */
+    window.addEventListener('scroll', () => {
+        document.getElementById('topnav').classList.toggle('scrolled', window.scrollY > 20);
+    });
+    setInterval(() => {
+        document.getElementById('nav-clock').textContent = new Date().toLocaleTimeString('en-US', {hour12:false});
+    }, 1000);
+
+    /* ── DASHBOARD SIMULATION LOGIC ── */
+    const NAMES=['A1','A2','A3','B1','B2','B3','C1','C2','C3'];
+    const ints = NAMES.map(id=>({
+        id, phase:Math.random()>.5?'NS':'EW',
+        den:{N:Math.random()*85+5,S:Math.random()*85+5,E:Math.random()*85+5,W:Math.random()*85+5},
+        dqn:0.72+Math.random()*0.24, emg:false
     }));
-    function dcls(v){return v<45?'lo':v<75?'md':'hi';}
 
-    function makeRoadSVG(int){
+    function getColor(v){ return v<45? 'var(--ok)' : v<75? 'var(--warn)' : 'var(--danger)'; }
+
+    function makeSVG(int){
         const ns=int.phase==='NS';
-        const gNS=ns?'#10b981':'#ef4444', gEW=ns?'#ef4444':'#10b981';
-        const emgCircle=int.emg?`<circle cx="50" cy="50" r="13" fill="none" stroke="#ef4444" stroke-width="2.5" opacity=".85"/>`:''
-        const veh=['N','S','E','W'].map(d=>{
-            if(int.den[d]<55)return'';
-            if(d==='N')return`<rect x="46.5" y="6" width="4" height="7" fill="#00f2fe" rx="1"/>`;
-            if(d==='S')return`<rect x="49.5" y="68" width="4" height="7" fill="#00f2fe" rx="1"/>`;
-            if(d==='E')return`<rect x="67" y="46.5" width="7" height="4" fill="#818cf8" rx="1"/>`;
-            return `<rect x="18" y="49.5" width="7" height="4" fill="#818cf8" rx="1"/>`;
-        }).join('');
-        return `<svg class="isvg" viewBox="0 0 100 100">
-            <rect width="100" height="100" fill="rgba(0,0,0,0.4)" rx="4"/>
-            <rect x="40" y="0" width="20" height="100" fill="rgba(255,255,255,0.05)"/>
-            <rect x="0" y="40" width="100" height="20" fill="rgba(255,255,255,0.05)"/>
-            <circle cx="34" cy="34" r="4" fill="${gNS}" opacity=".95"/>
-            <circle cx="66" cy="66" r="4" fill="${gNS}" opacity=".95"/>
-            <circle cx="66" cy="34" r="4" fill="${gEW}" opacity=".95"/>
-            <circle cx="34" cy="66" r="4" fill="${gEW}" opacity=".95"/>
-            ${veh}${emgCircle}
+        const cNS=ns?'var(--ok)':'#333', cEW=ns?'#333':'var(--ok)';
+        const emg=int.emg?`<circle cx="50" cy="50" r="16" fill="none" stroke="var(--danger)" stroke-width="3"/>`:'';
+        return `<svg class="ic-svg" viewBox="0 0 100 100">
+            <rect x="40" y="0" width="20" height="100" fill="#111"/>
+            <rect x="0" y="40" width="100" height="20" fill="#111"/>
+            <rect x="40" y="40" width="20" height="20" fill="#222"/>
+            <line x1="50" y1="0" x2="50" y2="40" stroke="#444" stroke-dasharray="4"/>
+            <line x1="50" y1="60" x2="50" y2="100" stroke="#444" stroke-dasharray="4"/>
+            <line x1="0" y1="50" x2="40" y2="50" stroke="#444" stroke-dasharray="4"/>
+            <line x1="60" y1="50" x2="100" y2="50" stroke="#444" stroke-dasharray="4"/>
+            <circle cx="35" cy="35" r="4" fill="${cNS}"/> <circle cx="65" cy="65" r="4" fill="${cNS}"/>
+            <circle cx="65" cy="35" r="4" fill="${cEW}"/> <circle cx="35" cy="65" r="4" fill="${cEW}"/>
+            ${emg}
         </svg>`;
     }
 
     function renderGrid(){
         document.getElementById('igrid').innerHTML = ints.map(int => {
-            const ph = int.emg?'EMG':int.phase;
-            return `<div class="icell${int.emg?' emg':''}">
-                <div class="ihead"><span class="iid">INT-${int.id}</span><span class="iphase ${ph}">${int.emg?'🚨':ph}</span></div>
-                ${makeRoadSVG(int)}
-                <div class="dbars">
-                    ${['N','S','E','W'].map(d=>`<div class="dbar-item"><div class="dbar-lbl">${d} ${Math.round(int.den[d])}%</div><div class="dbar-track"><div class="dbar-fill ${dcls(int.den[d])}" style="width:${int.den[d]}%"></div></div></div>`).join('')}
+            const ph = int.emg ? 'EMG' : int.phase;
+            return `<div class="i-cell ${int.emg?'emg':''}">
+                <div class="ic-head"><span class="ic-id">${int.id}</span><span class="ic-phase ${ph}">${int.emg?'🚨':ph}</span></div>
+                ${makeSVG(int)}
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-family:var(--font-mono); font-size:9px;">
+                    ${['N','S','E','W'].map(d=>`
+                    <div><div style="color:var(--text-dark);margin-bottom:2px;">${d} ${Math.round(int.den[d])}%</div>
+                    <div style="height:3px; background:var(--surface-border); border-radius:2px;"><div style="height:100%; width:${int.den[d]}%; background:${getColor(int.den[d])}; transition:width 1s;"></div></div></div>`).join('')}
                 </div>
-                <div class="idqn-row"><span>Q: <span class="idqn-score">${int.dqn.toFixed(3)}</span></span><span class="itimer">⏱${int.timer}s</span></div>
             </div>`;
         }).join('');
     }
 
-    // Chart.js
-    const thruHist=Array.from({length:20},()=>Math.round(4100+Math.random()*1600));
-    const tChart=new Chart(document.getElementById('tchart').getContext('2d'),{
-        type:'line',
-        data:{labels:Array.from({length:20},(_,i)=>`T-${20-i}`), datasets:[{ label:'Throughput', data:[...thruHist], borderColor:'#00f2fe', backgroundColor:'rgba(0, 242, 254, 0.1)', fill:true, tension:.4 }]},
-        options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{display:false}, y:{grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#94a3b8'}} } }
+    /* ── Logs ── */
+    const feed = document.getElementById('evfeed');
+    function addLog(type, msg){
+        const t = new Date().toLocaleTimeString('en-US',{hour12:false});
+        const d = document.createElement('div');
+        d.className = `log-item ${type}`;
+        d.innerHTML = `<span class="log-t">${t}</span> <span>${msg}</span>`;
+        feed.prepend(d);
+        if(feed.children.length > 20) feed.lastChild.remove();
+    }
+
+    /* ── Chart ── */
+    const chartCtx = document.getElementById('tchart').getContext('2d');
+    const tData = Array.from({length: 15}, () => 4000 + Math.random()*1000);
+    const dashChart = new Chart(chartCtx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 15}, (_,i)=> `-${15-i}s`),
+            datasets: [{
+                data: tData, borderColor: '#00f0ff', borderWidth: 2,
+                backgroundColor: 'rgba(0, 240, 255, 0.1)', fill: true, tension: 0.4, pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: {display: false} },
+            scales: {
+                x: { display: false },
+                y: { grid: {color: 'rgba(255,255,255,0.05)'}, ticks: {color: '#64748b', font:{family:'JetBrains Mono'}}, min: 3000, max: 6000 }
+            }
+        }
     });
 
-    // Event Feed
-    let evCount=0;
-    function addEvent(type,msg){
-        const feed=document.getElementById('evfeed');
-        const t=new Date().toLocaleTimeString('en-US',{hour12:false});
-        const d=document.createElement('div'); d.className=`evitem ${type}`;
-        d.innerHTML=`<span class="evt">${t}</span><span class="evm">${msg}</span>`;
-        feed.insertBefore(d,feed.firstChild);
-        if(feed.children.length>20) feed.removeChild(feed.lastChild);
-        document.getElementById('ev-count').textContent=`${++evCount} events`;
+    /* ── Simulation Loop ── */
+    let emgActive = false;
+    function simLoop(){
+        ints.forEach(int => {
+            if(!int.emg){
+                if(Math.random() < 0.1) int.phase = int.phase === 'NS' ? 'EW' : 'NS';
+                ['N','S','E','W'].forEach(d => int.den[d] = Math.max(5, Math.min(95, int.den[d] + (Math.random()-.5)*15)));
+            }
+        });
+        renderGrid();
+
+        document.getElementById('kafka').textContent = (2400 + Math.random()*600).toFixed(0) + '/s';
+        document.getElementById('redis').textContent = (4 + Math.random()*3).toFixed(1) + 'μs';
+        document.getElementById('dqn-r').textContent = '+' + (0.8 + Math.random()*0.15).toFixed(3);
+
+        tData.shift(); tData.push(4000 + Math.random()*1500);
+        dashChart.update();
+
+        if(Math.random() < 0.2 && !emgActive){
+            const msgs = [
+                {t:'info', m:'DQN optimized green wave at A1-A3 corridor'},
+                {t:'success', m:'Redis sync completed in 5.2μs'},
+                {t:'warn', m:'High density predicted at B2 West node'},
+                {t:'info', m:'Kafka partition-3 ingested 1,200 events'}
+            ];
+            const log = msgs[Math.floor(Math.random()*msgs.length)];
+            addLog(log.t, log.m);
+        }
     }
 
-    // YOLO List
-    function renderYOLO(emg){
-        let arr = emg ? [{t:'Ambulance', i:'🚑', c:'emg'}] : [{t:'Sedan', i:'🚗', c:'ok'}, {t:'Bus', i:'🚌', c:'ok'}];
-        document.getElementById('yololist').innerHTML = arr.map(v => `<div class="det-item ${v.c==='emg'?'emg':''}"><div class="dico">${v.i}</div><div><div class="dtype">${v.t}</div><div class="dloc">Cam-1</div></div><div class="dconf ${v.c}">${v.c==='emg'?'99.9%':'92.1%'}</div></div>`).join('');
-    }
-
-    // Emergency Override
-    let emgActive=false;
-    function triggerEmergency(){
-        if(emgActive) return; emgActive=true;
-        ints.find(i=>i.id==='B2').emg = true;
-        renderGrid(); renderYOLO(true);
-        document.getElementById('emg-overlay').classList.add('on'); document.getElementById('emg-banner').classList.add('on');
-        addEvent('danger', '🚨 AMBULANCE DETECTED: Priority override active.');
+    /* ── Emergency Trigger ── */
+    window.triggerEmergency = function(){
+        if(emgActive) return;
+        emgActive = true;
+        const b2 = ints.find(i=>i.id==='B2');
+        if(b2) b2.emg = true;
+        
+        document.getElementById('emg-overlay').classList.add('on');
+        document.getElementById('dp-badge').textContent = '⚠ OVERRIDE';
+        document.getElementById('dp-badge').style.color = 'var(--danger)';
+        document.getElementById('dp-badge').style.borderColor = 'var(--danger)';
+        
+        renderGrid();
+        addLog('danger', '🚨 YOLOv8 detected Ambulance at INT-B2. Standard cycle halted.');
+        setTimeout(() => addLog('danger', 'Bypassing DQN logic. Forcing green corridor B2 ➔ C2.'), 1000);
+        setTimeout(() => addLog('warn', 'Floodgate active: Diverting traffic at A2.'), 2500);
+        
         setTimeout(() => {
-            emgActive=false; ints.find(i=>i.id==='B2').emg = false;
-            document.getElementById('emg-overlay').classList.remove('on'); document.getElementById('emg-banner').classList.remove('on');
-            renderGrid(); renderYOLO(false); addEvent('success', 'Emergency cleared. DQN restored.');
+            emgActive = false;
+            if(b2) b2.emg = false;
+            document.getElementById('emg-overlay').classList.remove('on');
+            document.getElementById('dp-badge').textContent = 'DQN ACTIVE';
+            document.getElementById('dp-badge').style.color = 'var(--cyan)';
+            document.getElementById('dp-badge').style.borderColor = 'var(--cyan)';
+            addLog('success', 'Emergency cleared. Handing INT-B2 back to DQN agent.');
+            renderGrid();
         }, 8000);
     }
 
-    // Main Loop
-    setInterval(() => {
-        ints.forEach(int => {
-            if(int.emg) return;
-            int.timer = Math.max(0, int.timer-1);
-            if(int.timer <= 0){ int.phase = int.phase==='NS'?'EW':'NS'; int.timer = int.maxT; }
-            ['N','S','E','W'].forEach(d => int.den[d] = Math.max(5, Math.min(95, int.den[d]+(Math.random()-.5)*10)));
-        });
-        renderGrid();
-        thruHist.shift(); thruHist.push(Math.round(4100+Math.random()*1600));
-        tChart.data.datasets[0].data = [...thruHist]; tChart.update('none');
-        if(Math.random() > 0.7) addEvent('info', 'DQN state synchronized with edge cache.');
-    }, 2000);
+    // Init
+    renderGrid();
+    addLog('success', 'CTMS Edge Nodes Online. Digital twin synchronized.');
+    setInterval(simLoop, 2000);
 
-    // Initial Renders
-    renderGrid(); renderYOLO(false); addEvent('success', 'System Online.');
-
-    // Scroll Progress & Nav
-    window.addEventListener('scroll', () => {
-        const h = document.documentElement.scrollHeight - window.innerHeight;
-        document.getElementById('scroll-progress').style.width = (window.scrollY / h * 100) + '%';
-        document.getElementById('topnav').classList.toggle('scrolled', window.scrollY > 50);
-        document.getElementById('btt').classList.toggle('show', window.scrollY > 500);
-    });
-    document.getElementById('btt').addEventListener('click', () => window.scrollTo(0,0));
-
-    // Hero Canvas Effect
-    const cv = document.getElementById('hero-canvas'), ctx = cv.getContext('2d');
-    let W, H, particles = [];
-    function resize(){ W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
-    window.addEventListener('resize', resize); resize();
-    for(let i=0; i<30; i++) particles.push({x: Math.random()*W, y: Math.random()*H, s: Math.random()*2+1});
-    function anim(){
-        ctx.clearRect(0,0,W,H);
-        ctx.fillStyle = 'rgba(0, 242, 254, 0.5)';
-        particles.forEach(p => { p.y -= p.s; if(p.y < 0) p.y = H; ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill(); });
-        requestAnimationFrame(anim);
-    }
-    anim();
 </script>
 </body>
 </html>
